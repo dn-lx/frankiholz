@@ -3,17 +3,31 @@
 ## Branch policy
 
 1. `main` is always the production source.
-2. Create one `work/<topic>` branch from the latest `main` for a batch of requested changes.
-3. Keep all intermediate commits on that working branch.
-4. Test the complete website and booking flow before production.
-5. Merge the working branch into `main` only when everything in the batch is ready.
-6. Netlify then deploys the new `main` commit once.
-7. Delete the working branch after merge if it is no longer required.
+2. Create one `work/<topic>` branch from the latest `main` for a complete batch of requested changes.
+3. Keep every intermediate commit on that working branch.
+4. Test the complete website, admin and booking flow before production.
+5. Merge the working branch into `main` only when the entire batch is ready.
+6. Netlify deploys the new `main` commit to production once.
+7. Delete the completed working branch when no longer needed.
 
 ## Cost-control rule
 
-Configure Netlify to deploy only the `main` production branch by default. Disable automatic branch deploys and deploy previews unless a preview is intentionally requested.
+Configure Netlify to deploy the `main` production branch only. Keep automatic branch deploys and deploy previews disabled by default.
 
-## Before merging to main
+## Production checks before merge
 
-Check room loading, room photos, calendar availability, Airbnb-blocked dates, request creation, booking-status lookup, admin login, approval/payment link creation, Stripe return pages, mobile layout, SEO files and clean URLs.
+- German and English public pages and language switch
+- Exact FrankiHolz transparent logo
+- Room names/descriptions in both languages
+- Public page-load Airbnb/iCal sync and current blocked dates
+- Calendar availability and dynamic pricing
+- Booking request creation and stored language
+- Booking-status lookup
+- Admin login and bilingual content editing
+- Stripe Checkout creation and return pages
+- Stripe live webhook processing when live payments are enabled
+- Mobile layout, SEO metadata, sitemap and clean URLs
+
+## Secrets
+
+Production Stripe, webhook, email and Supabase service-role secrets must stay in service-side secret stores and must never be committed to GitHub.

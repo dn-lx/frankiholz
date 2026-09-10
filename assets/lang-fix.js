@@ -1,0 +1,1 @@
+(()=>{const q=new URLSearchParams(location.search).get('lang');const stored=localStorage.getItem('frankiholz-lang');const wanted=(q==='en'||q==='de')?q:((stored==='en'||stored==='de')?stored:null);if(wanted&&typeof currentLang!=='undefined'&&currentLang!==wanted){currentLang=wanted;applyLanguage();}})();
