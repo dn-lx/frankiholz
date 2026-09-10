@@ -26,6 +26,14 @@ async function loadBookings(){
     </div>`;
   }).join('')||'<div class="empty">No bookings yet.</div>'
 }
+async function sendGuestLifecycleEmail(bookingId,eventType,accessToken){
+  try{
+    const res=await fetch(`${CFG.supabaseUrl}/functions/v1/frankiholz-guest-email`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${accessToken}`,'apikey':CFG.supabaseKey},body:JSON.stringify({booking_id:bookingId,event_type:eventType})});
+    const out=await res.json();
+    if(!res.ok)console.warn('Guest email could not be sent',out.error||out);
+    else if(out.configured===false)console.info('Guest email is prepared but Resend is not configured yet.');
+  }catch(e){console.warn('Guest email could not be sent',e)}
+}
 window.approveAndPay=async id=>{
   const btn=event?.target;
   if(btn){btn.disabled=true;btn.textContent='Creating payment…'}
@@ -39,6 +47,7 @@ window.approveAndPay=async id=>{
     });
     const out=await res.json();
     if(!res.ok)throw new Error(out.error||'Could not create payment');
+    await sendGuestLifecycleEmail(id,'approved',session.access_token);
     await loadBookings();
     await Promise.all(rooms.map(r=>loadRoomCalendar(r.id)));
     if(out.checkout_url)window.open(out.checkout_url,'_blank','noopener');
@@ -57,6 +66,7 @@ window.cancelBooking=async id=>{
     });
     const out=await res.json();
     if(!res.ok)throw new Error(out.error||'Could not cancel booking');
+    await sendGuestLifecycleEmail(id,'rejected',session.access_token);
     await loadBookings();
     await Promise.all(rooms.map(r=>loadRoomCalendar(r.id)));
   }catch(e){alert(e.message||String(e));}
