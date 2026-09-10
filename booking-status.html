@@ -1,0 +1,13 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Booking status · FrankiHolz</title>
+<link rel="stylesheet" href="/assets/styles.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/assets/config.js"></script></head>
+<body><main class="section"><div class="wrap"><div class="panel status-check-panel" style="max-width:720px;margin:auto">
+<span class="section-kicker">FrankiHolz booking</span><h2>Booking & payment status</h2>
+<p class="lead">Enter the booking reference and the same email address used for your request.</p>
+<div class="form-grid"><div><label>Booking reference</label><input id="ref" placeholder="FH-XXXXXXXX"></div><div><label>Email</label><input id="email" type="email"></div></div>
+<button class="btn secondary" id="go" style="margin-top:12px">Check status</button><div id="out"></div><p style="margin-top:20px"><a href="/">← Back to FrankiHolz</a></p>
+</div></div></main>
+<script>
+const C=window.FRANKIHOLZ_CONFIG,s=window.supabase.createClient(C.supabaseUrl,C.supabaseKey),$=id=>document.getElementById(id),money=n=>`€${Number(n||0).toFixed(2)}`,esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+$('go').onclick=async()=>{const {data,error}=await s.rpc('frankiholz_booking_status',{p_reference:$('ref').value.trim(),p_email:$('email').value.trim()});const b=data?.[0];if(error||!b){$('out').innerHTML=`<div class="notice">${esc(error?.message||'No matching booking found.')}</div>`;return}let pay=b.payment_url&&b.payment_status==='awaiting_payment'?`<a class="btn secondary" href="${b.payment_url}" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none;margin-top:12px">Pay now</a>`:'';$('out').innerHTML=`<div class="notice ${b.payment_status==='paid'?'success':''}"><b>${esc(b.reference)}</b> · ${esc(b.room_name)}<br>${b.check_in} → ${b.check_out} · ${money(b.total_price)}<br>Booking: <b>${esc(b.booking_status)}</b> · Payment: <b>${esc(String(b.payment_status).replaceAll('_',' '))}</b>${b.payment_due_at?`<br>Payment deadline: ${new Date(b.payment_due_at).toLocaleString()}`:''}${pay}</div>`};
+</script></body></html>

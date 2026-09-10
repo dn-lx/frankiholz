@@ -1,0 +1,49 @@
+[[redirects]]
+  from = "/index.html"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin/"
+  to = "/admin.html"
+  status = 200
+
+[[redirects]]
+  from = "/booking-status"
+  to = "/booking-status.html"
+  status = 200
+
+[[redirects]]
+  from = "/booking-status/"
+  to = "/booking-status.html"
+  status = 200
+
+[[redirects]]
+  from = "/payment-success"
+  to = "/payment-success.html"
+  status = 200
+
+[[redirects]]
+  from = "/payment-success/"
+  to = "/payment-success.html"
+  status = 200
+
+[[headers]]
+  for = "/admin*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/booking-status*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/payment-success*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
