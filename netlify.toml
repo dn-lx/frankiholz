@@ -1,3 +1,23 @@
+
+[[redirects]]
+  from = "/de"
+  to = "/?lang=de"
+  status = 302
+
+[[redirects]]
+  from = "/de/"
+  to = "/?lang=de"
+  status = 302
+
+[[redirects]]
+  from = "/en"
+  to = "/?lang=en"
+  status = 302
+
+[[redirects]]
+  from = "/en/"
+  to = "/?lang=en"
+  status = 302
 [[redirects]]
   from = "/index.html"
   to = "/"
