@@ -1,5 +1,4 @@
 (()=>{
-  const testMode=new URLSearchParams(location.search).get('stripe_test')==='1';
   const flowText={
     en:{
       submit:'Continue to secure card authorization',
@@ -35,6 +34,12 @@
     }
   };
   const ft=()=>flowText[currentLang]||flowText.en;
+  async function paymentEnvironment(){
+    const {data,error}=await sb.rpc('frankiholz_get_payment_environment');
+    if(error)throw new Error('Payment environment is temporarily unavailable. Please try again.');
+    if(data!=='live'&&data!=='test')throw new Error('Payment environment is not configured correctly.');
+    return data;
+  }
 
   T.en.submitRequest=flowText.en.submit;
   T.de.submitRequest=flowText.de.submit;
@@ -73,6 +78,7 @@
       const submit=button;
       if(submit){submit.disabled=true;submit.textContent=ft().opening}
       try{
+        const mode=await paymentEnvironment();
         const {data,error}=await sb.rpc('frankiholz_create_booking',payload);
         if(error)throw error;
         const b=data?.[0];
@@ -80,7 +86,7 @@
         sessionStorage.setItem('frankiholz-last-reference',b.reference);
         sessionStorage.setItem('frankiholz-last-email',payload.p_guest_email);
         sessionStorage.setItem('frankiholz-last-lang',currentLang);
-        const functionName=testMode?'frankiholz-create-authorization-test':'frankiholz-create-authorization';
+        const functionName=mode==='test'?'frankiholz-create-authorization-test':'frankiholz-create-authorization';
         const res=await fetch(`${CFG.supabaseUrl}/functions/v1/${functionName}`,{method:'POST',headers:{'Content-Type':'application/json','apikey':CFG.supabaseKey},body:JSON.stringify({reference:b.reference,email:payload.p_guest_email})});
         const auth=await res.json();
         if(!res.ok||!auth.checkout_url)throw new Error(auth.error||ft().authFailed);
