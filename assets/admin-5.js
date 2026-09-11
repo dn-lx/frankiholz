@@ -72,4 +72,53 @@ window.cancelBooking=async id=>{
   }catch(e){alert(e.message||String(e));}
 };
 function safeName(n){return n.toLowerCase().replace(/[^a-z0-9._-]+/g,'-').slice(-100)}function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function attr(v){return esc(v)}function js(v){return String(v??'').replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
+
+function setupAdminTabs(){
+  const wrap=document.querySelector('#dashboard .wrap');
+  const header=wrap?.querySelector('.admin-header');
+  if(!wrap||!header||wrap.querySelector('.admin-tabs'))return;
+  const panels=[...wrap.querySelectorAll(':scope > .panel')];
+  if(panels.length<6)return;
+  const categories=['website','website','pricing','availability','rooms','bookings'];
+  panels.forEach((panel,index)=>{panel.classList.add('admin-tab-panel');panel.dataset.adminPanel=categories[index]||'website'});
+  const defs=[
+    ['website','Website'],
+    ['pricing','Pricing'],
+    ['availability','Availability'],
+    ['rooms','Rooms'],
+    ['bookings','Bookings']
+  ];
+  const tabs=document.createElement('nav');
+  tabs.className='admin-tabs';
+  tabs.setAttribute('aria-label','FrankiHolz admin sections');
+  tabs.innerHTML=defs.map(([key,label])=>`<button type="button" class="admin-tab" data-admin-tab="${key}">${label}</button>`).join('');
+  header.insertAdjacentElement('afterend',tabs);
+  const valid=new Set(defs.map(([key])=>key));
+  const fromHash=location.hash.replace('#','');
+  const remembered=localStorage.getItem('frankiholz-admin-tab');
+  const initial=valid.has(fromHash)?fromHash:(valid.has(remembered)?remembered:'bookings');
+  const activate=key=>{
+    if(!valid.has(key))key='bookings';
+    tabs.querySelectorAll('.admin-tab').forEach(btn=>{
+      const active=btn.dataset.adminTab===key;
+      btn.classList.toggle('active',active);
+      btn.setAttribute('aria-selected',String(active));
+    });
+    panels.forEach(panel=>{
+      const show=panel.dataset.adminPanel===key;
+      panel.hidden=!show;
+      panel.classList.toggle('tab-visible',show);
+    });
+    localStorage.setItem('frankiholz-admin-tab',key);
+    history.replaceState(null,'',`#${key}`);
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+  tabs.addEventListener('click',event=>{
+    const button=event.target.closest('[data-admin-tab]');
+    if(button)activate(button.dataset.adminTab);
+  });
+  activate(initial);
+}
+
 verifyAdmin();
+setupAdminTabs();
