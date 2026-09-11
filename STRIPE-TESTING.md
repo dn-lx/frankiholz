@@ -77,7 +77,7 @@ Use any future expiry date and any three-digit CVC.
 - Use far-future dates that are not needed by real guests.
 - Sandbox bookings still exercise the real FrankiHolz booking/calendar state machine, so clean them up after testing.
 - `payment_mode = test` is the authoritative marker that no real money is involved.
-- Sandbox lifecycle emails include a `[TEST]` prefix after the booking has been marked as test mode.
+- Emails generated after Stripe authorization carry a `[TEST]` prefix. The initial request-created email can be sent before the booking is marked as test mode, so it may not have that prefix.
 - Never replace production Stripe secrets with sandbox values.
 
 ## What to verify
