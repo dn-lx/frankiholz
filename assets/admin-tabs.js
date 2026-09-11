@@ -53,4 +53,10 @@
     s.dataset.frankiholzAdminAuthorization='1';
     document.body.appendChild(s);
   }
+  if(!document.querySelector('script[data-frankiholz-payment-environment]')){
+    const s=document.createElement('script');
+    s.src='/assets/payment-environment-admin.js?v=20260912-env1';
+    s.dataset.frankiholzPaymentEnvironment='1';
+    document.body.appendChild(s);
+  }
 })();
