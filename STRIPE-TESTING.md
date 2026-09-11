@@ -1,78 +1,70 @@
 # FrankiHolz Stripe sandbox testing
 
-FrankiHolz has a separate Stripe sandbox path for testing the booking payment experience without charging real money or changing the real booking/calendar state.
+FrankiHolz has a dedicated Stripe sandbox path that runs the **same authorization → 48-hour hold → host accept/reject** state machine as production without charging real money.
 
-## Stripe account
+## Sandbox account and webhook
 
-Use the **FrankiHolz sandbox** Stripe account only.
+Use the **FrankiHolz sandbox** Stripe account.
 
-The sandbox webhook endpoint is:
+Sandbox webhook endpoint:
 
 ```text
 https://bdeajozhylypiidrldka.supabase.co/functions/v1/frankiholz-stripe-webhook-test
 ```
 
-It listens for:
+Enabled sandbox events:
 
 - `checkout.session.completed`
-- `checkout.session.async_payment_succeeded`
-- `checkout.session.async_payment_failed`
 - `checkout.session.expired`
+- `payment_intent.succeeded`
+- `payment_intent.payment_failed`
+- `payment_intent.canceled`
 
-## One-time Supabase secret setup
-
-The sandbox payment functions intentionally use different secret names from production.
-
-In the Supabase project **FrankiFlow & FrankiHolz Backend**, add these Edge Function secrets:
+Required Supabase secrets:
 
 ```text
-STRIPE_TEST_SECRET_KEY=<FrankiHolz sandbox sk_test key>
-STRIPE_TEST_WEBHOOK_SECRET=<signing secret for the sandbox webhook endpoint>
+STRIPE_TEST_SECRET_KEY
+STRIPE_TEST_WEBHOOK_SECRET
 ```
 
-Do **not** replace or edit the production secrets:
+Production secrets remain separate:
 
 ```text
 STRIPE_SECRET_KEY
 STRIPE_WEBHOOK_SECRET
 ```
 
-The production and sandbox paths are isolated from each other.
+## Starting sandbox mode
 
-## Sandbox guest/admin workflow
+Open the normal FrankiHolz website with the hidden test flag:
 
-1. A guest submits a normal FrankiHolz booking request on the public website.
-2. The booking appears in FrankiHolz Admin → **Bookings** as a normal request.
-3. Under the booking row, the admin can use the separate **Stripe Sandbox** controls and click **Create TEST payment**.
-4. FrankiHolz calls the isolated Edge Function `frankiholz-create-payment-test`.
-5. Stripe creates a `cs_test_...` hosted Checkout Session for the booking's current total in EUR.
-6. The test session is stored only in the booking's `stripe_test_*` / `test_payment_*` fields.
-7. The guest/tester completes Stripe Checkout with Stripe test payment details.
-8. Stripe sends the result to `frankiholz-stripe-webhook-test`.
-9. The webhook updates only the **TEST payment status** (`paid`, `failed`, or `expired`).
-10. The admin can see the TEST status in the booking row. The tester can also use `/booking-status-test` with the booking reference and email.
-11. A successful test returns to `/payment-success-test`.
+```text
+https://accommodation.frankiflow.de/?lang=en&stripe_test=1
+```
 
-## What sandbox testing does NOT do
+or German:
 
-Sandbox testing does **not**:
+```text
+https://accommodation.frankiflow.de/?lang=de&stripe_test=1
+```
 
-- charge real money,
-- change the real `payment_status`,
-- change the real booking approval status,
-- reserve or release room dates,
-- send the normal production payment-confirmation lifecycle email,
-- alter the production Stripe configuration.
+The public booking UI remains the same, but the authorization Checkout is created through `frankiholz-create-authorization-test` and the booking is marked `payment_mode = test`.
 
-This separation allows the payment UI and webhook handling to be tested safely against real-looking booking data.
+## End-to-end sandbox workflow
 
-## Production workflow remains separate
+1. Select an available room and dates.
+2. Enter guest details and continue to Stripe.
+3. Complete the sandbox Checkout with a Stripe test card.
+4. Stripe authorizes the amount with manual capture. No real money is charged.
+5. The sandbox webhook changes the booking to `payment_status = authorized`, leaves `status = pending`, sets a 48-hour decision deadline and blocks the selected dates.
+6. FrankiHolz Admin shows a **TEST** badge and the same production decision controls:
+   - **Accept & capture payment**
+   - **Reject & release authorization**
+7. Accept captures the sandbox PaymentIntent and confirms the booking.
+8. Reject cancels the sandbox authorization and releases the dates.
+9. If neither action occurs within 48 hours, the scheduled expiry function cancels the authorization and releases the dates automatically.
 
-The existing production button **Approve & create payment** still uses `frankiholz-create-payment` and the live FrankiHolz Stripe configuration. Production approval creates the real payment hold, blocks the dates during the payment window and, after a successful live payment, keeps the booking confirmed and the dates booked.
-
-## Stripe test card
-
-For a standard successful card payment in Stripe test mode, use:
+## Standard successful test card
 
 ```text
 4242 4242 4242 4242
@@ -80,9 +72,25 @@ For a standard successful card payment in Stripe test mode, use:
 
 Use any future expiry date and any three-digit CVC.
 
-## Test pages
+## Testing rules
 
-- Sandbox status: `https://accommodation.frankiflow.de/booking-status-test`
-- Sandbox success: `https://accommodation.frankiflow.de/payment-success-test`
+- Use far-future dates that are not needed by real guests.
+- Sandbox bookings still exercise the real FrankiHolz booking/calendar state machine, so clean them up after testing.
+- `payment_mode = test` is the authoritative marker that no real money is involved.
+- Sandbox lifecycle emails include a `[TEST]` prefix after the booking has been marked as test mode.
+- Never replace production Stripe secrets with sandbox values.
 
-These pages are marked `noindex,nofollow` and clearly identify the transaction as TEST mode.
+## What to verify
+
+A complete sandbox test should confirm:
+
+- Stripe Checkout session is test mode (`cs_test_...`).
+- PaymentIntent reaches `requires_capture` after card authorization.
+- Booking becomes pending + authorized.
+- Dates become blocked for other guests.
+- Host decision deadline is approximately 48 hours after authorization.
+- Accept captures the PaymentIntent and changes dates to booked.
+- Reject cancels the PaymentIntent and reopens dates.
+- Automatic expiry cancels overdue authorizations and reopens dates.
+- Guest email events are written for authorization and the final decision.
+- Stripe test webhook events are recorded in `frankiholz_test_payment_events`.
