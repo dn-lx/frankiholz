@@ -1,7 +1,7 @@
 /* FrankiHolz bilingual + canonical brand logo */
 .brand-logo-link{text-decoration:none;min-width:0;display:flex;align-items:center;color:#fff}
 .brand-logo-frame{display:flex;align-items:center;justify-content:center;background:transparent;border-radius:0;padding:0;overflow:visible;box-shadow:none;flex:0 0 auto}
-.brand-logo-image{content:url('https://drive.google.com/uc?export=view&id=1BZNuS6MZ_tmHXACmE1nZ_mhDZ2AsUSNz');display:block;width:190px;height:82px;object-fit:contain;object-position:left center;background:transparent;filter:brightness(1.65) saturate(.85) contrast(.96);drop-shadow:0 7px 16px rgba(0,0,0,.16)}
+.brand-logo-image{content:url('https://drive.google.com/uc?export=view&id=1aVH7Lq67OJVN_L1ciClsJWVtp-AF7gVl');display:block;width:190px;height:82px;object-fit:contain;object-position:left center;background:transparent;filter:drop-shadow(0 7px 16px rgba(0,0,0,.16))}
 .lang-switch{display:inline-flex;align-items:center;gap:3px;padding:3px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.20);border-radius:11px}
 .lang-btn{border:0;border-radius:8px;padding:6px 9px;background:transparent;color:inherit;font-size:11px;font-weight:800;cursor:pointer}
 .lang-btn.active{background:#fff;color:var(--brand-blue-dark);box-shadow:0 3px 10px rgba(0,0,0,.12)}
