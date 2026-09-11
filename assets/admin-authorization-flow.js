@@ -4,6 +4,10 @@
     return map[b.payment_status]||String(b.payment_status||'').replaceAll('_',' ');
   }
   function modeBadge(b){return b.payment_mode==='test'?'<span class="status" style="background:#fff3cd;color:#7a5a00">TEST</span>':''}
+  const bookingsLead=document.querySelector('[data-admin-panel="bookings"] .lead');
+  if(bookingsLead)bookingsLead.textContent='Guests authorize their cards first. Accept a held booking to capture the payment, or reject it to release the authorization. You have 48 hours to decide.';
+  if($('p-hold')?.previousElementSibling)$('p-hold').previousElementSibling.textContent='Stripe authorization checkout window (minutes)';
+
   window.loadBookings=async function(){
     const {data,error}=await sb.from('frankiholz_bookings').select('*,frankiholz_rooms(name)').order('created_at',{ascending:false});
     if(error){$('bookings').innerHTML=`<div class="notice">${esc(error.message)}</div>`;return}
