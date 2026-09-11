@@ -1,47 +1,46 @@
 # FrankiHolz guest booking workflow
 
-Last verified: 2026-09-11
+Last updated: 2026-09-11
 
-## Current guest journey
+## Production guest journey
 
-1. **Guest chooses a room.** The public site loads active FrankiHolz rooms, room photos and current availability.
-2. **Guest chooses check-in and check-out.** The calendar is calculated from FrankiHolz availability, confirmed FrankiHolz bookings and imported Airbnb iCal blocks.
-3. **FrankiHolz calculates an estimated stay total.** `frankiholz_estimate_total` validates the selected dates and applies the current dynamic-pricing rules.
-4. **Guest submits the booking request.** Name and email are required; phone, country and message are optional. The request is saved with a reference such as `FH-XXXXXXXX`.
-5. **The request starts as pending.** A pending request has `status = pending` and `payment_status = not_started`. Pending requests do **not** block the room dates.
-6. **Admin reviews the request.** In FrankiHolz Admin → Bookings, the admin can reject it or choose **Approve & create payment**.
-7. **Approval creates a temporary room hold.** Approval changes the booking to confirmed/awaiting payment, blocks the selected dates and sets a payment deadline using the configured payment-hold duration.
-8. **Stripe Checkout is created for the exact booking total.** The Checkout session uses the guest email, EUR, the selected booking language and the booking/reference IDs in metadata.
-9. **Guest pays through Stripe Checkout.** The payment link is available through the booking-status flow and can also be sent by the guest lifecycle email integration.
-10. **Successful Stripe payment confirms the booking.** The Stripe webhook marks the booking as paid, records the payment identifiers and leaves the dates blocked as booked. A payment-confirmation email event is then triggered.
-11. **Failed or expired payment releases the dates.** If the Checkout session expires or an asynchronous payment fails, the booking is closed and the temporary calendar hold is released.
-12. **Guest can check status at any time.** The booking-status page accepts the booking reference and booking email and shows booking status, payment status, deadline and the payment link when payment is still due.
+1. **Guest chooses a room and dates.** The public calendar combines FrankiHolz availability, active holds, confirmed bookings and imported Airbnb iCal blocks.
+2. **FrankiHolz calculates the stay total.** Dynamic pricing is applied before the booking request is created.
+3. **Guest enters their details and continues to Stripe.** FrankiHolz creates a booking reference such as `FH-XXXXXXXX`, then opens a Stripe-hosted Checkout page.
+4. **Stripe authorizes the card instead of charging it immediately.** Checkout uses a PaymentIntent with `capture_method = manual`. Only card payments are offered for this workflow.
+5. **Successful authorization places the booking on hold.** The booking remains `status = pending`, changes to `payment_status = authorized`, and the selected dates become unavailable with a temporary `blocked` calendar status.
+6. **The host has 48 hours to decide.** The guest is told that the card is authorized but not charged. `payment_due_at` is the host-decision deadline.
+7. **Admin accepts or rejects the held request.** FrankiHolz Admin → Bookings shows two actions for an authorized booking:
+   - **Accept & capture payment**
+   - **Reject & release authorization**
+8. **Accept captures the authorized amount.** Stripe captures the existing PaymentIntent. FrankiHolz changes the booking to `confirmed` / `paid`, and the calendar dates become `booked`.
+9. **Reject releases the authorization.** Stripe cancels the PaymentIntent before capture. FrankiHolz closes the request, changes payment status to `released`, and makes the dates available again.
+10. **No response within 48 hours is handled automatically.** A scheduled expiry job checks every 15 minutes. Overdue authorizations are cancelled in Stripe, the booking becomes `expired`, and the dates are released.
+11. **Guest can check status at any time.** The booking-status page accepts the booking reference and guest email and shows whether card authorization is incomplete, the request is on hold, confirmed/paid, rejected/released, or expired.
+
+## Email lifecycle
+
+The guest email flow uses these events:
+
+- `request_received` — booking request was created and Stripe authorization still needs to be completed.
+- `authorization_received` — card authorization succeeded; dates are held and the host has up to 48 hours to decide.
+- `booking_confirmed` — host accepted and the authorized amount was captured.
+- `booking_rejected` — host rejected and the authorization was released without a charge.
+- `authorization_expired` — no host decision was made within 48 hours; the authorization was released automatically.
+
+The admin notification for a newly authorized booking is sent when `authorization_received` is processed so the host knows a 48-hour decision is required.
 
 ## Important operational behavior
 
-- A booking request by itself does not reserve the room.
-- The room becomes unavailable to other guests when the admin approves the request and the payment hold begins.
-- A paid booking remains confirmed and blocked.
-- A paid booking cannot be released through the normal cancel/status workflow without a refund workflow.
-- If the payment deadline expires, the hold is released automatically by the payment-expiry handling.
+- Creating a booking reference by itself does **not** hold a room.
+- The room is held only after Stripe confirms the card authorization.
+- A held request is still pending host approval and is not a confirmed reservation.
+- The guest is charged only after the host accepts and Stripe capture succeeds.
+- Rejection normally cancels an uncaptured authorization; it is not a normal refund because the charge was never captured.
+- Banks can continue to display a released card authorization as pending for a short period after cancellation.
+- Confirmed/paid bookings remain blocked as `booked`.
+- Live and sandbox Stripe webhooks use the same state machine, but sandbox transactions use Stripe test money and are clearly marked with `payment_mode = test`.
 
-## Verification performed on 2026-09-11
+## Automatic 48-hour release
 
-### Booking/database smoke test
-
-A two-night Room 1 booking for 2029-03-12 → 2029-03-14 was priced at **€80.00** and reported available. A test call to `frankiholz_create_booking` successfully returned a FrankiHolz reference and the expected €80.00 total. The SQL transaction was deliberately rolled back, and a follow-up query confirmed that no test booking remained in the production database.
-
-### Stripe test-mode evidence
-
-The separate **FrankiHolz sandbox** Stripe account contains `cs_test_...` Checkout sessions created by the earlier FrankiHolz integration self-test. They carry the FrankiHolz booking ID/reference metadata and have correctly reached expired/unpaid state. The sandbox webhook endpoint is enabled for:
-
-- `checkout.session.completed`
-- `checkout.session.async_payment_succeeded`
-- `checkout.session.async_payment_failed`
-- `checkout.session.expired`
-
-The Supabase payment-event ledger contains the corresponding sandbox `checkout.session.expired` events, showing that the test-mode webhook path processed those events.
-
-### Current environment caveat
-
-The production `frankiholz-create-payment` and `frankiholz-stripe-webhook` Edge Functions use one configured Stripe secret/webhook-secret pair at a time. Production is currently configured for the live FrankiHolz Stripe account. Therefore a brand-new end-to-end sandbox Checkout + current production webhook test should **not** be run by swapping production secrets. If a fully isolated recurring sandbox environment is wanted later, use a dedicated test Edge Function/secrets (or a separate Supabase test project) so production payment configuration is never changed during tests.
+Supabase schedules `frankiholz-expire-authorizations` every 15 minutes using `pg_cron` and `pg_net`. The function searches only for bookings with `payment_status = authorized` and an expired `payment_due_at`, cancels the corresponding live or test PaymentIntent, releases the calendar hold and triggers the guest expiry email.
