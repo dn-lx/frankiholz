@@ -47,4 +47,10 @@
     if(valid.has(name))activate(name,false);
   });
   activate(start,false);
+  if(!document.querySelector('script[data-frankiholz-admin-authorization]')){
+    const s=document.createElement('script');
+    s.src='/assets/admin-authorization-flow.js?v=20260911-auth2';
+    s.dataset.frankiholzAdminAuthorization='1';
+    document.body.appendChild(s);
+  }
 })();
