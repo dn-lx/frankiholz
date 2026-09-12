@@ -24,16 +24,44 @@ jobs:
       - name: Checkout develop
         uses: actions/checkout@v7
 
+      - name: Copy approved FrankiHolz logo from Google Drive
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from urllib.request import Request, urlopen
+
+          file_id = "1HlgZzD8beXvP2m_zboRzunQYK8JwVHOP"
+          url = f"https://drive.usercontent.google.com/download?id={file_id}&export=download&confirm=t"
+          req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
+          data = urlopen(req, timeout=30).read()
+          if not data.startswith(b"\x89PNG\r\n\x1a\n"):
+              raise RuntimeError(f"Google Drive did not return the approved PNG logo (received {len(data)} bytes)")
+          out = Path("assets/frankiholz-logo-approved.png")
+          out.write_bytes(data)
+          print(f"Copied approved Google Drive logo to {out} ({len(data)} bytes)")
+          PY
+
       - name: Build staging-safe static site
         run: python3 scripts/build-staging.py
 
-      - name: Verify staging safety
+      - name: Verify staging safety and approved branding
         run: |
           grep -q "ShipStatic staging is always Stripe TEST" _site/assets/authorization-flow.js
           test ! -f _site/assets/staging-banner.js
           test -f _site/booking-status/index.html
           test -f _site/payment-success/index.html
           test -f _site/admin/index.html
+          test -f _site/assets/frankiholz-logo-approved.png
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('_site/assets/frankiholz-logo-approved.png')
+          data = p.read_bytes()
+          assert data.startswith(b'\x89PNG\r\n\x1a\n')
+          assert len(data) > 50000, f'Logo file unexpectedly small: {len(data)} bytes'
+          html = Path('_site/index.html').read_text(encoding='utf-8')
+          assert '/assets/frankiholz-logo-approved.png?v=20260912f' in html
+          assert 'drive.google.com/uc?' not in html
+          PY
           ! grep -q "const mode=await paymentEnvironment();" _site/assets/authorization-flow.js
 
       - name: Deploy staging to ShipStatic
