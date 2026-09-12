@@ -1,4 +1,4 @@
-name: Deploy FrankiHolz staging to ShipStatic
+name: Deploy FrankiHolz develop to ShipStatic
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: frankiholz-staging-shipstatic
+  group: frankiholz-develop-shipstatic
   cancel-in-progress: true
 
 jobs:
@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: shipstatic-staging
-      url: ${{ steps.ship.outputs.url }}
+      url: https://frankiholz.shipstatic.com
     steps:
       - name: Checkout develop
         uses: actions/checkout@v7
@@ -46,12 +46,12 @@ jobs:
           print(f"Installed exact approved logo ({len(data)} bytes, {digest})")
           PY
 
-      - name: Build staging-safe static site
+      - name: Build development-safe static site
         run: python3 scripts/build-staging.py
 
-      - name: Verify staging safety, branding and admin
+      - name: Verify development safety, branding and admin
         run: |
-          grep -q "ShipStatic staging is always Stripe TEST" _site/assets/authorization-flow.js
+          grep -q "ShipStatic development is always Stripe TEST" _site/assets/authorization-flow.js
           grep -q "logoFallbackApplied" _site/assets/lang-fix.js
           test ! -f _site/assets/staging-banner.js
           test -f _site/booking-status/index.html
@@ -75,18 +75,18 @@ jobs:
           assert '/assets/frankiholz-logo-approved.png' not in html
           assert 'http-equiv="Cache-Control"' in html
           match = re.search(r'src="data:image/png;base64,([A-Za-z0-9+/=]+)"', html)
-          assert match, 'Embedded FrankiHolz logo missing from staging homepage'
+          assert match, 'Embedded FrankiHolz logo missing from development homepage'
           embedded = base64.b64decode(match.group(1))
           assert len(embedded) == expected_size
           assert hashlib.sha256(embedded).hexdigest() == expected_sha
 
           admin = Path('_site/admin/index.html').read_text(encoding='utf-8')
           assert 'Secure management portal for FrankiHolz by FrankiFlow.' in admin
-          assert 'FRANKIHOLZ STAGING' in admin
-          assert 'Admin disabled on ShipStatic staging' not in admin
+          assert 'FRANKIHOLZ DEVELOPMENT' in admin
+          assert 'Admin disabled on ShipStatic development' not in admin
           assert 'http-equiv="Cache-Control"' in admin
           admin_match = re.search(r'src="data:image/png;base64,([A-Za-z0-9+/=]+)"', admin)
-          assert admin_match, 'Embedded FrankiHolz logo missing from staging admin'
+          assert admin_match, 'Embedded FrankiHolz logo missing from development admin'
           admin_logo = base64.b64decode(admin_match.group(1))
           assert len(admin_logo) == expected_size
           assert hashlib.sha256(admin_logo).hexdigest() == expected_sha
@@ -104,28 +104,28 @@ jobs:
           PY
           ! grep -q "const mode=await paymentEnvironment();" _site/assets/authorization-flow.js
 
-      - name: Deploy staging to ShipStatic
+      - name: Deploy development to ShipStatic
         id: ship
         uses: shipstatic/action@v2
         with:
           token: ${{ secrets.SHIP_TOKEN }}
           path: ./_site
-          domain: ${{ vars.SHIP_DOMAIN || secrets.SHIP_DOMAIN }}
-          labels: staging,frankiholz
+          domain: frankiholz.shipstatic.com
+          labels: development,frankiholz,develop
 
-      - name: Verify custom staging domain
+      - name: Verify permanent development URL
         env:
-          STAGING_DOMAIN: ${{ vars.SHIP_DOMAIN || secrets.SHIP_DOMAIN }}
+          DEV_DOMAIN: frankiholz.shipstatic.com
         run: |
           set -euo pipefail
           for attempt in 1 2 3 4 5 6; do
-            if curl -fsSL "https://${STAGING_DOMAIN}/?verify=${GITHUB_SHA}" -o /tmp/frankiholz-home.html; then
+            if curl -fsSL "https://${DEV_DOMAIN}/?verify=${GITHUB_SHA}" -o /tmp/frankiholz-home.html; then
               break
             fi
             sleep 3
           done
           grep -q 'data:image/png;base64' /tmp/frankiholz-home.html
-          status="$(curl -sS -o /tmp/legacy-logo.bin -w '%{http_code}' -L "https://${STAGING_DOMAIN}/assets/frankiholz-header-light.webp?verify=${GITHUB_SHA}")"
+          status="$(curl -sS -o /tmp/legacy-logo.bin -w '%{http_code}' -L "https://${DEV_DOMAIN}/assets/frankiholz-header-light.webp?verify=${GITHUB_SHA}")"
           test "$status" = "200"
           python3 - <<'PY'
           from pathlib import Path
@@ -134,7 +134,7 @@ jobs:
           PY
           curl -sS -D /tmp/cors-headers.txt -o /dev/null -X OPTIONS \
             'https://bdeajozhylypiidrldka.supabase.co/functions/v1/frankiholz-sync-airbnb' \
-            -H "Origin: https://${STAGING_DOMAIN}" \
+            -H "Origin: https://${DEV_DOMAIN}" \
             -H 'Access-Control-Request-Method: POST' \
             -H 'Access-Control-Request-Headers: content-type,apikey,x-frankiholz-source'
-          grep -qi "^access-control-allow-origin: https://${STAGING_DOMAIN}" /tmp/cors-headers.txt
+          grep -qi "^access-control-allow-origin: https://${DEV_DOMAIN}" /tmp/cors-headers.txt
