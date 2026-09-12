@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import json
 import shutil
 from pathlib import Path
 
@@ -24,8 +25,15 @@ APPROVED_LOGO_SIZE = 758364
 
 def inject_staging_safety(html: str) -> str:
     robots_tag = '<meta name="robots" content="noindex,nofollow">'
+    cache_tags = (
+        '<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">'
+        '<meta http-equiv="Pragma" content="no-cache">'
+        '<meta http-equiv="Expires" content="0">'
+    )
     if robots_tag not in html:
         html = html.replace("</head>", f"{robots_tag}</head>")
+    if 'http-equiv="Cache-Control"' not in html:
+        html = html.replace("</head>", f"{cache_tags}</head>")
     return html
 
 
@@ -110,7 +118,7 @@ def build() -> None:
     if "FRANKIHOLZ STAGING" not in admin:
         admin = admin.replace('<section id="loginView" class="login-card">', '<section id="loginView" class="login-card">' + staging_badge, 1)
     admin = replace_logo_source(admin, logo_data_uri)
-    admin_page.write_text(admin, encoding="utf-8")
+    admin_page.write_text(inject_staging_safety(admin), encoding="utf-8")
 
     # Keep clean URLs working on static hosting.
     aliases = {
@@ -123,6 +131,21 @@ def build() -> None:
         route_dir.mkdir(parents=True, exist_ok=True)
         shutil.copy2(OUT / source, route_dir / "index.html")
 
+    # Staging must never reuse an older custom-domain snapshot from browser or
+    # intermediary cache. ShipStatic reads ship.json from the deployment root.
+    ship_config = {
+        "headers": [
+            {
+                "source": "/(.*)",
+                "headers": [
+                    {"key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, max-age=0"},
+                    {"key": "Pragma", "value": "no-cache"},
+                    {"key": "Expires", "value": "0"},
+                ],
+            }
+        ]
+    }
+    (OUT / "ship.json").write_text(json.dumps(ship_config, indent=2) + "\n", encoding="utf-8")
     (OUT / "robots.txt").write_text("User-agent: *\nDisallow: /\n", encoding="utf-8")
     print(f"Built FrankiHolz ShipStatic staging site at {OUT}")
 
