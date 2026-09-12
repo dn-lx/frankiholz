@@ -1,0 +1,52 @@
+name: Deploy FrankiHolz staging to ShipStatic
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frankiholz-staging-shipstatic
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    environment:
+      name: shipstatic-staging
+      url: ${{ steps.ship.outputs.url }}
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v7
+
+      - name: Build staging-safe static site
+        run: python3 scripts/build-staging.py
+
+      - name: Verify staging safety
+        run: |
+          grep -q "ShipStatic staging is always Stripe TEST" _site/assets/authorization-flow.js
+          grep -q "STAGING · Stripe TEST mode · No real payments" _site/assets/staging-banner.js
+          test -f _site/booking-status/index.html
+          test -f _site/payment-success/index.html
+          test -f _site/admin/index.html
+          ! grep -q "const mode=await paymentEnvironment();" _site/assets/authorization-flow.js
+
+      - name: Deploy staging to ShipStatic
+        id: ship
+        uses: shipstatic/action@v2
+        with:
+          token: ${{ secrets.SHIP_TOKEN }}
+          path: ./_site
+          domain: staging.accommodation.frankiflow.de
+          labels: staging,frankiholz
+
+      - name: Show ShipStatic DNS records
+        if: always()
+        env:
+          SHIP_TOKEN: ${{ secrets.SHIP_TOKEN }}
+        run: npx -y @shipstatic/ship domains records staging.accommodation.frankiflow.de --json || true
