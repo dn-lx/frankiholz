@@ -95,6 +95,12 @@ jobs:
           headers = config['headers'][0]['headers']
           cache = next(item['value'] for item in headers if item['key'] == 'Cache-Control')
           assert 'no-store' in cache and 'no-cache' in cache
+          redirects = config.get('redirects', [])
+          assert any(
+              item.get('source') == '/assets/frankiholz-header-light.webp'
+              and item.get('destination') == '/assets/frankiholz-logo-approved.png'
+              for item in redirects
+          ), 'Legacy FrankiHolz logo redirect missing'
           PY
           ! grep -q "const mode=await paymentEnvironment();" _site/assets/authorization-flow.js
 
@@ -106,3 +112,29 @@ jobs:
           path: ./_site
           domain: ${{ vars.SHIP_DOMAIN || secrets.SHIP_DOMAIN }}
           labels: staging,frankiholz
+
+      - name: Verify custom staging domain
+        env:
+          STAGING_DOMAIN: ${{ vars.SHIP_DOMAIN || secrets.SHIP_DOMAIN }}
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5 6; do
+            if curl -fsSL "https://${STAGING_DOMAIN}/?verify=${GITHUB_SHA}" -o /tmp/frankiholz-home.html; then
+              break
+            fi
+            sleep 3
+          done
+          grep -q 'data:image/png;base64' /tmp/frankiholz-home.html
+          status="$(curl -sS -o /tmp/legacy-logo.bin -w '%{http_code}' -L "https://${STAGING_DOMAIN}/assets/frankiholz-header-light.webp?verify=${GITHUB_SHA}")"
+          test "$status" = "200"
+          python3 - <<'PY'
+          from pathlib import Path
+          data = Path('/tmp/legacy-logo.bin').read_bytes()
+          assert data.startswith(b'\x89PNG\r\n\x1a\n'), 'Legacy logo URL did not resolve to PNG'
+          PY
+          curl -sS -D /tmp/cors-headers.txt -o /dev/null -X OPTIONS \
+            'https://bdeajozhylypiidrldka.supabase.co/functions/v1/frankiholz-sync-airbnb' \
+            -H "Origin: https://${STAGING_DOMAIN}" \
+            -H 'Access-Control-Request-Method: POST' \
+            -H 'Access-Control-Request-Headers: content-type,apikey,x-frankiholz-source'
+          grep -qi "^access-control-allow-origin: https://${STAGING_DOMAIN}" /tmp/cors-headers.txt
