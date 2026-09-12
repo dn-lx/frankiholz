@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import shutil
 from pathlib import Path
 from urllib.request import Request, urlopen
@@ -15,14 +16,14 @@ ROOT_FILES = [
     "favicon.ico",
 ]
 
-# This is the approved FrankiHolz logo from the shared Google Drive brand-kit
-# folder. Staging downloads the original PNG during the build and serves a
-# local copy so browser/Google Drive hotlink caching cannot show an old logo.
+# Exact approved FrankiHolz logo from the user's shared Google Drive brand kit:
+# 01 Primary Logos / FrankiHolz_Logo_Transparent_ForDark_512.png
 APPROVED_LOGO_URL = (
     "https://drive.usercontent.google.com/download"
     "?id=1HlgZzD8beXvP2m_zboRzunQYK8JwVHOP&export=download&confirm=t"
 )
 APPROVED_LOGO_PATH = "frankiholz-logo-approved.png"
+APPROVED_LOGO_SOURCE = "/assets/frankiholz-logo-approved.png?v=20260912f"
 
 
 def inject_staging_safety(html: str) -> str:
@@ -32,7 +33,7 @@ def inject_staging_safety(html: str) -> str:
     return html
 
 
-def copy_approved_logo() -> None:
+def copy_approved_logo() -> bytes:
     request = Request(
         APPROVED_LOGO_URL,
         headers={"User-Agent": "Mozilla/5.0 (FrankiHolz staging build)"},
@@ -40,7 +41,7 @@ def copy_approved_logo() -> None:
     with urlopen(request, timeout=30) as response:
         logo = response.read()
 
-    # Fail the deployment instead of silently publishing the wrong asset.
+    # Fail instead of silently publishing the wrong or missing asset.
     if not logo.startswith(b"\x89PNG\r\n\x1a\n"):
         raise RuntimeError("Approved FrankiHolz Drive asset did not return a PNG")
     if len(logo) < 50_000:
@@ -49,6 +50,15 @@ def copy_approved_logo() -> None:
     target = OUT / "assets" / APPROVED_LOGO_PATH
     target.write_bytes(logo)
     print(f"Copied approved Drive logo to {target} ({len(logo)} bytes)")
+    return logo
+
+
+def embed_header_logo(html: str, logo: bytes) -> str:
+    """Embed the exact approved PNG in the header to avoid CDN/path/cache failures."""
+    if APPROVED_LOGO_SOURCE not in html:
+        raise RuntimeError("Public index does not reference the approved FrankiHolz logo source")
+    data_uri = "data:image/png;base64," + base64.b64encode(logo).decode("ascii")
+    return html.replace(APPROVED_LOGO_SOURCE, data_uri)
 
 
 def build() -> None:
@@ -62,7 +72,7 @@ def build() -> None:
             shutil.copy2(src, OUT / name)
 
     shutil.copytree(ROOT / "assets", OUT / "assets")
-    copy_approved_logo()
+    approved_logo = copy_approved_logo()
 
     # Staging must never route a guest into live Stripe, regardless of the
     # production admin setting stored in Supabase. Keep this safety enforced
@@ -81,6 +91,8 @@ def build() -> None:
     for page_name in ("index.html", "booking-status.html", "payment-success.html"):
         page = OUT / page_name
         html = page.read_text(encoding="utf-8")
+        if page_name == "index.html":
+            html = embed_header_logo(html, approved_logo)
         page.write_text(inject_staging_safety(html), encoding="utf-8")
 
     # Do not expose the production-data admin console from the staging host.
