@@ -24,10 +24,29 @@ jobs:
       - name: Checkout develop
         uses: actions/checkout@v7
 
+      - name: Install exact approved FrankiHolz logo from Drive
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from urllib.request import Request, urlopen
+          import hashlib
+          file_id = "1HlgZzD8beXvP2m_zboRzunQYK8JwVHOP"
+          expected_sha = "4946f5561fb3bb769c985664623517cd5f06639ed12bcf4891b524af2269f827"
+          url = f"https://drive.usercontent.google.com/download?id={file_id}&export=download&confirm=t"
+          data = urlopen(Request(url, headers={"User-Agent": "Mozilla/5.0"}), timeout=30).read()
+          if not data.startswith(b"\x89PNG\r\n\x1a\n"):
+              raise RuntimeError("Drive did not return the approved PNG")
+          digest = hashlib.sha256(data).hexdigest()
+          if digest != expected_sha:
+              raise RuntimeError(f"Approved logo hash mismatch: {digest}")
+          Path("assets/frankiholz-logo-approved.png").write_bytes(data)
+          print(f"Installed exact approved logo ({len(data)} bytes, {digest})")
+          PY
+
       - name: Build staging-safe static site
         run: python3 scripts/build-staging.py
 
-      - name: Verify staging safety and approved branding
+      - name: Verify staging safety, branding and admin
         run: |
           grep -q "ShipStatic staging is always Stripe TEST" _site/assets/authorization-flow.js
           test ! -f _site/assets/staging-banner.js
@@ -37,14 +56,16 @@ jobs:
           test -f _site/assets/frankiholz-logo-approved.png
           python3 - <<'PY'
           from pathlib import Path
-          p = Path('_site/assets/frankiholz-logo-approved.png')
-          data = p.read_bytes()
-          assert data.startswith(b'\x89PNG\r\n\x1a\n')
-          assert len(data) == 86090, f'Unexpected approved logo size: {len(data)} bytes'
+          import hashlib
+          data = Path('_site/assets/frankiholz-logo-approved.png').read_bytes()
+          assert len(data) == 86090
+          assert hashlib.sha256(data).hexdigest() == '4946f5561fb3bb769c985664623517cd5f06639ed12bcf4891b524af2269f827'
           html = Path('_site/index.html').read_text(encoding='utf-8')
-          assert 'src="data:image/png;base64,' in html, 'Header logo was not embedded'
-          assert '/assets/frankiholz-logo-approved.png?v=20260912f' not in html, 'External logo path still present'
-          assert 'drive.google.com/uc?' not in html
+          assert '/assets/frankiholz-logo-approved.png?v=20260912h' in html
+          assert 'data:image/png;base64,' not in html
+          admin = Path('_site/admin.html').read_text(encoding='utf-8')
+          assert 'Secure management portal for FrankiHolz by FrankiFlow.' in admin
+          assert 'Admin disabled on ShipStatic staging' not in admin
           PY
           ! grep -q "const mode=await paymentEnvironment();" _site/assets/authorization-flow.js
 
