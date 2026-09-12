@@ -30,7 +30,7 @@ jobs:
       - name: Verify staging safety
         run: |
           grep -q "ShipStatic staging is always Stripe TEST" _site/assets/authorization-flow.js
-          grep -q "STAGING · Stripe TEST mode · No real payments" _site/assets/staging-banner.js
+          test ! -f _site/assets/staging-banner.js
           test -f _site/booking-status/index.html
           test -f _site/payment-success/index.html
           test -f _site/admin/index.html
