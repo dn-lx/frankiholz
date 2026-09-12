@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import shutil
 from pathlib import Path
+from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "_site"
@@ -14,12 +15,40 @@ ROOT_FILES = [
     "favicon.ico",
 ]
 
+# This is the approved FrankiHolz logo from the shared Google Drive brand-kit
+# folder. Staging downloads the original PNG during the build and serves a
+# local copy so browser/Google Drive hotlink caching cannot show an old logo.
+APPROVED_LOGO_URL = (
+    "https://drive.usercontent.google.com/download"
+    "?id=1HlgZzD8beXvP2m_zboRzunQYK8JwVHOP&export=download&confirm=t"
+)
+APPROVED_LOGO_PATH = "frankiholz-logo-approved.png"
+
 
 def inject_staging_safety(html: str) -> str:
     robots_tag = '<meta name="robots" content="noindex,nofollow">'
     if robots_tag not in html:
         html = html.replace("</head>", f"{robots_tag}</head>")
     return html
+
+
+def copy_approved_logo() -> None:
+    request = Request(
+        APPROVED_LOGO_URL,
+        headers={"User-Agent": "Mozilla/5.0 (FrankiHolz staging build)"},
+    )
+    with urlopen(request, timeout=30) as response:
+        logo = response.read()
+
+    # Fail the deployment instead of silently publishing the wrong asset.
+    if not logo.startswith(b"\x89PNG\r\n\x1a\n"):
+        raise RuntimeError("Approved FrankiHolz Drive asset did not return a PNG")
+    if len(logo) < 50_000:
+        raise RuntimeError("Approved FrankiHolz Drive logo download is unexpectedly small")
+
+    target = OUT / "assets" / APPROVED_LOGO_PATH
+    target.write_bytes(logo)
+    print(f"Copied approved Drive logo to {target} ({len(logo)} bytes)")
 
 
 def build() -> None:
@@ -33,6 +62,7 @@ def build() -> None:
             shutil.copy2(src, OUT / name)
 
     shutil.copytree(ROOT / "assets", OUT / "assets")
+    copy_approved_logo()
 
     # Staging must never route a guest into live Stripe, regardless of the
     # production admin setting stored in Supabase. Keep this safety enforced
