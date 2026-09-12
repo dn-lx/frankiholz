@@ -59,18 +59,33 @@ jobs:
           test -f _site/assets/frankiholz-logo-approved.png
           python3 - <<'PY'
           from pathlib import Path
-          import hashlib
-          data = Path('_site/assets/frankiholz-logo-approved.png').read_bytes()
-          assert len(data) == 758364
-          assert hashlib.sha256(data).hexdigest() == 'cbc29dcb36419a3395bde838c88262b6c54891a00ecbff2cb74241c2d3796312'
+          import base64, hashlib, re
+
+          expected_size = 758364
+          expected_sha = 'cbc29dcb36419a3395bde838c88262b6c54891a00ecbff2cb74241c2d3796312'
+
+          asset = Path('_site/assets/frankiholz-logo-approved.png').read_bytes()
+          assert len(asset) == expected_size
+          assert hashlib.sha256(asset).hexdigest() == expected_sha
+
           html = Path('_site/index.html').read_text(encoding='utf-8')
-          assert '/assets/frankiholz-logo-approved.png?v=20260912k' in html
           assert 'href="/admin/"' in html
-          assert 'data:image/png;base64,' not in html
+          assert '/assets/frankiholz-logo-approved.png' not in html
+          match = re.search(r'src="data:image/png;base64,([A-Za-z0-9+/=]+)"', html)
+          assert match, 'Embedded FrankiHolz logo missing from staging homepage'
+          embedded = base64.b64decode(match.group(1))
+          assert len(embedded) == expected_size
+          assert hashlib.sha256(embedded).hexdigest() == expected_sha
+
           admin = Path('_site/admin/index.html').read_text(encoding='utf-8')
           assert 'Secure management portal for FrankiHolz by FrankiFlow.' in admin
           assert 'FRANKIHOLZ STAGING' in admin
           assert 'Admin disabled on ShipStatic staging' not in admin
+          admin_match = re.search(r'src="data:image/png;base64,([A-Za-z0-9+/=]+)"', admin)
+          assert admin_match, 'Embedded FrankiHolz logo missing from staging admin'
+          admin_logo = base64.b64decode(admin_match.group(1))
+          assert len(admin_logo) == expected_size
+          assert hashlib.sha256(admin_logo).hexdigest() == expected_sha
           PY
           ! grep -q "const mode=await paymentEnvironment();" _site/assets/authorization-flow.js
 
