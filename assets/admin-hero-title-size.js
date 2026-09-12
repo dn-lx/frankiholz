@@ -1,7 +1,7 @@
 (()=>{
   const cfg=window.FRANKIHOLZ_CONFIG;
   if(!cfg||!window.supabase)return;
-  const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);
+  const client=(typeof sb!=='undefined'&&sb)?sb:window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);
   const byId=id=>document.getElementById(id);
   const clamp=(value,min,max)=>Math.min(max,Math.max(min,Number(value)||min));
 
