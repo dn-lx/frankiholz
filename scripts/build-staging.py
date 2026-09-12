@@ -17,7 +17,8 @@ ROOT_FILES = [
 ]
 
 APPROVED_LOGO_PATH = ROOT / "assets" / "frankiholz-logo-approved.png"
-APPROVED_LOGO_SHA256 = "4946f5561fb3bb769c985664623517cd5f06639ed12bcf4891b524af2269f827"
+APPROVED_LOGO_SHA256 = "cbc29dcb36419a3395bde838c88262b6c54891a00ecbff2cb74241c2d3796312"
+APPROVED_LOGO_SIZE = 758364
 
 
 def inject_staging_safety(html: str) -> str:
@@ -33,6 +34,8 @@ def verify_approved_logo() -> None:
     data = APPROVED_LOGO_PATH.read_bytes()
     if not data.startswith(b"\x89PNG\r\n\x1a\n"):
         raise RuntimeError("Approved FrankiHolz logo is not a PNG")
+    if len(data) != APPROVED_LOGO_SIZE:
+        raise RuntimeError(f"Approved FrankiHolz logo size mismatch: {len(data)}")
     digest = hashlib.sha256(data).hexdigest()
     if digest != APPROVED_LOGO_SHA256:
         raise RuntimeError(f"Approved FrankiHolz logo hash mismatch: {digest}")
@@ -69,15 +72,31 @@ def build() -> None:
         page = OUT / page_name
         html = page.read_text(encoding="utf-8")
         if page_name == "index.html":
-            html = html.replace("brand-overrides.css?v=20260912f", "brand-overrides.css?v=20260912h")
-            html = html.replace("frankiholz-logo-approved.png?v=20260912f", "frankiholz-logo-approved.png?v=20260912h")
+            html = html.replace("brand-overrides.css?v=20260912f", "brand-overrides.css?v=20260912k")
+            html = html.replace("brand-overrides.css?v=20260912h", "brand-overrides.css?v=20260912k")
+            html = html.replace("frankiholz-logo-approved.png?v=20260912f", "frankiholz-logo-approved.png?v=20260912k")
+            html = html.replace("frankiholz-logo-approved.png?v=20260912h", "frankiholz-logo-approved.png?v=20260912k")
+            # Staging-only Admin shortcut. This is intentionally not added to production source HTML.
+            if 'href="/admin/"' not in html:
+                marker = '<div class="nav-actions">'
+                html = html.replace(marker, marker + '<a class="nav-link staging-admin-link" href="/admin/">Admin</a>', 1)
         page.write_text(inject_staging_safety(html), encoding="utf-8")
 
-    # Admin is intentionally enabled on staging. It uses the same configured
-    # Supabase project as this branch, while the guest payment flow above is
-    # still forced to Stripe TEST mode.
-    if not (OUT / "admin.html").exists():
+    # Admin is intentionally enabled on staging. It uses the configured Supabase
+    # project, while the guest payment flow above remains forced to Stripe TEST.
+    admin_page = OUT / "admin.html"
+    if not admin_page.exists():
         raise RuntimeError("Staging admin.html was not copied")
+    admin = admin_page.read_text(encoding="utf-8")
+    staging_badge = '<div style="display:inline-flex;margin-bottom:12px;padding:6px 10px;border-radius:999px;background:#0C3447;color:#fff;font-size:11px;font-weight:800;letter-spacing:.08em">FRANKIHOLZ STAGING</div>'
+    if "FRANKIHOLZ STAGING" not in admin:
+        admin = admin.replace('<section id="loginView" class="login-card">', '<section id="loginView" class="login-card">' + staging_badge, 1)
+    # Use the same approved logo asset inside the staging Admin instead of a Drive thumbnail.
+    admin = admin.replace(
+        'src="https://drive.google.com/thumbnail?id=1Fs139HGtDBC0urpm3KaiQDWNNtroavlg&sz=w1000&v=20260912d"',
+        'src="/assets/frankiholz-logo-approved.png?v=20260912k"',
+    )
+    admin_page.write_text(admin, encoding="utf-8")
 
     # Keep clean URLs working on static hosting.
     aliases = {
