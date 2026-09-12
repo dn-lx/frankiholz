@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import hashlib
 import shutil
 from pathlib import Path
@@ -28,7 +29,7 @@ def inject_staging_safety(html: str) -> str:
     return html
 
 
-def verify_approved_logo() -> None:
+def approved_logo_bytes() -> bytes:
     if not APPROVED_LOGO_PATH.exists():
         raise RuntimeError("Approved FrankiHolz logo is missing from assets")
     data = APPROVED_LOGO_PATH.read_bytes()
@@ -39,10 +40,25 @@ def verify_approved_logo() -> None:
     digest = hashlib.sha256(data).hexdigest()
     if digest != APPROVED_LOGO_SHA256:
         raise RuntimeError(f"Approved FrankiHolz logo hash mismatch: {digest}")
+    return data
+
+
+def replace_logo_source(html: str, data_uri: str) -> str:
+    candidates = [
+        "/assets/frankiholz-logo-approved.png?v=20260912f",
+        "/assets/frankiholz-logo-approved.png?v=20260912h",
+        "/assets/frankiholz-logo-approved.png?v=20260912k",
+        "/assets/frankiholz-logo-approved.png",
+        "https://drive.google.com/thumbnail?id=1Fs139HGtDBC0urpm3KaiQDWNNtroavlg&sz=w1000&v=20260912d",
+    ]
+    for source in candidates:
+        html = html.replace(source, data_uri)
+    return html
 
 
 def build() -> None:
-    verify_approved_logo()
+    logo_data = approved_logo_bytes()
+    logo_data_uri = "data:image/png;base64," + base64.b64encode(logo_data).decode("ascii")
 
     if OUT.exists():
         shutil.rmtree(OUT)
@@ -67,15 +83,17 @@ def build() -> None:
     )
     auth_file.write_text(auth, encoding="utf-8")
 
-    # Keep public staging pages out of search engines and force fresh branding assets.
+    # Keep public staging pages out of search engines. On the homepage, embed
+    # the exact Drive-approved logo directly in HTML so the brand cannot break
+    # because of a missing/generated static asset on the hosting layer.
     for page_name in ("index.html", "booking-status.html", "payment-success.html"):
         page = OUT / page_name
         html = page.read_text(encoding="utf-8")
         if page_name == "index.html":
-            html = html.replace("brand-overrides.css?v=20260912f", "brand-overrides.css?v=20260912k")
-            html = html.replace("brand-overrides.css?v=20260912h", "brand-overrides.css?v=20260912k")
-            html = html.replace("frankiholz-logo-approved.png?v=20260912f", "frankiholz-logo-approved.png?v=20260912k")
-            html = html.replace("frankiholz-logo-approved.png?v=20260912h", "frankiholz-logo-approved.png?v=20260912k")
+            html = html.replace("brand-overrides.css?v=20260912f", "brand-overrides.css?v=20260912m")
+            html = html.replace("brand-overrides.css?v=20260912h", "brand-overrides.css?v=20260912m")
+            html = html.replace("brand-overrides.css?v=20260912k", "brand-overrides.css?v=20260912m")
+            html = replace_logo_source(html, logo_data_uri)
             # Staging-only Admin shortcut. This is intentionally not added to production source HTML.
             if 'href="/admin/"' not in html:
                 marker = '<div class="nav-actions">'
@@ -91,11 +109,7 @@ def build() -> None:
     staging_badge = '<div style="display:inline-flex;margin-bottom:12px;padding:6px 10px;border-radius:999px;background:#0C3447;color:#fff;font-size:11px;font-weight:800;letter-spacing:.08em">FRANKIHOLZ STAGING</div>'
     if "FRANKIHOLZ STAGING" not in admin:
         admin = admin.replace('<section id="loginView" class="login-card">', '<section id="loginView" class="login-card">' + staging_badge, 1)
-    # Use the same approved logo asset inside the staging Admin instead of a Drive thumbnail.
-    admin = admin.replace(
-        'src="https://drive.google.com/thumbnail?id=1Fs139HGtDBC0urpm3KaiQDWNNtroavlg&sz=w1000&v=20260912d"',
-        'src="/assets/frankiholz-logo-approved.png?v=20260912k"',
-    )
+    admin = replace_logo_source(admin, logo_data_uri)
     admin_page.write_text(admin, encoding="utf-8")
 
     # Keep clean URLs working on static hosting.
