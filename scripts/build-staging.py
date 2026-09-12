@@ -16,12 +16,9 @@ ROOT_FILES = [
 
 
 def inject_staging_safety(html: str) -> str:
-    banner_tag = '<script src="/assets/staging-banner.js"></script>'
     robots_tag = '<meta name="robots" content="noindex,nofollow">'
     if robots_tag not in html:
         html = html.replace("</head>", f"{robots_tag}</head>")
-    if banner_tag not in html:
-        html = html.replace("</body>", f"{banner_tag}</body>")
     return html
 
 
@@ -38,7 +35,8 @@ def build() -> None:
     shutil.copytree(ROOT / "assets", OUT / "assets")
 
     # Staging must never route a guest into live Stripe, regardless of the
-    # production admin setting stored in Supabase.
+    # production admin setting stored in Supabase. Keep this safety enforced
+    # without displaying a banner on the guest-facing website.
     auth_file = OUT / "assets" / "authorization-flow.js"
     auth = auth_file.read_text(encoding="utf-8")
     needle = "const mode=await paymentEnvironment();"
@@ -49,10 +47,6 @@ def build() -> None:
         "const mode='test'; // ShipStatic staging is always Stripe TEST",
     )
     auth_file.write_text(auth, encoding="utf-8")
-
-    # Visible staging banner on all guest-facing pages.
-    banner = """(()=>{\n  const bar=document.createElement('div');\n  bar.setAttribute('role','status');\n  bar.textContent='STAGING · Stripe TEST mode · No real payments';\n  bar.style.cssText='position:sticky;top:0;z-index:99999;padding:8px 12px;text-align:center;font:800 12px/1.2 system-ui,sans-serif;letter-spacing:.04em;background:#fff3cd;color:#6b5200;border-bottom:1px solid #e6cc73';\n  document.body.prepend(bar);\n})();\n"""
-    (OUT / "assets" / "staging-banner.js").write_text(banner, encoding="utf-8")
 
     for page_name in ("index.html", "booking-status.html", "payment-success.html"):
         page = OUT / page_name
