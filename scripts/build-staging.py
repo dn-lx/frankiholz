@@ -23,7 +23,7 @@ APPROVED_LOGO_SHA256 = "cbc29dcb36419a3395bde838c88262b6c54891a00ecbff2cb74241c2
 APPROVED_LOGO_SIZE = 758364
 
 
-def inject_staging_safety(html: str) -> str:
+def inject_development_safety(html: str) -> str:
     robots_tag = '<meta name="robots" content="noindex,nofollow">'
     cache_tags = (
         '<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">'
@@ -79,7 +79,7 @@ def build() -> None:
 
     shutil.copytree(ROOT / "assets", OUT / "assets")
 
-    # Staging guest payments must always stay in Stripe TEST mode.
+    # Development guest payments must always stay in Stripe TEST mode.
     auth_file = OUT / "assets" / "authorization-flow.js"
     auth = auth_file.read_text(encoding="utf-8")
     needle = "const mode=await paymentEnvironment();"
@@ -87,11 +87,11 @@ def build() -> None:
         raise RuntimeError("Could not find Stripe environment selection in authorization-flow.js")
     auth = auth.replace(
         needle,
-        "const mode='test'; // ShipStatic staging is always Stripe TEST",
+        "const mode='test'; // ShipStatic development is always Stripe TEST",
     )
     auth_file.write_text(auth, encoding="utf-8")
 
-    # Keep public staging pages out of search engines. On the homepage, embed
+    # Keep public development pages out of search engines. On the homepage, embed
     # the exact Drive-approved logo directly in HTML so the brand cannot break
     # because of a missing/generated static asset on the hosting layer.
     for page_name in ("index.html", "booking-status.html", "payment-success.html"):
@@ -102,23 +102,23 @@ def build() -> None:
             html = html.replace("brand-overrides.css?v=20260912h", "brand-overrides.css?v=20260912m")
             html = html.replace("brand-overrides.css?v=20260912k", "brand-overrides.css?v=20260912m")
             html = replace_logo_source(html, logo_data_uri)
-            # Staging-only Admin shortcut. This is intentionally not added to production source HTML.
+            # Development-only Admin shortcut. This is intentionally not added to production source HTML.
             if 'href="/admin/"' not in html:
                 marker = '<div class="nav-actions">'
                 html = html.replace(marker, marker + '<a class="nav-link staging-admin-link" href="/admin/">Admin</a>', 1)
-        page.write_text(inject_staging_safety(html), encoding="utf-8")
+        page.write_text(inject_development_safety(html), encoding="utf-8")
 
-    # Admin is intentionally enabled on staging. It uses the configured Supabase
+    # Admin is intentionally enabled on development. It uses the configured Supabase
     # project, while the guest payment flow above remains forced to Stripe TEST.
     admin_page = OUT / "admin.html"
     if not admin_page.exists():
-        raise RuntimeError("Staging admin.html was not copied")
+        raise RuntimeError("Development admin.html was not copied")
     admin = admin_page.read_text(encoding="utf-8")
-    staging_badge = '<div style="display:inline-flex;margin-bottom:12px;padding:6px 10px;border-radius:999px;background:#0C3447;color:#fff;font-size:11px;font-weight:800;letter-spacing:.08em">FRANKIHOLZ STAGING</div>'
-    if "FRANKIHOLZ STAGING" not in admin:
-        admin = admin.replace('<section id="loginView" class="login-card">', '<section id="loginView" class="login-card">' + staging_badge, 1)
+    development_badge = '<div style="display:inline-flex;margin-bottom:12px;padding:6px 10px;border-radius:999px;background:#0C3447;color:#fff;font-size:11px;font-weight:800;letter-spacing:.08em">FRANKIHOLZ DEVELOPMENT</div>'
+    if "FRANKIHOLZ DEVELOPMENT" not in admin:
+        admin = admin.replace('<section id="loginView" class="login-card">', '<section id="loginView" class="login-card">' + development_badge, 1)
     admin = replace_logo_source(admin, logo_data_uri)
-    admin_page.write_text(inject_staging_safety(admin), encoding="utf-8")
+    admin_page.write_text(inject_development_safety(admin), encoding="utf-8")
 
     # Keep clean URLs working on static hosting.
     aliases = {
@@ -131,7 +131,7 @@ def build() -> None:
         route_dir.mkdir(parents=True, exist_ok=True)
         shutil.copy2(OUT / source, route_dir / "index.html")
 
-    # Staging must never reuse an older custom-domain snapshot from browser or
+    # Development must never reuse an older custom-domain snapshot from browser or
     # intermediary cache. Also keep compatibility with a legacy cached homepage
     # that requested the old FrankiHolz header logo WebP path.
     ship_config = {
@@ -155,7 +155,7 @@ def build() -> None:
     }
     (OUT / "ship.json").write_text(json.dumps(ship_config, indent=2) + "\n", encoding="utf-8")
     (OUT / "robots.txt").write_text("User-agent: *\nDisallow: /\n", encoding="utf-8")
-    print(f"Built FrankiHolz ShipStatic staging site at {OUT}")
+    print(f"Built FrankiHolz ShipStatic development site at {OUT}")
 
 
 if __name__ == "__main__":
