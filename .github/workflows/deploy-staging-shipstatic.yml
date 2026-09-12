@@ -18,6 +18,7 @@ jobs:
     if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     environment:
+      # Keep this legacy environment name temporarily so its existing secrets remain available.
       name: shipstatic-staging
       url: https://frankiholz.shipstatic.com
     steps:
