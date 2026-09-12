@@ -42,11 +42,4 @@ jobs:
         with:
           token: ${{ secrets.SHIP_TOKEN }}
           path: ./_site
-          domain: staging.accommodation.frankiflow.de
           labels: staging,frankiholz
-
-      - name: Show ShipStatic DNS records
-        if: always()
-        env:
-          SHIP_TOKEN: ${{ secrets.SHIP_TOKEN }}
-        run: npx -y @shipstatic/ship domains records staging.accommodation.frankiflow.de --json || true

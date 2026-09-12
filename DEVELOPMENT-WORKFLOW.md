@@ -3,7 +3,7 @@
 ## Branch model
 
 - `main` — production only. Netlify deploys this branch to `https://accommodation.frankiflow.de`.
-- `develop` — integration/staging branch. ShipStatic deploys this branch to `https://staging.accommodation.frankiflow.de`.
+- `develop` — integration/staging branch. ShipStatic deploys this branch to a generated `*.shipstatic.com` staging URL.
 - `feature/*` — normal product work. Always create from `develop`, then open a PR back to `develop`.
 - `fix/*` — normal fixes. Create from `develop`, then PR back to `develop`.
 - `hotfix/*` — emergency production-only fixes. Create from `main`, PR to `main`, then merge the same fix back into `develop`.
@@ -16,7 +16,7 @@
 4. Open a pull request into `develop`.
 5. Merge into `develop` only after approval.
 6. ShipStatic automatically deploys the updated staging frontend.
-7. Test staging at `https://staging.accommodation.frankiflow.de`.
+7. Open the ShipStatic URL produced by the latest GitHub Actions run and test staging there.
 8. When a release is ready, open a PR from `develop` to `main`.
 9. Merge to `main` only after explicit production approval.
 10. Netlify automatically deploys `main` to `https://accommodation.frankiflow.de`.
@@ -40,16 +40,14 @@ The workflow is `.github/workflows/deploy-staging-shipstatic.yml` and runs only 
 The workflow:
 
 1. builds the staging-safe `_site` artifact with `scripts/build-staging.py`,
-2. verifies that Stripe is locked to TEST mode,
-3. deploys `_site` using `shipstatic/action@v2`,
-4. links the deployment to `staging.accommodation.frankiflow.de`, and
-5. prints the DNS records required by ShipStatic so they can be configured in IONOS.
+2. verifies that Stripe is locked to TEST mode, and
+3. deploys `_site` using `shipstatic/action@v2` without a custom domain.
 
 GitHub repository secret required:
 
 `SHIP_TOKEN`
 
-For custom-domain linking, `SHIP_TOKEN` must contain a ShipStatic API key (`ship-...`). A deploy token (`deploy-...`) can upload deployments but cannot link a custom domain.
+Each deployment receives a ShipStatic-hosted URL. No custom-domain or DNS configuration is required.
 
 ## Production
 
