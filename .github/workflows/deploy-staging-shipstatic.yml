@@ -42,4 +42,5 @@ jobs:
         with:
           token: ${{ secrets.SHIP_TOKEN }}
           path: ./_site
+          domain: ${{ vars.SHIP_DOMAIN }}
           labels: staging,frankiholz
