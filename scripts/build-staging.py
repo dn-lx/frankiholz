@@ -132,7 +132,8 @@ def build() -> None:
         shutil.copy2(OUT / source, route_dir / "index.html")
 
     # Staging must never reuse an older custom-domain snapshot from browser or
-    # intermediary cache. ShipStatic reads ship.json from the deployment root.
+    # intermediary cache. Also keep compatibility with a legacy cached homepage
+    # that requested the old FrankiHolz header logo WebP path.
     ship_config = {
         "headers": [
             {
@@ -143,7 +144,14 @@ def build() -> None:
                     {"key": "Expires", "value": "0"},
                 ],
             }
-        ]
+        ],
+        "redirects": [
+            {
+                "source": "/assets/frankiholz-header-light.webp",
+                "destination": "/assets/frankiholz-logo-approved.png",
+                "permanent": False,
+            }
+        ],
     }
     (OUT / "ship.json").write_text(json.dumps(ship_config, indent=2) + "\n", encoding="utf-8")
     (OUT / "robots.txt").write_text("User-agent: *\nDisallow: /\n", encoding="utf-8")
