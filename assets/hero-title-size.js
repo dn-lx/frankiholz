@@ -7,7 +7,7 @@
   apply(56,38);
   const cfg=window.FRANKIHOLZ_CONFIG;
   if(!cfg||!window.supabase)return;
-  const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);
+  const client=(typeof sb!=='undefined'&&sb)?sb:window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);
   client.from('frankiholz_site_settings')
     .select('hero_title_size_desktop_px,hero_title_size_mobile_px')
     .eq('id',1)
