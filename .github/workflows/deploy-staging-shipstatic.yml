@@ -30,13 +30,16 @@ jobs:
           from pathlib import Path
           from urllib.request import Request, urlopen
           import hashlib
-          file_id = "1HlgZzD8beXvP2m_zboRzunQYK8JwVHOP"
-          expected_sha = "4946f5561fb3bb769c985664623517cd5f06639ed12bcf4891b524af2269f827"
+          file_id = "1QF0Hhrxdan6fk5lOv9XSVQ8427Xq-M7y"
+          expected_sha = "cbc29dcb36419a3395bde838c88262b6c54891a00ecbff2cb74241c2d3796312"
+          expected_size = 758364
           url = f"https://drive.usercontent.google.com/download?id={file_id}&export=download&confirm=t"
           data = urlopen(Request(url, headers={"User-Agent": "Mozilla/5.0"}), timeout=30).read()
           if not data.startswith(b"\x89PNG\r\n\x1a\n"):
               raise RuntimeError("Drive did not return the approved PNG")
           digest = hashlib.sha256(data).hexdigest()
+          if len(data) != expected_size:
+              raise RuntimeError(f"Approved logo size mismatch: {len(data)}")
           if digest != expected_sha:
               raise RuntimeError(f"Approved logo hash mismatch: {digest}")
           Path("assets/frankiholz-logo-approved.png").write_bytes(data)
@@ -58,13 +61,15 @@ jobs:
           from pathlib import Path
           import hashlib
           data = Path('_site/assets/frankiholz-logo-approved.png').read_bytes()
-          assert len(data) == 86090
-          assert hashlib.sha256(data).hexdigest() == '4946f5561fb3bb769c985664623517cd5f06639ed12bcf4891b524af2269f827'
+          assert len(data) == 758364
+          assert hashlib.sha256(data).hexdigest() == 'cbc29dcb36419a3395bde838c88262b6c54891a00ecbff2cb74241c2d3796312'
           html = Path('_site/index.html').read_text(encoding='utf-8')
-          assert '/assets/frankiholz-logo-approved.png?v=20260912h' in html
+          assert '/assets/frankiholz-logo-approved.png?v=20260912k' in html
+          assert 'href="/admin/"' in html
           assert 'data:image/png;base64,' not in html
-          admin = Path('_site/admin.html').read_text(encoding='utf-8')
+          admin = Path('_site/admin/index.html').read_text(encoding='utf-8')
           assert 'Secure management portal for FrankiHolz by FrankiFlow.' in admin
+          assert 'FRANKIHOLZ STAGING' in admin
           assert 'Admin disabled on ShipStatic staging' not in admin
           PY
           ! grep -q "const mode=await paymentEnvironment();" _site/assets/authorization-flow.js
