@@ -1,0 +1,44 @@
+name: Safeguard Netlify develop booking payments
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - .github/workflows/fix-develop-stripe-routing.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: develop
+      - name: Route Netlify develop and explicit test flag to Stripe sandbox
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('assets/site.js')
+          s=p.read_text()
+          old="const isDevelop=location.hostname==='frankiholz.shipstatic.com'||location.hostname==='localhost'||location.hostname==='127.0.0.1';const rpcName='frankiholz_create_booking_v2';const rpcPayload=payload;"
+          new="const testFlag=new URLSearchParams(location.search).get('stripe_test')==='1'||new URLSearchParams(location.search).get('test')==='1';const isDevelop=location.hostname==='develop--frankiholz.netlify.app'||location.hostname.endsWith('--frankiholz.netlify.app')||location.hostname==='frankiholz.shipstatic.com'||location.hostname==='localhost'||location.hostname==='127.0.0.1';const useStripeTest=isDevelop||testFlag;const rpcName='frankiholz_create_booking_v2';const rpcPayload=payload;"
+          if old not in s:
+              raise SystemExit('Expected booking environment line not found')
+          s=s.replace(old,new,1)
+          s=s.replace("const setupEndpoint=isDevelop?'frankiholz-create-authorization-test':'frankiholz-create-authorization-v2';","const setupEndpoint=useStripeTest?'frankiholz-create-authorization-test':'frankiholz-create-authorization-v2';",1)
+          p.write_text(s)
+          PY
+          node --check assets/site.js
+          grep -q "develop--frankiholz.netlify.app" assets/site.js
+          grep -q "stripe_test" assets/site.js
+          grep -q "useStripeTest?'frankiholz-create-authorization-test'" assets/site.js
+      - name: Commit fix and remove one-time workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm .github/workflows/fix-develop-stripe-routing.yml
+          git add assets/site.js .github/workflows/fix-develop-stripe-routing.yml
+          git commit -m "Route Netlify develop bookings to Stripe sandbox"
+          git push origin develop
