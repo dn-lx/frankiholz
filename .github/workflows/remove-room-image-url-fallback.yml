@@ -1,0 +1,47 @@
+name: Remove legacy room fallback images
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - .github/workflows/remove-room-image-url-fallback.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: develop
+      - name: Remove legacy image_url fallback
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          p=Path('assets/site.js')
+          s=p.read_text()
+          old="function roomImgs(id){return images.filter(x=>x.room_id===id)} function cover(r){const ri=roomImgs(r.id)[0];return ri?publicUrl(ri.storage_path):(r.image_url||null)}"
+          new="function roomImgs(id){return images.filter(x=>x.room_id===id)} function cover(r){const ri=roomImgs(r.id)[0];return ri?publicUrl(ri.storage_path):null}"
+          if old not in s:
+              raise SystemExit('Expected legacy room image fallback not found')
+          p.write_text(s.replace(old,new,1))
+
+          i=Path('index.html')
+          html=i.read_text()
+          html=html.replace('<script src="/assets/site.js"></script>','<script src="/assets/site.js?v=20260914-room-photos"></script>')
+          i.write_text(html)
+          PY
+          node --check assets/site.js
+          ! grep -Fq '(r.image_url||null)' assets/site.js
+          grep -Fq "return ri?publicUrl(ri.storage_path):null" assets/site.js
+          grep -Fq 'site.js?v=20260914-room-photos' index.html
+      - name: Commit change and remove one-time workflow
+        run: |
+          rm .github/workflows/remove-room-image-url-fallback.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/site.js index.html .github/workflows/remove-room-image-url-fallback.yml
+          git commit -m "Remove legacy room backup photos"
+          git push origin HEAD:develop
