@@ -4,11 +4,13 @@ Production source for **FrankiHolz** direct accommodation and booking management
 
 ## Production
 
-- Website: `https://accommodation.frankiflow.de`
+- Website: `https://stay.frankiflow.de`
+- Legacy URL: `https://accommodation.frankiflow.de` (keep as a redirect/alias)
 - Netlify publish directory: repository root
 - Backend: Supabase project used by FrankiHolz and FrankiFlow
 - Payments: Stripe Checkout through Supabase Edge Functions
 - Production branch: `main`
+- Development branch: `develop` via Netlify branch deploy
 
 ## Current product areas
 
@@ -41,18 +43,14 @@ The repository contains `netlify.toml`.
 
 ## Development workflow
 
-`main` is production. Do not develop directly on it.
+`main` is production and `develop` is the persistent development branch.
 
-For every future change batch:
+For future changes:
 
-1. Create one branch from the latest `main`, such as `work/booking-improvements`.
-2. Put all related changes and intermediate commits on that branch.
-3. Test and review the complete batch.
-4. Open a pull request to `main`.
-5. Merge only once the full batch is approved and production-ready.
-6. Netlify production watches `main` only.
-
-To reduce Netlify usage, branch deploys and deploy previews should remain disabled unless a preview is intentionally requested.
+1. Make and test changes on `develop` (or a short-lived work branch based on it).
+2. Review the Netlify `develop` branch deployment.
+3. Promote only approved changes to `main`.
+4. Netlify production uses `main`; the development branch uses its separate branch deployment URL.
 
 ## Security
 
