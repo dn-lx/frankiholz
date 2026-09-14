@@ -631,3 +631,7 @@ input[type="file"]::file-selector-button:hover{filter:brightness(1.04);transform
 .sync-row{display:grid;grid-template-columns:minmax(180px,1fr) minmax(280px,1.4fr);gap:16px;align-items:center;padding:14px;border:1px solid rgba(23,52,61,.12);border-radius:14px;background:#fff}
 .sync-feed-actions{display:flex;gap:8px;align-items:center}.sync-feed-actions input{margin:0;min-width:0}.sync-error{font-size:12px;color:#9a3412;margin-top:4px}
 @media(max-width:760px){.sync-row{grid-template-columns:1fr}.sync-feed-actions{align-items:stretch;flex-direction:column}}
+
+
+/* September 2026 guest profile + 14-day payment policy */
+.field-help{margin:4px 0 8px;font-size:12px;color:var(--muted,#667a80);line-height:1.5}.guest-profile-grid{margin-top:10px}.cancellation-policy{padding-top:0}.policy-card{border-color:rgba(19,112,109,.2);background:linear-gradient(135deg,#f5fbf9,#fff)}.policy-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0}.policy-grid>div{border:1px solid #dce8e5;border-radius:14px;padding:14px;background:#fff}.policy-grid strong{display:block;color:#0c3447;margin-bottom:6px}.policy-grid p{margin:0;line-height:1.55}.status-policy{margin-top:10px;padding:8px 10px;border-radius:10px;font-size:12px;font-weight:700}.status-policy.refundable{background:#e9f8ef;color:#17633b}.status-policy.nonrefundable{background:#fff2e6;color:#9a4d10}@media(max-width:700px){.policy-grid{grid-template-columns:1fr}}
