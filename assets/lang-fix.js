@@ -7,7 +7,7 @@
   const repairBrandLogo=()=>{
     const img=document.querySelector('.brand-logo-image');
     if(!img||img.dataset.logoFallbackApplied==='1')return;
-    const fallback='/assets/frankiholz-logo.svg?v=20260918a';
+    const fallback='/assets/frankiholz-logo-for-dark.png?v=20260918b';
     const applyFallback=()=>{
       if(img.dataset.logoFallbackApplied==='1')return;
       img.dataset.logoFallbackApplied='1';
