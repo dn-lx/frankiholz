@@ -7,13 +7,10 @@
   const repairBrandLogo=()=>{
     const img=document.querySelector('.brand-logo-image');
     if(!img||img.dataset.logoFallbackApplied==='1')return;
-    const fallback='https://drive.google.com/thumbnail?id=1QF0Hhrxdan6fk5lOv9XSVQ8427Xq-M7y&sz=w1000';
+    const fallback='/assets/frankiholz-logo.svg?v=20260918a';
     const applyFallback=()=>{
       if(img.dataset.logoFallbackApplied==='1')return;
       img.dataset.logoFallbackApplied='1';
-      img.style.visibility='hidden';
-      const show=()=>{img.style.visibility='visible';img.removeEventListener('load',show)};
-      img.addEventListener('load',show);
       img.src=fallback;
     };
     img.addEventListener('error',applyFallback,{once:true});
