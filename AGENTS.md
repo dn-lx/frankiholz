@@ -26,3 +26,15 @@
 - For JavaScript changes, syntax-check affected files and verify the affected page and its script sequence. There is no package manifest or existing automated test suite in this checkout; do not claim an npm build or end-to-end payment test passed.
 - Use mocked/offline checks where possible. Only exercise shared backend writes, real booking actions, payment decisions, or email delivery when the task explicitly authorizes them.
 - Report exact files, checks performed, and pre-existing blockers. Keep generated analysis and local environments out of version control.
+
+## FrankiFlow Projects shared agent stack
+
+This repository belongs to the **FrankiFlow Projects** family. See [PROJECT-FAMILY.md](PROJECT-FAMILY.md) for the shared architecture and [docs/AGENT-ORCHESTRATION.md](docs/AGENT-ORCHESTRATION.md) for Planner → Executor → Reviewer routing.
+
+Use these repository-local skills when relevant:
+
+- [Context7 policy](.agents/skills/context7/SKILL.md) for current third-party API/SDK documentation.
+- [Frontend Design](.agents/skills/frontend-design/SKILL.md) for substantial UI/design work.
+- [Headroom pilot](.agents/skills/headroom-pilot/SKILL.md) only when large repetitive context is a measurable bottleneck; do not use compressed context as the sole evidence for high-risk logic.
+
+The agentic stack status is tracked in [docs/AGENTIC-STACK-STATUS.md](docs/AGENTIC-STACK-STATUS.md). Current source, tests and accepted ADRs override agent memory, compressed context or stale graph output.
