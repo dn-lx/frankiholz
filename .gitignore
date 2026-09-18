@@ -5,3 +5,8 @@ Thumbs.db
 !.env.example
 node_modules/
 .netlify/
+
+# Local Graphify tooling and derived code maps
+.venv-graphify/
+.graphify/
+graphify-out/
