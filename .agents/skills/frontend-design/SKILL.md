@@ -34,3 +34,7 @@ Keep a warm, premium hospitality direction with strong room imagery, calm spacin
 For affected UI, inspect the rendered page, console, responsive behavior and relevant interaction path. Use Playwright/browser automation when available. Include screenshots or a short visual note in the PR for meaningful redesigns.
 
 This repository skill is inspired by the idea of deliberate, distinctive frontend design, but it is project-specific and does not override current product or security constraints.
+## Canonical brand assets
+
+Before implementing branded UI, read `.agents/skills/brand-assets/SKILL.md` and inspect `brand/`. Reuse approved repository logos/icons. Do not generate, redraw or approximate a brand mark when a canonical asset exists.
+
