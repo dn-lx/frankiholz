@@ -36,6 +36,10 @@ Use these repository-local skills when relevant:
 - [Context7 policy](.agents/skills/context7/SKILL.md) for current third-party API/SDK documentation.
 - [Frontend Design](.agents/skills/frontend-design/SKILL.md) for substantial UI/design work.
 - [Headroom pilot](.agents/skills/headroom-pilot/SKILL.md) only when large repetitive context is a measurable bottleneck; do not use compressed context as the sole evidence for high-risk logic.
+- [Release Readiness](.agents/skills/release-readiness/SKILL.md) before a `develop` to `main` release review.
+- [Security Boundary Review](.agents/skills/security-boundary-review/SKILL.md) for authentication, Supabase, storage or guest-data changes.
+- [Payment Flow Review](.agents/skills/payment-flow-review/SKILL.md) for Stripe and booking-payment state changes.
+- [Email Safety Review](.agents/skills/email-safety-review/SKILL.md) for transactional email changes.
 
 The agentic stack status is tracked in [docs/AGENTIC-STACK-STATUS.md](docs/AGENTIC-STACK-STATUS.md). Current source, tests and accepted ADRs override agent memory, compressed context or stale graph output.
 

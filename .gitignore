@@ -4,9 +4,14 @@ Thumbs.db
 .env.*
 !.env.example
 node_modules/
+.npm-cache/
+playwright-report/
+test-results/
+lighthouse-report/
 .netlify/
 
 # Local Graphify tooling and derived code maps
 .venv-graphify/
 .graphify/
 graphify-out/
+.lighthouseci/
