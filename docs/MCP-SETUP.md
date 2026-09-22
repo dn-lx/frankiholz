@@ -49,3 +49,22 @@ Before claiming an MCP/connector works:
 4. only then perform an authorized write.
 
 Configuration present in the repository is not evidence that an external integration is active.
+
+
+## Project capability profile
+
+| Capability | Status | Project provider / environment | Safe verification |
+| --- | --- | --- | --- |
+| Source control / PRs / CI | Required | GitHub · `dn-lx/frankiholz` | Read `develop`, open PRs and latest checks |
+| Current library/API docs | Recommended | Context7 / official docs | Resolve/query a public library or API |
+| Database/auth/storage | Required | Shared Supabase FrankiFlow/FrankiHolz backend | Read schema/function metadata before writes |
+| Hosting/deployments | Required | Netlify FrankiHolz site | Read site/deploy metadata |
+| Browser verification | Required for booking/UI changes | Playwright / develop preview | Run repository smoke checks |
+| Code relationships | Recommended | Graphify local | Query known booking/payment modules and verify source |
+| Runtime observability | Optional / activation-dependent | Sentry scaffold | Read project/config metadata |
+| Product analytics/flags | Optional / task-dependent | PostHog when connected | Read project/flag metadata |
+| Payments | Required for payment work | Stripe TEST/LIVE contexts | Read account/mode before any test or live action |
+| Transactional email | Required for booking-email work | Resend | Read delivery/webhook metadata |
+| Business/project documents | Optional | Google Drive when connected | List/read a known project document |
+
+Development branches do not isolate the shared Supabase/Stripe/Resend systems. Verify mode and environment before every sensitive write.

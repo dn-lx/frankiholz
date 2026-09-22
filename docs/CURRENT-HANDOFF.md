@@ -105,3 +105,8 @@ Do not merge `develop` into `main` until this acceptance check passes.
 3. Confirm the payment environment is still TEST.
 4. Complete the develop browser acceptance test above.
 5. Only then prepare a normal release review for `develop -> main`.
+
+
+## Agent Project Starter alignment — 2026-09-22
+
+Agent infrastructure was aligned with `dn-lx/agent-project-starter` without changing FrankiHolz runtime/payment behavior. Added model-routing and memory/context policy, MCP and memory-context skills, bootstrap guidance, agent-stack validation, stronger PR evidence, reusable templates and an agent-independent engineering ADR. Existing payment-flow/email-safety skills and stronger CI/security/release checks were preserved. `main` is not part of this change.
