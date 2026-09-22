@@ -1,45 +1,45 @@
 async function loadBookings(){
   const {data,error}=await sb.from('frankiholz_bookings').select('*,frankiholz_rooms(name)').order('created_at',{ascending:false});
-  if(error){$('bookings').innerHTML=\`<div class="notice">\${esc(error.message)}</div>\`;return}
+  if(error){$('bookings').innerHTML=`<div class="notice">${esc(error.message)}</div>`;return}
   const labels={not_started:'card setup not started',awaiting_payment:'card setup incomplete',payment_method_saved:'card saved',scheduled_charge:'payment scheduled',paid:'paid',failed:'payment failed',released:'released',refunded:'refunded',expired:'expired',authorized:'authorized'};
   $('bookings').innerHTML=(data||[]).map(b=>{
     const pay=b.payment_status||'not_started',isV2=b.payment_schedule_version==='v2_14_day',mode=b.payment_mode||'live';
     const payClass=pay==='paid'?'confirmed':(['failed','expired'].includes(pay)?'cancelled':'');
-    const modeBadge=\`<span class="status" style="\${mode==='test'?'background:#fff3cd;color:#7a5a00':'background:#e5f4ff;color:#164f73'}">\${mode.toUpperCase()}</span>\`;
+    const modeBadge=`<span class="status" style="${mode==='test'?'background:#fff3cd;color:#7a5a00':'background:#e5f4ff;color:#164f73'}">${mode.toUpperCase()}</span>`;
     let actions='';
     if(isV2){
       if(b.status==='pending'&&pay==='payment_method_saved'){
-        actions+=\`<button class="btn small secondary" onclick="decideBooking('\${b.id}','accept',this,true)">Confirm booking</button>\`;
-        actions+=\`<button class="btn small danger" onclick="decideBooking('\${b.id}','reject',this,true)">Reject request</button>\`;
+        actions+=`<button class="btn small secondary" onclick="decideBooking('${b.id}','accept',this,true)">Confirm booking</button>`;
+        actions+=`<button class="btn small danger" onclick="decideBooking('${b.id}','reject',this,true)">Reject request</button>`;
       }else if(b.status==='pending'&&['not_started','awaiting_payment'].includes(pay)){
-        actions+=\`<span class="status">Waiting for guest card setup</span><button class="btn small danger" onclick="decideBooking('\${b.id}','reject',this,true)">Reject request</button>\`;
+        actions+=`<span class="status">Waiting for guest card setup</span><button class="btn small danger" onclick="decideBooking('${b.id}','reject',this,true)">Reject request</button>`;
       }else if(b.status==='confirmed'&&pay==='scheduled_charge'){
-        actions+=\`<span class="status confirmed">Confirmed · payment scheduled</span>\`;
+        actions+=`<span class="status confirmed">Confirmed · payment scheduled</span>`;
       }else if(b.status==='confirmed'&&pay==='paid'){
-        actions+=\`<span class="status confirmed">Paid & confirmed</span>\`;
+        actions+=`<span class="status confirmed">Paid & confirmed</span>`;
       }else if(pay==='failed'){
-        actions+=\`<span class="status cancelled">Payment failed · follow up required</span>\`;
+        actions+=`<span class="status cancelled">Payment failed · follow up required</span>`;
       }else if(b.status==='cancelled'){
-        actions+=\`<span class="status cancelled">Closed</span>\`;
+        actions+=`<span class="status cancelled">Closed</span>`;
       }
     }else{
       if(b.status==='pending'&&pay==='authorized'){
-        actions+=\`<button class="btn small secondary" onclick="decideBooking('\${b.id}','accept',this,false)">Accept & capture legacy authorization</button>\`;
-        actions+=\`<button class="btn small danger" onclick="decideBooking('\${b.id}','reject',this,false)">Reject & release</button>\`;
+        actions+=`<button class="btn small secondary" onclick="decideBooking('${b.id}','accept',this,false)">Accept & capture legacy authorization</button>`;
+        actions+=`<button class="btn small danger" onclick="decideBooking('${b.id}','reject',this,false)">Reject & release</button>`;
       }else if(b.status==='cancelled'){
-        actions+=\`<span class="status cancelled">Closed · legacy flow</span>\`;
+        actions+=`<span class="status cancelled">Closed · legacy flow</span>`;
       }else{
-        actions+=\`<span class="status">Legacy payment flow</span>\`;
+        actions+=`<span class="status">Legacy payment flow</span>`;
       }
     }
-    const due=isV2&&b.charge_due_at?\` · scheduled charge \${new Date(b.charge_due_at).toLocaleString()}\`:(!isV2&&b.payment_due_at?\` · decision/payment deadline \${new Date(b.payment_due_at).toLocaleString()}\`:'');
-    return \`<div class="booking-row">
-      <div><b>\${esc(b.reference)}</b> · \${esc(b.frankiholz_rooms?.name||'')} · \${modeBadge} · <span class="status \${b.status}">\${esc(b.status)}</span> · <span class="status \${payClass}">\${esc(labels[pay]||pay.replaceAll('_',' '))}</span></div>
-      <div class="muted">\${b.check_in} → \${b.check_out} · \${money(b.total_price)} · \${b.guests} guest\${b.guests===1?'':'s'}\${due}</div>
-      <div style="margin-top:6px"><b>\${esc(b.guest_name)}</b> · \${esc(b.guest_email)} \${b.guest_phone?'· '+esc(b.guest_phone):''}</div>
-      \${b.message?\`<p>\${esc(b.message)}</p>\`:''}
-      <div style="display:flex;gap:7px;flex-wrap:wrap">\${actions}</div>
-    </div>\`;
+    const due=isV2&&b.charge_due_at?` · scheduled charge ${new Date(b.charge_due_at).toLocaleString()}`:(!isV2&&b.payment_due_at?` · decision/payment deadline ${new Date(b.payment_due_at).toLocaleString()}`:'');
+    return `<div class="booking-row">
+      <div><b>${esc(b.reference)}</b> · ${esc(b.frankiholz_rooms?.name||'')} · ${modeBadge} · <span class="status ${b.status}">${esc(b.status)}</span> · <span class="status ${payClass}">${esc(labels[pay]||pay.replaceAll('_',' '))}</span></div>
+      <div class="muted">${b.check_in} → ${b.check_out} · ${money(b.total_price)} · ${b.guests} guest${b.guests===1?'':'s'}${due}</div>
+      <div style="margin-top:6px"><b>${esc(b.guest_name)}</b> · ${esc(b.guest_email)} ${b.guest_phone?'· '+esc(b.guest_phone):''}</div>
+      ${b.message?`<p>${esc(b.message)}</p>`:''}
+      <div style="display:flex;gap:7px;flex-wrap:wrap">${actions}</div>
+    </div>`;
   }).join('')||'<div class="empty">No bookings yet.</div>'
 }
 
@@ -53,9 +53,9 @@ window.decideBooking=async(id,action,button,isV2)=>{
   try{
     const {data:{session}}=await sb.auth.getSession();
     if(!session)throw new Error('Admin session expired. Please sign in again.');
-    const res=await fetch(\`\${CFG.supabaseUrl}/functions/v1/frankiholz-booking-decision\`,{
+    const res=await fetch(`${CFG.supabaseUrl}/functions/v1/frankiholz-booking-decision`,{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':\`Bearer \${session.access_token}\`,'apikey':CFG.supabaseKey},
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${session.access_token}`,'apikey':CFG.supabaseKey},
       body:JSON.stringify({booking_id:id,action})
     });
     const out=await res.json();
