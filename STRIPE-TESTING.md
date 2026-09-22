@@ -1,24 +1,10 @@
-# FrankiHolz Stripe sandbox testing
+# FrankiHolz Stripe TEST-mode verification
 
-FrankiHolz has a dedicated Stripe sandbox path that runs the **same authorization → 48-hour hold → host accept/reject** state machine as production without charging real money.
+Last updated: 2026-09-22
 
-## Sandbox account and webhook
+FrankiHolz has a separate Stripe TEST path using the same v2 saved-card and scheduled-charge lifecycle as live mode. Test mode never uses real money.
 
-Use the **FrankiHolz sandbox** Stripe account.
-
-Sandbox webhook endpoint:
-
-```text
-https://bdeajozhylypiidrldka.supabase.co/functions/v1/frankiholz-stripe-webhook-test
-```
-
-Enabled sandbox events:
-
-- `checkout.session.completed`
-- `checkout.session.expired`
-- `payment_intent.succeeded`
-- `payment_intent.payment_failed`
-- `payment_intent.canceled`
+## Test infrastructure
 
 Required Supabase secrets:
 
@@ -27,70 +13,41 @@ STRIPE_TEST_SECRET_KEY
 STRIPE_TEST_WEBHOOK_SECRET
 ```
 
-Production secrets remain separate:
+Test webhook endpoint:
 
 ```text
-STRIPE_SECRET_KEY
-STRIPE_WEBHOOK_SECRET
+https://bdeajozhylypiidrldka.supabase.co/functions/v1/frankiholz-stripe-webhook-test
 ```
 
-## Starting sandbox mode
+Develop/branch Netlify hosts are forced to test mode even if the shared Admin environment is later changed to LIVE.
 
-Open the normal FrankiHolz website with the hidden test flag:
+## End-to-end test
 
-```text
-https://accommodation.frankiflow.de/?lang=en&stripe_test=1
-```
+1. Open the develop branch deployment.
+2. Select available far-future dates.
+3. Submit a booking with valid guest/profile fields.
+4. Confirm the created booking has `payment_schedule_version = v2_14_day`.
+5. Confirm Stripe Checkout is a `cs_test_...` session with `mode = setup`.
+6. Complete card setup with Stripe test card `4242 4242 4242 4242`, any future expiry and any CVC.
+7. Verify webhook processing changes the booking to:
+   - `payment_mode = test`
+   - `payment_status = payment_method_saved`
+   - a saved `stripe_customer_id`, `stripe_setup_intent_id` and `stripe_payment_method_id`
+8. In Admin, confirm the request. For a stay more than 14 days away, verify:
+   - `status = confirmed`
+   - `payment_status = scheduled_charge`
+   - `charge_due_at` is 14 days before check-in
+   - calendar dates are `booked`
+9. For a separate within-14-days test, confirm that host acceptance produces a Stripe test PaymentIntent and `payment_status = paid`.
+10. Test cancellation:
+   - more than 14 days before check-in → no charge or full test refund;
+   - within 14 days for a confirmed booking → non-refundable behavior.
+11. Verify `frankiholz_test_payment_events` receives Stripe test webhook events and no live Stripe objects are created.
 
-or German:
-
-```text
-https://accommodation.frankiflow.de/?lang=de&stripe_test=1
-```
-
-The public booking UI remains the same, but the authorization Checkout is created through `frankiholz-create-authorization-test` and the booking is marked `payment_mode = test`.
-
-## End-to-end sandbox workflow
-
-1. Select an available room and dates.
-2. Enter guest details and continue to Stripe.
-3. Complete the sandbox Checkout with a Stripe test card.
-4. Stripe authorizes the amount with manual capture. No real money is charged.
-5. The sandbox webhook changes the booking to `payment_status = authorized`, leaves `status = pending`, sets a 48-hour decision deadline and blocks the selected dates.
-6. FrankiHolz Admin shows a **TEST** badge and the same production decision controls:
-   - **Accept & capture payment**
-   - **Reject & release authorization**
-7. Accept captures the sandbox PaymentIntent and confirms the booking.
-8. Reject cancels the sandbox authorization and releases the dates.
-9. If neither action occurs within 48 hours, the scheduled expiry function cancels the authorization and releases the dates automatically.
-
-## Standard successful test card
-
-```text
-4242 4242 4242 4242
-```
-
-Use any future expiry date and any three-digit CVC.
-
-## Testing rules
+## Safety rules
 
 - Use far-future dates that are not needed by real guests.
-- Sandbox bookings still exercise the real FrankiHolz booking/calendar state machine, so clean them up after testing.
-- `payment_mode = test` is the authoritative marker that no real money is involved.
-- Emails generated after Stripe authorization carry a `[TEST]` prefix. The initial request-created email can be sent before the booking is marked as test mode, so it may not have that prefix.
-- Never replace production Stripe secrets with sandbox values.
-
-## What to verify
-
-A complete sandbox test should confirm:
-
-- Stripe Checkout session is test mode (`cs_test_...`).
-- PaymentIntent reaches `requires_capture` after card authorization.
-- Booking becomes pending + authorized.
-- Dates become blocked for other guests.
-- Host decision deadline is approximately 48 hours after authorization.
-- Accept captures the PaymentIntent and changes dates to booked.
-- Reject cancels the PaymentIntent and reopens dates.
-- Automatic expiry cancels overdue authorizations and reopens dates.
-- Guest email events are written for authorization and the final decision.
-- Stripe test webhook events are recorded in `frankiholz_test_payment_events`.
+- Clean up test bookings after verification.
+- Check `payment_mode = test` before exercising any payment action.
+- Never put test keys into the live secret names.
+- Do not switch LIVE until the develop branch test is complete.
