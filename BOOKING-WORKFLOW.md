@@ -35,6 +35,7 @@ Last updated: 2026-09-22
 - **More than 14 days before check-in:** full refund if already paid; otherwise no charge.
 - **Within 14 days:** confirmed bookings are non-refundable. If a confirmed booking has not yet been charged, the cancellation endpoint attempts the outstanding charge before closing it.
 - Pending/unconfirmed requests can be rejected or cancelled without a booking charge.
+- If a guest cancels while Stripe card setup is still open, FrankiHolz expires that Checkout session and clears the payment URL/deadline. The TEST webhook also refuses to turn a cancelled booking back into `payment_method_saved` if a late completion event arrives.
 
 ## Environment rules
 
@@ -45,3 +46,15 @@ Last updated: 2026-09-22
 ## Legacy path
 
 Pre-v2 bookings may still contain the old 48-hour manual-capture state. Server compatibility remains for those records only. The active public and Admin interfaces no longer present that lifecycle.
+
+
+## Admin cleanup
+
+The Bookings tab supports multi-select permanent cleanup for old closed/test records.
+
+A booking is deletable only when all of these are true:
+- `status = cancelled`;
+- payment status is neither `paid` nor `refunded`;
+- no saved Stripe payment method remains.
+
+The browser shows selection controls only for eligible rows, and the authenticated Edge Function `frankiholz-admin-delete-bookings` re-checks the rule server-side. Before deletion it clears any booking-linked calendar rows back to available. Booking-specific email-event rows cascade-delete; Stripe payment-event ledger rows are retained with `booking_id = null` for audit history. Received messages already stored in FrankiFlow Mail are not deleted.
