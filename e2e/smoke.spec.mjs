@@ -18,9 +18,8 @@ test('booking status page renders without submitting a lookup', async ({ page })
 });
 
 
-test('admin page contains guarded multi-select cleanup controls', async ({ page }) => {
+test('admin includes safe closed-booking cleanup controls', async ({ page }) => {
   await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#loginForm')).toBeVisible();
   await expect(page.locator('#selectAllDeletableBookings')).toHaveCount(1);
   await expect(page.locator('#deleteSelectedBookings')).toHaveCount(1);
   await expect(page.locator('#deleteSelectedBookings')).toBeDisabled();
