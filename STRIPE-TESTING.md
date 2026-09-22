@@ -51,3 +51,11 @@ Develop/branch Netlify hosts are forced to test mode even if the shared Admin en
 - Check `payment_mode = test` before exercising any payment action.
 - Never put test keys into the live secret names.
 - Do not switch LIVE until the develop branch test is complete.
+
+
+## Additional cancellation / mailbox acceptance checks
+
+- Verify open Checkout cancellation safety: create a TEST setup session, cancel the booking, confirm the Stripe `cs_test_...` session becomes `expired`, the booking becomes `cancelled / released`, and the TEST webhook ledger records `checkout.session.expired`.
+- Repeat the cancellation request and confirm it returns `already_cancelled` without additional booking email events or mailbox messages.
+- For mailbox routing tests, use only an approved internal address such as `info@frankiflow.de`. Confirm the guest-facing and admin notification messages appear in both Resend received-email history and `frankiflow_mail_messages`.
+- After the test, remove the disposable cancelled booking using the Admin cleanup flow (or an equivalent guarded cleanup during automated verification) and confirm its `frankiholz_email_events` cascade away while payment-event ledger history remains detached for audit.
