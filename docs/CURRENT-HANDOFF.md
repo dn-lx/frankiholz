@@ -110,3 +110,48 @@ Do not merge `develop` into `main` until this acceptance check passes.
 ## Agent Project Starter alignment — 2026-09-22
 
 Agent infrastructure was aligned with `dn-lx/agent-project-starter` without changing FrankiHolz runtime/payment behavior. Added model-routing and memory/context policy, MCP and memory-context skills, bootstrap guidance, agent-stack validation, stronger PR evidence, reusable templates and an agent-independent engineering ADR. Existing payment-flow/email-safety skills and stronger CI/security/release checks were preserved. `main` is not part of this change.
+
+
+## Develop acceptance testing + Admin cleanup — 2026-09-22
+
+A deeper TEST-mode acceptance pass was executed against the shared Supabase/Stripe/Resend backend while the global FrankiHolz payment environment remained `TEST`.
+
+### Backend changes made during testing
+
+- Added authenticated Edge Function `frankiholz-admin-delete-bookings`.
+  - Requires a valid FrankiHolz admin session.
+  - Accepts 1–50 selected booking IDs.
+  - Permanently deletes only bookings that are already `cancelled`, are not `paid/refunded`, and have no saved Stripe payment method.
+  - Clears any booking-linked calendar rows before deletion.
+- Updated `frankiholz-cancel-booking-v2` to expire an open Stripe Checkout setup session after cancellation and clear the stored payment URL/deadline.
+- Updated TEST webhook `frankiholz-stripe-webhook-test` so a late setup completion cannot change a cancelled booking back to `payment_method_saved`; any late saved payment method is detached.
+- Added Admin multi-select cleanup controls on branch `fix/admin-delete-closed-bookings-20260922`.
+
+### Acceptance test evidence
+
+Disposable booking `FH-915C90A9` was created for 2034-06-10 → 2034-06-12 with internal test recipient `info@frankiflow.de`.
+
+Verified:
+1. `frankiholz_create_booking_v2` returned €86.00.
+2. Request-received email endpoint returned HTTP 200.
+3. Both expected messages reached FrankiFlow Mail:
+   - guest-facing booking request confirmation;
+   - internal admin request notification.
+4. Stripe TEST Checkout created a real `cs_test_...` session with:
+   - `livemode = false`;
+   - `mode = setup`;
+   - `payment_schedule_version = v2_14_day`;
+   - correct develop success/cancel URLs;
+   - explicit wording that the card is saved now and charged 14 days before check-in.
+5. Repeating the setup request while still open reused the existing Checkout session rather than creating a duplicate.
+6. Cancelling the pending request returned `cancelled / released`.
+7. Stripe confirmed that the open TEST Checkout session became `expired`.
+8. A genuine Stripe `checkout.session.expired` event reached the TEST webhook and was recorded in `frankiholz_test_payment_events`.
+9. Both TEST cancellation messages reached Resend and the FrankiFlow Mail DB.
+10. Repeating cancellation returned `already_cancelled` and did not create additional booking email events or mailbox messages.
+11. `frankiholz_booking_status_v3` returned the cancelled/released TEST state with no payment URL.
+12. Unauthenticated access to `frankiholz-admin-delete-bookings` was rejected with HTTP 401 before deletion logic.
+13. Cleanup of the disposable booking removed its booking row and two `frankiholz_email_events` rows; the Stripe TEST event ledger remained as an audit record with `booking_id = null`.
+14. The four received test emails remain in FrankiFlow Mail history, which is intentional.
+
+The final interactive card-save / host-confirm / scheduled-charge path still requires completing Stripe Checkout with a test card in a browser. Do not switch the payment environment to LIVE until that interactive acceptance step has also passed.
