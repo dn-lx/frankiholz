@@ -155,3 +155,17 @@ Verified:
 14. The four received test emails remain in FrankiFlow Mail history, which is intentional.
 
 The final interactive card-save / host-confirm / scheduled-charge path still requires completing Stripe Checkout with a test card in a browser. Do not switch the payment environment to LIVE until that interactive acceptance step has also passed.
+
+
+## Admin booking cleanup — 2026-09-22
+
+A safe multi-select cleanup flow was added for old booking records.
+
+- Admin UI shows selection checkboxes only for bookings that are already `cancelled`, are not `paid` or `refunded`, and do not retain a saved Stripe payment method.
+- `frankiholz-admin-delete-bookings` is the server-authoritative delete endpoint. It requires an authenticated FrankiHolz admin and repeats the same safety checks server-side.
+- The endpoint releases any calendar rows still linked to the booking before deleting it.
+- Booking-linked email-event rows cascade with the booking; Stripe payment ledgers retain their event rows with `booking_id` set to null.
+- The UI requires an extra confirmation when a selected historical record is marked `payment_mode = live`, even if it is already cancelled and unpaid.
+- Permanent cleanup is intentionally unavailable for active, paid, refunded, or card-linked bookings.
+
+The Edge Function is deployed in the shared Supabase project. This repository has no local Edge Function source tree, so this handoff is the repository record of that external backend change.
