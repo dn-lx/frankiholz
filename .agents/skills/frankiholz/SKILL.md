@@ -11,15 +11,24 @@ This repository is a static site: root HTML pages, `assets/*.js`, and CSS; Supab
 
 - `index.html` loads `assets/config.js`, then `assets/site.js` and overlay scripts. The page shares globals such as `sb`, `CFG`, `T`, and `currentLang`.
 - `assets/site.js` provides rooms, calendar, prices, translations, and initial event handlers. It calls `frankiholz-sync-airbnb` before loading settings and rooms; keep private iCal URLs on the server.
-- `assets/copy-overlay.js` loads editable bilingual wording from `frankiholz_copy`, then dynamically injects `assets/authorization-flow.js` in its `finally` block. That script replaces the booking form and status handler. A grep match in `site.js` alone does not prove the active behavior.
+- `assets/copy-overlay.js` loads editable bilingual wording from `frankiholz_copy`. The old `assets/authorization-flow.js` file is retained only as an inert compatibility stub; it must not replace the active booking handler in `site.js`.
 - `admin.html` loads `assets/admin-1.js` through `assets/admin-5.js`, followed by copy, tab, and hero-size scripts. `admin-1.js` uses Supabase sign-in plus the `frankiholz_admin_access_check` RPC. Preserve both authentication and the admin access check.
 - `booking-status.html` uses `assets/booking-status.js`; `payment-success.html` has its own inline language handling.
 
-## Product contracts and known conflicts
+## Product contracts and payment lifecycle
 
-Read `BOOKING-WORKFLOW.md` and `STRIPE.md` with the actual scripts before touching booking behavior. The documented authorization flow creates a reference without holding dates, then holds dates after successful card authorization while the booking stays pending. Host acceptance captures payment; rejection or the 48-hour expiry releases the authorization. The public authorization overlay and status page use this vocabulary. Preserve the distinction between authorization, capture, and confirmation.
+Read `BOOKING-WORKFLOW.md` and `STRIPE.md` with the actual scripts before touching booking behavior. New bookings use the v2 saved-card / 14-day scheduled-charge model:
 
-This checkout also contains conflicting payment paths: base `site.js` and static page copy describe a 14-day scheduled-charge flow, while the dynamically loaded authorization overlay replaces part of it. `assets/admin-authorization-flow.js` implements accept/capture and reject/release controls but is not included in `admin.html`; the loaded `admin-5.js` uses create-payment/cancel-payment endpoints. Do not declare either lifecycle verified end to end or wire in a different flow as an incidental cleanup. Establish the requested behavior and inspect the relevant backend implementation before a payment-flow change.
+1. `frankiholz_create_booking_v2` creates a pending request with `payment_schedule_version = v2_14_day`.
+2. Stripe Checkout runs in setup mode and saves a card without charging it.
+3. The webhook changes the booking to `payment_method_saved`.
+4. Host confirmation schedules the charge for 14 days before check-in, or charges immediately if check-in is already within 14 days.
+5. Rejection/cancellation closes the request without a charge when no payment is due.
+6. Cancelling an `awaiting_payment` booking expires the open Stripe Checkout session so a late card setup cannot resurrect a cancelled request.
+
+Pre-v2 48-hour authorization records may still exist. Server-side compatibility remains only for those old records; the active public and Admin interfaces must not present the legacy lifecycle for new bookings.
+
+`assets/admin-5.js` owns host booking actions. Permanent cleanup is deliberately narrower than cancellation: the Admin may delete selected bookings only after they are cancelled, not paid/refunded, and no saved Stripe payment method remains. The server-side `frankiholz-admin-delete-bookings` function enforces the same rule.
 
 Language travels through booking RPC arguments and status/return links. Maintain both German and English text, editable copy keys, locale selection, and room/SEO fallback behavior. Use existing escaping helpers when placing guest or database values into HTML.
 
