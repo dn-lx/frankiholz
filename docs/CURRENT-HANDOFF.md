@@ -124,7 +124,7 @@ A deeper TEST-mode acceptance pass was executed against the shared Supabase/Stri
   - Permanently deletes only bookings that are already `cancelled`, are not `paid/refunded`, and have no saved Stripe payment method.
   - Clears any booking-linked calendar rows before deletion.
 - Updated `frankiholz-cancel-booking-v2` to expire an open Stripe Checkout setup session after cancellation and clear the stored payment URL/deadline.
-- Updated TEST webhook `frankiholz-stripe-webhook-test` so a late setup completion cannot change a cancelled booking back to `payment_method_saved`; any late saved payment method is detached.
+- Updated both Stripe webhooks (`frankiholz-stripe-webhook-test` and `frankiholz-stripe-webhook`) so a late v2 setup completion cannot change a cancelled booking back to `payment_method_saved`; any late saved payment method is detached.
 - Added Admin multi-select cleanup controls on branch `fix/admin-delete-closed-bookings-20260922`.
 
 ### Acceptance test evidence
