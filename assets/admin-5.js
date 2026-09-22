@@ -45,10 +45,9 @@ async function deleteSelectedBookings(){
   if(!selected.length)return;
   const references=selected.map(item=>item.reference).join(', ');
   const liveCount=selected.filter(item=>item.mode==='live').length;
-  const baseQuestion='Permanently delete '+selected.length+' closed booking'+(selected.length===1?'':'s')+'?\n\n'+references+'\n\nThis removes the booking record and its booking email history from FrankiHolz. This cannot be undone.';
-  if(!confirm(baseQuestion))return;
+  const question='Permanently delete '+selected.length+' closed booking'+(selected.length===1?'':'s')+'?\n\n'+references+'\n\nThis removes the booking record and its booking email history from FrankiHolz. This cannot be undone.';
+  if(!confirm(question))return;
   if(liveCount&&!confirm(liveCount+' selected booking'+(liveCount===1?' was':'s were')+' originally marked LIVE, although '+(liveCount===1?'it is':'they are')+' now cancelled and unpaid. Permanently delete '+(liveCount===1?'it':'them')+'?'))return;
-
   const button=$('deleteSelectedBookings'),status=$('bookingDeleteStatus');
   if(button){button.disabled=true;button.textContent='Deleting…'}
   if(status)status.innerHTML='<div class="notice">Deleting selected closed bookings…</div>';
@@ -76,9 +75,10 @@ async function loadBookings(){
   if(error){$('bookings').innerHTML=`<div class="notice">${esc(error.message)}</div>`;return}
   const labels={not_started:'card setup not started',awaiting_payment:'card setup incomplete',payment_method_saved:'card saved',scheduled_charge:'payment scheduled',paid:'paid',failed:'payment failed',released:'released',refunded:'refunded',expired:'expired',authorized:'authorized'};
   $('bookings').innerHTML=(data||[]).map(b=>{
-    const pay=b.payment_status||'not_started',isV2=b.payment_schedule_version==='v2_14_day',mode=b.payment_mode||'live',deletable=isBookingDeletable(b);
+    const pay=b.payment_status||'not_started',isV2=b.payment_schedule_version==='v2_14_day',mode=b.payment_mode||'live';
     const payClass=pay==='paid'?'confirmed':(['failed','expired'].includes(pay)?'cancelled':'');
     const modeBadge=`<span class="status" style="${mode==='test'?'background:#fff3cd;color:#7a5a00':'background:#e5f4ff;color:#164f73'}">${mode.toUpperCase()}</span>`;
+    const deletable=isBookingDeletable(b);
     const cleanup=deletable?`<label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;margin-right:8px"><input class="booking-delete-check" type="checkbox" data-booking-id="${attr(b.id)}" data-booking-ref="${attr(b.reference)}" data-booking-mode="${attr(mode)}"> Select for deletion</label>`:'';
     let actions='';
     if(isV2){
