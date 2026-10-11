@@ -21,8 +21,8 @@
       facilitiesTitle:'Facilities & amenities',facilitiesIntro:'Available facilities and shared spaces. Please ask the host if a specific amenity is essential for your stay.',
       reviewsTitle:'Guest reviews',reviewsIntro:'Read reviews of our accommodation on Airbnb.',reviewsLink:'View Airbnb reviews ↗',
       contactTitle:'Contact your host',contactIntro:'Questions about arrival, facilities or your booking? Contact us directly.',
-      mapTitle:'Find us on the map',mapPrivacy:'Load the map when you are ready. Google Maps will only be contacted after you click.',
-      loadMap:'Show map',directions:'Open directions ↗'
+      mapKicker:'Location',mapTitle:'Find us on the map',mapPrivacy:'Map provided by Google Maps. Viewing it may share data with Google.',
+      directions:'Open directions ↗'
     },
     de: {
       welcome:'Vor Ihrem Aufenthalt',guestInfoTitle:'Ihr Aufenthalt bei FrankiHolz',guestInfoIntro:'Hausregeln, Gemeinschaftsbereiche und Kontaktmöglichkeiten.',
@@ -31,8 +31,8 @@
       facilitiesTitle:'Ausstattung & Einrichtungen',facilitiesIntro:'Vorhandene Ausstattung und gemeinsam genutzte Bereiche. Bitte fragen Sie nach, wenn eine Ausstattung für Ihren Aufenthalt unverzichtbar ist.',
       reviewsTitle:'Gästebewertungen',reviewsIntro:'Lesen Sie Bewertungen unserer Unterkunft auf Airbnb.',reviewsLink:'Airbnb-Bewertungen ansehen ↗',
       contactTitle:'Kontakt zum Gastgeber',contactIntro:'Fragen zur Anreise, Ausstattung oder Buchung? Kontaktieren Sie uns direkt.',
-      mapTitle:'Unser Standort auf der Karte',mapPrivacy:'Die Karte wird erst nach Ihrem Klick geladen. Dabei wird Google Maps kontaktiert.',
-      loadMap:'Karte anzeigen',directions:'Route öffnen ↗'
+      mapKicker:'Standort',mapTitle:'Unser Standort auf der Karte',mapPrivacy:'Die Karte wird von Google Maps bereitgestellt. Bei der Anzeige können Daten an Google übertragen werden.',
+      directions:'Route öffnen ↗'
     }
   };
   const byKey = Object.fromEntries(fields.map(f=>[f.key,f]));
@@ -141,23 +141,6 @@
     rows=Object.fromEntries(stored.map(r=>[r.copy_key,r]));
     status.textContent='Guest information saved and verified.';
   }
-  function initMap() {
-    const button=$('fhLoadMap');
-    if(!button)return;
-    button.addEventListener('click',()=>{
-      const target=$('fhMapTarget');
-      if(!target||target.querySelector('iframe'))return;
-      const iframe=document.createElement('iframe');
-      iframe.title='FrankiHolz location on Google Maps';
-      iframe.loading='lazy';
-      iframe.referrerPolicy='no-referrer-when-downgrade';
-      iframe.src='https://www.google.com/maps?q='+encodeURIComponent('Seehofstraße 20, 60594 Frankfurt am Main, Germany')+'&output=embed';
-      iframe.allowFullscreen=true;
-      target.replaceChildren(iframe);
-      button.hidden=true;
-    });
-  }
-  initMap();
   if($('guestInfoPublic')){
     renderPublic();
     load();
