@@ -1,5 +1,17 @@
 # Current Handoff
 
+## Header width, hero right alignment and WhatsApp icon — 2026-10-11
+
+Branch: `fix/hero-right-align-whatsapp-icon-20261011` from current `develop`, **not** `main`.
+
+- Increased desktop public nav width from the previous 1,220px maximum to 1,370px / 96vw, keeping the same centered positioning; mobile retains existing nav width.
+- Right-aligned the "Unterkunft in Frankfurt am Main" badge and "Zimmer ansehen" CTA against the right edge of the hero rail at desktop widths; they remain stacked and left-aligned on mobile.
+- Replaced "WA" text with the actual WhatsApp pictogram sourced from Simple Icons (CC0) and bundled in `assets/whatsapp.svg`, white on a green circular 48px touch target. The WhatsApp chat link continues to use existing Admin-managed phone logic and preserves DE/EN accessible labels; no network requests are needed to render the icon.
+- Bumped CSS asset cache versions to deliver the latest layout and icon styling.
+- Added Playwright assertions for widened nav, exact badge/button alignment, no icon text and correct WhatsApp SVG asset.
+- No changes to data, Supabase policies, booking/payment, Admin logic or Airbnb content. CI must pass before merging into `develop`; production `main` is not affected.
+
+
 ## Remove Sinhala placeholder + add WA contact badge — 2026-10-11
 
 Branch `fix/booking-language-wa-contact-20261011` based on `develop` after PR #43 (right-aligned hero) merged. **No production `main` changes**.
