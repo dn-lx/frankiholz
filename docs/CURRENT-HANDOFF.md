@@ -7,6 +7,7 @@ Feature branch: `fix/calendar-checkout-stripe-env-20261011` from `develop`. Do n
 ### Confirmed booking-calendar bug
 - Room 1 (Cozy Holz), 2026-10-13 night is available (€0.90 test rate). 2026-10-14 through 17 nights are blocked by Airbnb iCal. Confirmed booking night 2026-10-12 is unavailable.
 - Read-only production backend check: `frankiholz_estimate_total(room1,2026-10-13,2026-10-14)` returns available=true, one night. The same call to 2026-10-15 returns false. Backend correctly uses half-open [check-in, check-out) intervals.
+- Fixed an existing ternary-precedence issue in `assets/site.js` so explicit `?lang=en` is respected rather than incorrectly switching to German; this also ensures the new checkout-only text is localized correctly.
 - Frontend calendar erroneously disabled every blocked date. Updated public JS to expose first blocked morning as an interactive **check-out only** boundary once valid check-in is selected, never allowing booked/blocked overnight dates in selected range.
 - Clicking selected check-in now clears both selections. Clicking selected check-out clears check-out only. Summaries/pricing reset. Added aria labels and dashed checkout-only styling; no Airbnb blocks were edited.
 
