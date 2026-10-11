@@ -1,5 +1,19 @@
 # Current Handoff
 
+## Admin duplication, map visibility and UI polish — 2026-10-11
+
+Feature branch: `fix/admin-map-ui-refresh-20261011` from current `develop`. Production `main` and the shared Supabase/Stripe backend were not changed.
+
+- Diagnosed Stripe payment controls duplicated because `admin-tabs.js` injected `payment-environment-admin.js` while `admin.html` also loaded it directly. Removed the extra injection and added a singleton guard in the payment UI script. The TEST/LIVE toggle and its RPCs are otherwise untouched.
+- Replaced the old location-map click placeholder with a responsive two-column location section containing a default, lazy-loaded Google Maps iframe and directions fallback. This introduces a potential visitor-data transfer to Google; review German/EU privacy requirements before release.
+- Refined the public accommodation and Admin UI using existing brand tokens, responsive spacing, canonical FrankiHolz brand assets, subtle/reduced-motion-aware transitions and improved keyboard focus.
+- Updated Playwright tests for map existence/URL, DE locale, and a repeat-loaded Stripe UI script to prevent regressions.
+- Viewer: the public develop homepage is readable with three room cards and clear house rules; map lacked an initial iframe. The Admin dashboard is gated by authentication, so viewer could only inspect the login page and the screenshot provided by the host. No login, booking, Stripe or database writes were performed.
+- Next.js migration is viable as a **separate** architectural project, not included in this fix. Preserve Supabase RLS/Edge Functions, Stripe v2 payment handling, Airbnb calendar sync, bilingual CMS and production branch protections; audit authenticated Admin and public behavior before cutover.
+
+Review PR checks and conduct a signed-in Admin visual acceptance test before merging to `develop`; do not promote to `main` without the normal release approval and privacy review.
+
+
 ## Guest-information website work — 2026-10-11 (feature branch, not live)
 
 Feature branch: \`feature/guest-info-trust-20261011\` based on \`develop\`. No changes were made to \`develop\`, \`main\` or the live/shared Supabase data.

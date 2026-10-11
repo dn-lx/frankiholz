@@ -1,9 +1,10 @@
 (()=>{
   const panelHost=document.querySelector('[data-admin-panel="integrations"]');
-  if(!panelHost)return;
+  if(!panelHost || panelHost.querySelector('[data-stripe-environment-panel]'))return;
 
   const section=document.createElement('section');
-  section.className='panel';
+  section.className='panel stripe-environment-panel';
+  section.dataset.stripeEnvironmentPanel='true';
   section.style.marginBottom='20px';
   section.innerHTML=`
     <div class="section-heading" style="margin-bottom:14px">
