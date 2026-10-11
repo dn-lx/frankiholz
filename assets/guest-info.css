@@ -15,8 +15,9 @@
 .fh-contact-number{font-size:1.18rem;font-weight:800;color:#126f69;text-decoration:none;overflow-wrap:anywhere}
 .fh-contact-number:hover{text-decoration:underline}
 .fh-contact-methods{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:19px}
-.fh-whatsapp-link{display:inline-flex;align-items:center;justify-content:center;min-width:49px;min-height:44px;padding:10px 13px;border:1px solid #b3e4c4;border-radius:12px;background:#e2f7e8;color:#12623b;font-size:13px;line-height:1;font-weight:900;letter-spacing:.025em;text-decoration:none;transition:background .2s ease,border-color .2s ease,transform .2s ease}
-.fh-whatsapp-link:hover{background:#c9efd6;border-color:#91d6a8;transform:translateY(-1px)}
+.fh-whatsapp-link{display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;min-width:48px;min-height:48px;padding:11px;border:1px solid #1cba5b;border-radius:50%;background:#25d366;box-shadow:0 7px 17px rgba(24,128,67,.18);text-decoration:none;transition:background .2s ease,border-color .2s ease,transform .2s ease}
+.fh-whatsapp-link img{display:block;flex:0 0 auto;width:24px;height:24px;object-fit:contain}
+.fh-whatsapp-link:hover{background:#19bf59;border-color:#12aa4a;transform:translateY(-1px)}
 .fh-whatsapp-link:focus-visible{outline:3px solid #41ab7b;outline-offset:3px}
 .fh-whatsapp-link[hidden]{display:none!important}
 @media(prefers-reduced-motion:reduce){.fh-whatsapp-link{transition:none}.fh-whatsapp-link:hover{transform:none}}

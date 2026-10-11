@@ -34,7 +34,11 @@ test('guest rules, amenities, contact and visible location map are available', a
   await expect(page.locator('#contact')).toBeVisible();
   await expect(page.locator('#fhContactPhoneLink')).toHaveAttribute('href', 'tel:+4917662493041');
   await expect(page.locator('#fhWhatsappLink')).toBeVisible();
-  await expect(page.locator('#fhWhatsappLink')).toHaveText('WA');
+  await expect(page.locator('#fhWhatsappLink')).toHaveText('');
+  await expect(page.locator('#fhWhatsappLink img')).toHaveCount(1);
+  await expect(page.locator('#fhWhatsappLink img')).toHaveAttribute('src','/assets/whatsapp.svg?v=20261011b');
+  await expect(page.locator('#fhWhatsappLink img')).toHaveAttribute('alt','');
+  await expect(page.locator('#fhWhatsappLink')).toHaveAttribute('aria-label','Message FrankiHolz on WhatsApp');
   await expect(page.locator('#fhWhatsappLink')).toHaveAttribute('href','https://wa.me/4917662493041');
   await expect(page.locator('#fhWhatsappLink')).toHaveAttribute('target','_blank');
   await expect(page.locator('#guestLanguages')).toHaveAttribute('placeholder','English, German');

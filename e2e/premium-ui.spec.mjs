@@ -57,6 +57,14 @@ test('desktop hero places location badge and single room CTA on the right', asyn
   expect(badgeBox.x).toBeGreaterThan(titleBox.x + 300);
   expect(buttonBox.x).toBeGreaterThan(titleBox.x + 300);
   expect(badgeBox.y).toBeLessThan(buttonBox.y - 100);
+  const railBox=await page.locator('.fh-hero-rail').boundingBox();
+  expect(Math.abs(badgeBox.x+badgeBox.width-(railBox.x+railBox.width))).toBeLessThanOrEqual(3);
+  expect(Math.abs(buttonBox.x+buttonBox.width-(railBox.x+railBox.width))).toBeLessThanOrEqual(3);
+  const navBox=await page.locator('.site-nav').boundingBox();
+  const wrapBox=await page.locator('.fh-hero-grid').boundingBox();
+  expect(navBox.width).toBeGreaterThan(wrapBox.width);
+  expect(navBox.x).toBeLessThan(wrapBox.x);
+  expect(navBox.x+navBox.width).toBeGreaterThan(wrapBox.x+wrapBox.width);
 });
 
 test('mobile hero stacks the badge ahead of copy and keeps a reachable single CTA', async ({ page }) => {
