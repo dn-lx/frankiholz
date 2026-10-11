@@ -3,7 +3,7 @@ async function loadPublicCopyEditor(){
   if(!$('copyEditors'))return;
   const {data,error}=await sb.from('frankiholz_copy').select('copy_key,label,text_en,text_de,sort_order').order('sort_order');
   if(error){$('copyEditors').innerHTML=`<div class="notice">${esc(error.message)}</div>`;return;}
-  frankiholzCopyRows=data||[];
+  frankiholzCopyRows=(data||[]).filter(r=>!r.copy_key.startsWith('fh'));// Guest information is edited in its dedicated section.
   $('copyEditors').innerHTML=frankiholzCopyRows.map(r=>`<div class="copy-editor-row"><div class="copy-label"><strong>${esc(r.label)}</strong><span>${esc(r.copy_key)}</span></div><div class="bilingual-editor compact"><div><span class="language-heading">English</span><textarea id="copy-en-${r.copy_key}" rows="2">${esc(r.text_en||'')}</textarea></div><div><span class="language-heading">Deutsch</span><textarea id="copy-de-${r.copy_key}" rows="2">${esc(r.text_de||'')}</textarea></div></div></div>`).join('');
 }
 $('savePublicCopy').onclick=async()=>{

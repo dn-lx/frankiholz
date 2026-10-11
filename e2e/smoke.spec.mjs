@@ -24,3 +24,33 @@ test('admin includes safe closed-booking cleanup controls', async ({ page }) => 
   await expect(page.locator('#deleteSelectedBookings')).toHaveCount(1);
   await expect(page.locator('#deleteSelectedBookings')).toBeDisabled();
 });
+
+
+test('guest rules, amenities, contact and privacy-aware map are available', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#houseRules')).toBeVisible();
+  await expect(page.locator('#facilities')).toBeVisible();
+  await expect(page.locator('#about')).toBeVisible();
+  await expect(page.locator('#contact')).toBeVisible();
+  await expect(page.locator('#fhContactPhoneLink')).toHaveAttribute('href', 'tel:+4917662493041');
+  await expect(page.locator('#fhAmenitiesList')).toContainText('Wi-Fi');
+  await expect(page.locator('#fhAmenitiesList')).toContainText('Laundry (additional charge)');
+  await expect(page.locator('#fhMapTarget iframe')).toHaveCount(0);
+  await page.locator('#fhLoadMap').click();
+  await expect(page.locator('#fhMapTarget iframe')).toHaveCount(1);
+  await expect(page.locator('#fhMapTarget iframe')).toHaveAttribute('src', /google\.com\/maps/);
+});
+
+test('new guest information sections follow the German language switch', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.locator('.lang-btn[data-lang="de"]').click();
+  await expect(page.locator('#houseRules h3')).toHaveText('Hausregeln & wichtige Informationen');
+  await expect(page.locator('#facilities h3')).toHaveText('Ausstattung & Einrichtungen');
+  await expect(page.locator('#fhAmenitiesList')).toContainText('WLAN');
+});
+
+test('admin contains bilingual guest-information editor shell', async ({ page }) => {
+  await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#guestInfoEditor')).toHaveCount(1);
+  await expect(page.locator('#saveGuestInfo')).toHaveCount(1);
+});

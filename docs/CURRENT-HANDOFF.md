@@ -1,5 +1,20 @@
 # Current Handoff
 
+## Guest-information website work — 2026-10-11 (feature branch, not live)
+
+Feature branch: \`feature/guest-info-trust-20261011\` based on \`develop\`. No changes were made to \`develop\`, \`main\` or the live/shared Supabase data.
+
+- Added public DE/EN house rules, facilities, About Us, contact telephone and click-to-load location map.
+- Added an authorized bilingual website-content editor using existing \`public.frankiholz_copy\` RLS policies; no new schema is required. The section has safe defaults until an admin first saves it.
+- Review links: only administrator-configured HTTPS Airbnb URLs are displayed. Do not scrape reviews; Airbnb's official listing Embed option can be evaluated separately after the host supplies its approved embed HTML.
+- Added direct room-save verification in Admin; the existing room names/descriptions are edited in \`frankiholz_rooms\` (English \`name\`/\`description\`, German \`name_de\`/\`description_de\`).
+- Live DB read on 2026-10-11 found all three rooms active and sharing generic duplicate EN/DE descriptions. Added a conservative SQL migration that updates these placeholders only when the existing values still match. This migration has NOT been applied to the live DB.
+- Default check-in/out text asks guests to arrange exact times with the host; quiet-hours time window and optional Airbnb listing URL need host confirmation. The laundry amount is not specified and is represented only as an additional charge.
+- Smoke tests cover section visibility, telephone link, DE content, and consent-style map loading.
+
+Next actions: inspect CI and review, verify rendered DE/EN site in a browser, obtain confirmed operating hours and approved Airbnb listing/share embed, review room-specific factual differences, and apply the SQL migration through the controlled backend change process if approved. Do not promote to production until tests/review pass.
+
+
 **Last updated:** 2026-09-22
 
 ## Current baseline
