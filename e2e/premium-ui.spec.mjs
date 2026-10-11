@@ -28,15 +28,53 @@ test('premium homepage has clear hospitality navigation and working room call to
   await expect(page.locator('#heroRoomsBtn')).toBeVisible();
   await expect(page.locator('#fhMapTarget iframe')).toHaveCount(1);
   const template = await page.locator('.fh-hero-grid').evaluate(element => getComputedStyle(element).gridTemplateColumns);
-  expect(template.trim().split(/\s+/).length).toBe(1);
+  expect(template.trim().split(/\s+/).length).toBe(2);
   await page.locator('.lang-btn[data-lang="de"]').click();
-  await expect(page.locator('[data-fh-label="heroAbout"]')).toHaveText('Unsere Unterkunft entdecken');
+  await expect(page.locator('.fh-hero-rail .eyebrow')).toBeVisible();
+  await expect(page.locator('.fh-hero-split #heroRoomsBtn')).toHaveCount(1);
+  await expect(page.locator('.fh-text-link')).toHaveCount(0);
   await expect(page.locator('[data-fh-label="quickFacilities"]')).toHaveText('Ausstattung');
   await expect(page.locator('#fhReviewListingLink')).toHaveText('Bewertungen auf Airbnb ansehen ↗');
   await expect(page.locator('#fhAirbnbCount')).toHaveText('35 Bewertungen');
   await expect(page.locator('#fhReviewStarRating')).toHaveAttribute('aria-label','5 von 5 Sternen');
   await expect(page.locator('#fhReviewNature')).toHaveText('Zusammenfassung der Airbnb-Bewertung');
   await expect(page.locator('#fhReviewQuote')).toContainText('Zentrale Lage, gute Erreichbarkeit');
+});
+
+test('desktop hero places location badge and single room CTA on the right', async ({ page }) => {
+  await page.setViewportSize({ width: 1365, height: 900 });
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  const badge = page.locator('.fh-hero-rail .eyebrow');
+  const button = page.locator('.fh-hero-rail #heroRoomsBtn');
+  const title = page.locator('#heroTitle');
+  await expect(badge).toBeVisible();
+  await expect(button).toBeVisible();
+  await expect(title).toBeVisible();
+  await expect(page.locator('.fh-text-link')).toHaveCount(0);
+  const [badgeBox,buttonBox,titleBox]=await Promise.all([
+    badge.boundingBox(),button.boundingBox(),title.boundingBox()
+  ]);
+  expect(badgeBox.x).toBeGreaterThan(titleBox.x + 300);
+  expect(buttonBox.x).toBeGreaterThan(titleBox.x + 300);
+  expect(badgeBox.y).toBeLessThan(buttonBox.y - 100);
+});
+
+test('mobile hero stacks the badge ahead of copy and keeps a reachable single CTA', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/', { waitUntil:'domcontentloaded' });
+  const badge=page.locator('.fh-hero-rail .eyebrow');
+  const button=page.locator('.fh-hero-rail #heroRoomsBtn');
+  const title=page.locator('#heroTitle');
+  await expect(badge).toBeVisible();
+  await expect(button).toBeVisible();
+  await expect(page.locator('.fh-text-link')).toHaveCount(0);
+  const [badgeBox,buttonBox,titleBox]=await Promise.all([
+    badge.boundingBox(),button.boundingBox(),title.boundingBox()
+  ]);
+  expect(badgeBox.y).toBeLessThan(titleBox.y);
+  expect(buttonBox.y).toBeGreaterThan(titleBox.y);
+  const width=await page.evaluate(()=>({full:document.documentElement.scrollWidth,viewport:innerWidth}));
+  expect(width.full).toBeLessThanOrEqual(width.viewport+1);
 });
 
 test('twelve genuine Airbnb five-star review summaries can be navigated', async ({ page }) => {

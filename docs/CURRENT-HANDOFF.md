@@ -1,5 +1,16 @@
 # Current Handoff
 
+## Hero badge + CTA right-side repositioning — 2026-10-11
+
+Branch `fix/hero-badge-cta-right-20261011` from `develop`, **not** a production deploy.
+
+- User screenshot requested moving the “Unterkunft in Frankfurt am Main” location badge and “Zimmer ansehen” primary button out of the left hero text to the center-right of the hero, and **removing** the “Unsere Unterkunft entdecken” secondary link. Main headline, description, tagline and navigation stay on the left/in their current roles.
+- Restructured hero HTML with a single `.fh-hero-rail` holding the original badge (`data-i18n="eyebrow"`) and **the same** `#heroRoomsBtn` (`data-i18n="viewRooms"`), preserving the JS scroll-to-rooms handler.
+- Created focused `assets/hero-placement.css` for desktop two-column positioning and a mobile single-column stacking order: badge above headline, CTA below text. Removed outdated single-column `!important` override from `assets/reviews-band.css`.
+- Added Playwright assertions for desktop right-side badge/CTA, mobile stacking, removing the secondary link, CTA presence, and no page overflow.
+- No Supabase, Airbnb, booking, admin, Stripe, payment, or database changes. Do not merge to `main`; follow standard feature→develop CI gating.
+
+
 ## Expanded Airbnb review carousel with per-guest stars — 2026-10-11
 
 Feature branch: `feature/airbnb-twelve-starred-reviews-20261011` from current `develop`.
