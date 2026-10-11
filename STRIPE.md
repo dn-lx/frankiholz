@@ -1,6 +1,6 @@
 # FrankiHolz Stripe payment model
 
-Last updated: 2026-09-22
+Last updated: 2026-10-11
 
 FrankiHolz uses a **saved-card / scheduled-charge** model for new bookings.
 
@@ -28,11 +28,11 @@ STRIPE_SECRET_KEY
 STRIPE_WEBHOOK_SECRET
 ```
 
-Both updated public sites read `frankiholz_get_payment_environment` and honor the authenticated Admin TEST/LIVE setting. There is **one shared setting** in the shared Supabase project: it affects new checkouts on both updated `develop` and production, not two independent environments. The development website no longer forcibly runs TEST; using LIVE there requires typing `LIVE` before the booking request is created. Public `?test=1` / `?stripe_test=1` query parameters do not override the Admin setting. Existing card-authorized bookings retain their stored `payment_mode`.
+Both updated public sites read `frankiholz_get_payment_environment` and honor the authenticated Admin TEST/LIVE setting. There is **one shared setting** in the shared Supabase project: it affects new checkouts on both updated `develop` and production, not two independent environments. The development website no longer forcibly runs TEST. At the owner's explicit request, guest LIVE checkout uses the normal form flow without a development-only LIVE warning banner or a browser prompt requiring the word `LIVE`. The non-blocking TEST notice, configuration-error handling and standard charge-timing disclosure remain. Public `?test=1` / `?stripe_test=1` query parameters do not override the Admin setting. Existing card-authorized bookings retain their stored `payment_mode`.
 
-**Rollout note:** Production `main` is still on an older frontend that may not yet honor this shared selector. Do not claim both public sites support the updated mode switch until the separately approved `develop → main` frontend release. The live Stripe Checkout Edge Function must also use the initiating allowlisted site URL for the return page, so successful LIVE setup begun on `develop` comes back to `develop`.
+**Rollout note:** Production `main` is still on an older frontend that may not yet honor this shared selector. Do not claim both public sites support the updated mode switch until the separately approved `develop → main` frontend release. The live Stripe Checkout Edge Function uses the initiating allowlisted site URL for new-session return pages, so successful LIVE setup begun on `develop` comes back to `develop`. Existing previously created Checkout sessions retain their original return URLs.
 
-The Admin integrations tab loads `assets/payment-environment-admin.js` and shows the TEST/LIVE selector. The payment-environment setting is stored in `public.frankiholz_payment_settings`.
+The Admin integrations tab loads `assets/payment-environment-admin.js` and shows the TEST/LIVE selector. The payment-environment setting is stored in `public.frankiholz_payment_settings`. Removing the guest prompt does not remove Admin authentication or the Admin confirmation when changing the shared mode to LIVE, and does not bypass any Stripe card verification or authentication.
 
 ## Current server components
 
