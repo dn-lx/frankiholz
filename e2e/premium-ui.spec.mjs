@@ -7,13 +7,14 @@ test('premium homepage has clear hospitality navigation and working room call to
   await page.setViewportSize({ width: 1365, height: 900 });
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('.fh-hero-grid')).toBeVisible();
-  await expect(page.locator('.fh-stay-note')).toBeVisible();
+  await expect(page.locator('.fh-stay-note')).toHaveCount(0);
+  await expect(page.locator('#fhHeroReviews')).toBeHidden();
   await expect(page.locator('.fh-section-nav')).toBeVisible();
   await expect(page.locator('a[href="#facilities"]')).toHaveCount(2);
   await expect(page.locator('#heroRoomsBtn')).toBeVisible();
   await expect(page.locator('#fhMapTarget iframe')).toHaveCount(1);
   const template = await page.locator('.fh-hero-grid').evaluate(element => getComputedStyle(element).gridTemplateColumns);
-  expect(template.trim().split(/\s+/).length).toBeGreaterThanOrEqual(2);
+  expect(template.trim().split(/\s+/).length).toBe(1);
   await page.locator('.lang-btn[data-lang="de"]').click();
   await expect(page.locator('[data-fh-label="heroNoteTitle"]')).toHaveText('Ihr gemütlicher Ausgangspunkt in Frankfurt.');
   await expect(page.locator('[data-fh-label="quickFacilities"]')).toHaveText('Ausstattung');
@@ -23,10 +24,46 @@ test('premium homepage remains usable at narrow phone widths', async ({ page }) 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#heroRoomsBtn')).toBeVisible();
-  await expect(page.locator('.fh-stay-note')).toBeVisible();
+  await expect(page.locator('.fh-stay-note')).toHaveCount(0);
+  await expect(page.locator('#fhHeroReviews')).toBeHidden();
   await expect(page.locator('#guestInfoPublic')).toBeVisible();
   const metrics=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,screen:innerWidth}));
   expect(metrics.scroll).toBeLessThanOrEqual(metrics.screen+1);
+});
+
+test('attributed Airbnb review slides render only from content, with source links and controls', async ({ page }) => {
+  // Mock public CMS reads; never create bookings or publish synthetic testimonials.
+  await page.addInitScript(() => {
+    const testReviews=[
+      {copy_key:'fhHeroReviews',text_en:
+        'Test Guest A | Sample review for a browser test only. | https://www.airbnb.com/rooms/123456789\\nTest Guest B | Another synthetic test quotation. | https://www.airbnb.com/rooms/123456789',
+        text_de:'Testgast A | Nur ein Testzitat. | https://www.airbnb.com/rooms/123456789'},
+      {copy_key:'fhAirbnbReviewsUrl',text_en:'https://www.airbnb.com/rooms/123456789',text_de:'https://www.airbnb.com/rooms/123456789'}
+    ];
+    window.supabase={createClient:()=>({
+      from:(table)=>{
+        const data=table==='frankiholz_copy'?testReviews:[];
+        const q={select(){return this},eq(){return this},in(){return this},order(){return this},
+          maybeSingle(){return Promise.resolve({data:null,error:null})},
+          single(){return Promise.resolve({data:null,error:null})},
+          then(resolve,reject){return Promise.resolve({data,error:null}).then(resolve,reject)}};
+        return q;
+      },
+      rpc:async()=>({data:[],error:null}),
+      auth:{getSession:async()=>({data:{session:null}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}
+    })};
+  });
+  await page.goto('/', {waitUntil:'domcontentloaded'});
+  await expect(page.locator('#fhHeroReviews')).toBeVisible();
+  await expect(page.locator('#fhReviewQuote')).toContainText('Sample review for a browser test only.');
+  await expect(page.locator('#fhReviewAuthor')).toHaveText('Test Guest A');
+  await expect(page.locator('#fhReviewSource')).toHaveAttribute('href','https://www.airbnb.com/rooms/123456789');
+  await expect(page.locator('#fhAirbnbReviews')).toBeHidden();
+  await page.locator('#fhReviewNext').click();
+  await expect(page.locator('#fhReviewQuote')).toContainText('Another synthetic test quotation.');
+  await page.locator('.lang-btn[data-lang="de"]').click();
+  await expect(page.locator('#fhReviewQuote')).toHaveText('Nur ein Testzitat.');
+  await expect(page.locator('#fhReviewNext')).toBeDisabled();
 });
 
 test('Admin has a desktop sidebar and preserves protected section controls', async ({ page }) => {
