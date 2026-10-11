@@ -13,31 +13,63 @@
 <meta property="og:type" content="website"><meta property="og:site_name" content="FrankiHolz"><meta property="og:url" content="https://stay.frankiflow.de/">
 <meta property="og:title" content="Accommodation Frankfurt | Private Rooms at FrankiHolz"><meta property="og:description" content="Private rooms at Seehofstraße 20, 60594 Frankfurt am Main. Check availability and request your stay directly.">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"LodgingBusiness","name":"FrankiHolz","url":"https://stay.frankiflow.de/","description":"Private rooms and direct accommodation booking in Frankfurt am Main.","address":{"@type":"PostalAddress","streetAddress":"Seehofstraße 20","postalCode":"60594","addressLocality":"Frankfurt am Main","addressRegion":"Hessen","addressCountry":"DE"},"numberOfRooms":3}</script>
-<link rel="stylesheet" href="/assets/styles.css"><link rel="stylesheet" href="/assets/guest-info.css?v=20261011a"><link rel="stylesheet" href="/assets/bilingual.css?v=20260918b"><link rel="stylesheet" href="/assets/brand-overrides.css?v=20260912f"><link rel="stylesheet" href="/assets/hero-title-size.css?v=20260912a"><link rel="stylesheet" href="/assets/ui-polish.css?v=20261011b">
+<link rel="stylesheet" href="/assets/styles.css"><link rel="stylesheet" href="/assets/guest-info.css?v=20261011a"><link rel="stylesheet" href="/assets/bilingual.css?v=20260918b"><link rel="stylesheet" href="/assets/brand-overrides.css?v=20260912f"><link rel="stylesheet" href="/assets/hero-title-size.css?v=20260912a"><link rel="stylesheet" href="/assets/ui-polish.css?v=20261011b"><link rel="stylesheet" href="/assets/premium-2026.css?v=20261011a">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/assets/config.js"></script>
 </head>
 <body>
 <header id="hero" class="hero">
 <nav class="site-nav">
   <a class="brand-lockup brand-logo-link" href="/" aria-label="FrankiHolz home"><span class="brand-logo-frame"><img class="brand-logo-image brand-logo-drive" src="/assets/frankiholz-logo-for-dark.png?v=20260918b" alt="FrankiHolz — Your stay in Frankfurt" loading="eager" decoding="sync"></span></a>
-  <div class="nav-actions"><a class="nav-link" href="#roomsSection" data-i18n="navRooms">Rooms</a><div class="lang-switch" aria-label="Language"><button type="button" class="lang-btn" data-lang="en">EN</button><button type="button" class="lang-btn" data-lang="de">DE</button></div><button class="btn light small" id="navBookBtn" type="button" data-i18n="bookNow">Book now</button></div>
+  <div class="nav-actions"><a class="nav-link" href="#roomsSection" data-i18n="navRooms">Rooms</a><a class="nav-link fh-desktop-link" href="#facilities" data-fh-label="facilitiesTitle">Facilities</a><a class="nav-link fh-desktop-link" href="#location" data-fh-label="mapKicker">Location</a><div class="lang-switch" aria-label="Language"><button type="button" class="lang-btn" data-lang="en">EN</button><button type="button" class="lang-btn" data-lang="de">DE</button></div><button class="btn light small" id="navBookBtn" type="button" data-i18n="bookNow">Book now</button></div>
 </nav>
-<div class="wrap hero-content"><span class="eyebrow" data-i18n="eyebrow">Accommodation in Frankfurt am Main</span><h1 id="heroTitle">Private rooms in Frankfurt am Main.</h1><p id="heroSubtitle">Stay at Seehofstraße 20, 60594 Frankfurt am Main. Choose a room, check live availability and send your booking request directly.</p><button class="btn light" id="heroRoomsBtn" type="button" data-i18n="viewRooms">View rooms</button></div>
+<div class="wrap fh-hero-grid">
+  <div class="hero-content">
+    <span class="eyebrow" data-i18n="eyebrow">Accommodation in Frankfurt am Main</span>
+    <h1 id="heroTitle">Private rooms in Frankfurt am Main.</h1>
+    <p id="heroSubtitle">Stay at Seehofstraße 20, 60594 Frankfurt am Main. Choose a room, check live availability and send your booking request directly.</p>
+    <div class="fh-hero-actions"><button class="btn light" id="heroRoomsBtn" type="button" data-i18n="viewRooms">View rooms</button><a class="fh-text-link" href="#about" data-fh-label="heroAbout">Discover our place <span aria-hidden="true">↗</span></a></div>
+    <div class="fh-hero-minor"><span aria-hidden="true" class="fh-hero-pulse"></span><span data-fh-label="heroMinor">Thoughtful stays in Frankfurt-Sachsenhausen</span></div>
+  </div>
+  <aside class="fh-stay-note" aria-label="Accommodation highlights">
+    <div class="fh-stay-note-top"><span data-fh-label="heroNoteTop">WELCOME TO FRANKIHOLZ</span><span class="fh-note-mark" aria-hidden="true">✳</span></div>
+    <p class="fh-stay-note-title" data-fh-label="heroNoteTitle">A comfortable base for your time in Frankfurt.</p>
+    <div class="fh-stay-note-separator"></div>
+    <div class="fh-note-item"><span class="fh-note-number">01</span><span data-fh-label="heroFact1">Private rooms in a shared apartment</span></div>
+    <div class="fh-note-item"><span class="fh-note-number">02</span><span data-fh-label="heroFact2">Shared kitchen and practical amenities</span></div>
+    <div class="fh-note-item"><span class="fh-note-number">03</span><span data-fh-label="heroFact3">Direct contact with your host</span></div>
+    <a href="#location" class="fh-note-location"><span>↗</span><span>Seehofstraße 20 · Frankfurt</span></a>
+  </aside>
+</div>
 </header>
 <section class="trust-strip"><div class="wrap trust-grid">
 <div class="trust-item"><div class="trust-icon">✓</div><div><strong data-i18n="liveAvailability">Live availability</strong><span data-i18n="approvedBlock">Only approved bookings block dates</span></div></div>
 <div class="trust-item"><div class="trust-icon">€</div><div><strong data-i18n="clearPricing">Clear pricing</strong><span data-i18n="estimatedInstant">See your estimated stay total instantly</span></div></div>
 <div class="trust-item"><div class="trust-icon">↗</div><div><strong data-i18n="directBooking">Direct booking</strong><span data-i18n="directHost">Send your request straight to the host</span></div></div>
 </div></section>
+<nav class="fh-section-nav" aria-label="Explore FrankiHolz">
+  <div class="wrap fh-section-nav-inner">
+    <span class="fh-section-nav-label" data-fh-label="explore">EXPLORE THE STAY</span>
+    <a href="#roomsSection" data-fh-label="quickRooms">Our rooms <span aria-hidden="true">↗</span></a>
+    <a href="#facilities" data-fh-label="quickFacilities">Amenities <span aria-hidden="true">↗</span></a>
+    <a href="#houseRules" data-fh-label="quickRules">House rules <span aria-hidden="true">↗</span></a>
+    <a href="#location" data-fh-label="quickLocation">Location <span aria-hidden="true">↗</span></a>
+  </div>
+</nav>
 <main>
-<section id="roomsSection" class="section"><div class="wrap"><span class="section-kicker" data-i18n="stayYourWay">Stay your way</span><h2 data-i18n="chooseRoom">Choose your room</h2><p class="lead" data-i18n="roomsLead">Explore the rooms, open the gallery, and check real-time availability before you book.</p><div id="rooms" class="grid rooms"></div></div></section>
+<section id="roomsSection" class="section fh-room-showcase"><div class="wrap">
+  <div class="fh-section-intro">
+    <div><span class="section-kicker" data-i18n="stayYourWay">Stay your way</span><h2 data-i18n="chooseRoom">Choose your room</h2></div>
+    <p class="lead" data-i18n="roomsLead">Explore the rooms, open the gallery, and check real-time availability before you book.</p>
+  </div>
+  <div id="rooms" class="grid rooms"></div>
+</div></section>
 <section id="guestInfoPublic" class="section">
   <div class="wrap">
     <span class="section-kicker" data-fh-label="welcome">Before your stay</span>
     <h2 data-fh-label="guestInfoTitle">Your stay at FrankiHolz</h2>
     <p class="lead" data-fh-label="guestInfoIntro">House rules, shared facilities and ways to reach the host.</p>
-    <div class="fh-guest-grid" style="margin-top:20px">
-      <section class="panel fh-info-card" id="houseRules">
+    <div class="fh-guest-grid fh-guest-editorial">
+      <section class="panel fh-info-card fh-rules-card" id="houseRules">
         <h3 data-fh-label="rulesTitle">House rules & important information</h3>
         <div class="fh-rules">
           <div><strong data-fh-label="checkInTitle">Check-in</strong><p data-fh-info="fhCheckIn">Please arrange your arrival time with the host.</p></div>
@@ -47,14 +79,14 @@
           <div><strong data-fh-label="otherRulesTitle">Taking care of the accommodation</strong><p data-fh-info="fhOtherRules">Please treat the apartment and shared spaces with care.</p></div>
         </div>
       </section>
-      <section class="panel fh-info-card" id="facilities">
+      <section class="panel fh-info-card fh-facilities-card" id="facilities">
         <h3 data-fh-label="facilitiesTitle">Facilities & amenities</h3>
         <p class="muted" data-fh-label="facilitiesIntro">Available facilities and shared spaces. Please ask the host if a specific amenity is essential for your stay.</p>
         <ul class="fh-amenities" id="fhAmenitiesList">
           <li>Wi-Fi</li><li>Shared kitchen access</li><li>Laundry (additional charge)</li><li>Garden access</li><li>Heating</li><li>TV</li>
         </ul>
       </section>
-      <section class="panel fh-info-card" id="about">
+      <section class="panel fh-info-card fh-about-card" id="about">
         <h3 data-fh-info="fhAboutTitle">About FrankiHolz</h3>
         <p class="fh-about-text" data-fh-info="fhAboutBody">Private rooms in a shared apartment in Frankfurt am Main.</p>
         <div id="fhAirbnbReviews" hidden>
@@ -63,7 +95,7 @@
           <a id="fhAirbnbReviewsLink" target="_blank" rel="noopener noreferrer" data-fh-label="reviewsLink">View Airbnb reviews ↗</a>
         </div>
       </section>
-      <section class="panel fh-info-card" id="contact">
+      <section class="panel fh-info-card fh-contact-card" id="contact">
         <h3 data-fh-label="contactTitle">Contact your host</h3>
         <p data-fh-label="contactIntro">Questions about arrival, facilities or your booking? Contact us directly.</p>
         <p><a class="fh-contact-number" id="fhContactPhoneLink" href="tel:+4917662493041">+49 176 62493 041</a></p>
