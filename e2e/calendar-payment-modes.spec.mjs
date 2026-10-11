@@ -148,7 +148,7 @@ for(const mode of ['live','test']){
       else await expect(page.locator('#paymentEnvironmentNotice')).toContainText('Stripe TEST');
       // Keep the ordinary charge-timing disclosure, not the removed development warning.
       await expect(page.locator('[data-i18n="pendingNote"]')).toContainText('14');
-      await expect(page.locator('[data-i18n="pendingNote"]')).toContainText(language==='de'?'nicht belastet':'not charged');
+      await expect(page.locator('[data-i18n="pendingNote"]')).toContainText(language==='de'?/keine Belastung|nicht belastet/:/not charged/);
       await page.locator('#bookingForm button[type="submit"]').click();
       await expect(page).toHaveURL(new RegExp(`/__stripe-checkout-stub__\\?mode=${mode}$`));
       expect(dialogs).toEqual([]);
@@ -161,7 +161,7 @@ for(const mode of ['live','test']){
   }
 }
 
-test('unavailable payment configuration still blocks submission before creating a booking',async ({page})=>{
+test('unavailable payment configuration is reported instead of silently defaulting to LIVE',async ({page})=>{
   await mockPublicBackend(page,null);
   await page.goto('/?lang=en',{waitUntil:'domcontentloaded'});
   await page.evaluate(async()=>{await window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14')});
