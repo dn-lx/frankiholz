@@ -13,12 +13,14 @@
 .fh-hero-split .fh-hero-rail{
   display:flex;
   flex-direction:column;
-  align-items:flex-start;
+  align-items:flex-end;
   justify-content:space-between;
+  text-align:right;
   min-width:0;
   padding-bottom:17px;
 }
 .fh-hero-split .fh-hero-rail .eyebrow{
+  align-self:flex-end;
   font-size:11px;
   letter-spacing:.1em;
   max-width:100%;
@@ -26,11 +28,16 @@
   line-height:1.5;
 }
 .fh-hero-split .fh-hero-rail #heroRoomsBtn{
+  align-self:flex-end;
   min-height:49px;
   padding:14px 23px;
   font-size:14px;
   margin:0;
   white-space:nowrap;
+}
+@media(min-width:901px){
+  /* Slightly wider top navigation, centered independently of the hero text. */
+  .site-nav{width:min(1370px,96vw);max-width:1370px}
 }
 @media(max-width:900px){
   .fh-hero-grid.fh-hero-split{
@@ -53,6 +60,7 @@
   .fh-hero-split .fh-hero-rail #heroRoomsBtn{
     order:1;
     justify-self:start;
+    align-self:start;
     margin-top:4px;
   }
   .fh-hero-split .fh-hero-minor{margin-top:23px}
