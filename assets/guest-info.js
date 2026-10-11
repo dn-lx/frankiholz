@@ -257,10 +257,10 @@
     }
     for (const r of updates.filter(r=>r.copy_key==='fhAirbnbRating'||r.copy_key==='fhAirbnbCount')) {
       const values=[r.text_en,r.text_de].filter(Boolean);
-      if(r.copy_key==='fhAirbnbRating'&&values.some(v=>!/^(?:[0-4](?:\\.\\d{1,2})?|5(?:\\.0{1,2})?)$/.test(v))){
+      if(r.copy_key==='fhAirbnbRating'&&values.some(v=>!/^(?:[0-4](?:\.\d{1,2})?|5(?:\.0{1,2})?)$/.test(v))){
         status.textContent='Airbnb rating must be between 0 and 5, with up to two decimals.';return;
       }
-      if(r.copy_key==='fhAirbnbCount'&&values.some(v=>!/^\\d{1,6}$/.test(v)||Number(v)>100000)){
+      if(r.copy_key==='fhAirbnbCount'&&values.some(v=>!/^\d{1,6}$/.test(v)||Number(v)>100000)){
         status.textContent='Airbnb review count must be a whole number.';return;
       }
     }
