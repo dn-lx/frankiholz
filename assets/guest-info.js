@@ -209,6 +209,16 @@
       contact.textContent = phone;
       contact.href = /^\+?[0-9]{7,16}$/.test(tel)?'tel:'+tel:'#contact';
     }
+    const whatsapp = $('fhWhatsappLink');
+    if(whatsapp){
+      const international = phone.replace(/[^+0-9]/g,'');
+      const valid = /^\+[1-9][0-9]{6,14}$/.test(international);
+      whatsapp.hidden = !valid;
+      if(valid) whatsapp.href = 'https://wa.me/' + international.slice(1);
+      else whatsapp.removeAttribute('href');
+      whatsapp.setAttribute('aria-label',lang==='de'?'FrankiHolz über WhatsApp kontaktieren':'Message FrankiHolz on WhatsApp');
+      whatsapp.title = lang==='de'?'Über WhatsApp schreiben':'Chat on WhatsApp';
+    }
     const reviewsLink = $('fhAirbnbReviewsLink');
     const reviewsSection = $('fhAirbnbReviews');
     const url = fieldValue('fhAirbnbReviewsUrl',lang);
