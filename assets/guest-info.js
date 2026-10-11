@@ -59,7 +59,7 @@
   const heroReviewReducedMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const parseReviewEntries = (value) => String(value || '').split(/\r?\n/).map(line => {
     const parts = line.split('|').map(p => p.trim());
-    if(parts.length !== 3 || !parts[0] || !parts[1] || !validAirbnbUrl(parts[2])) return null;
+    if(parts.length !== 3 || !parts[0] || !parts[1] || !validListingUrl(parts[2])) return null;
     return {author:parts[0],quote:parts[1],url:parts[2]};
   }).filter(Boolean).slice(0,10);
   const heroReviewSourceLanguage = (lang) => {
@@ -114,6 +114,11 @@
       return url.protocol === 'https:' && /(^|\.)airbnb\.(com|de|co\.uk|fr|es|it|nl|at|ch)$/.test(url.hostname.toLowerCase());
     } catch { return false; }
   };
+  const validListingUrl = value => {
+    if(!validAirbnbUrl(value))return false;
+    const path=new URL(value).pathname;
+    return /^\/(?:rooms\/\d+|h\/[a-z0-9-]+|slink\/[a-z0-9_-]+)\/?$/i.test(path);
+  };
   async function load() {
     const {data,error} = await sb.from('frankiholz_copy').select('copy_key,text_en,text_de').in('copy_key',fields.map(f=>f.key));
     if (error) { console.warn('FrankiHolz guest information unavailable',error.message); return; }
@@ -124,6 +129,7 @@
   function renderPublic() {
     if (!$('guestInfoPublic')) return;
     const lang = uiLang();
+    if($('fhHeroReviews'))$('fhHeroReviews').setAttribute('aria-label',lang==='de'?'Gästebewertungen':'Guest reviews');
     document.querySelectorAll('[data-fh-label]').forEach(node=>{node.textContent=labels[lang][node.dataset.fhLabel]||node.textContent;});
     renderHeroReviews();
     document.querySelectorAll('[data-fh-info]').forEach(node=>{
@@ -147,7 +153,7 @@
     const reviewsSection = $('fhAirbnbReviews');
     const url = fieldValue('fhAirbnbReviewsUrl',lang);
     if (reviewsSection && reviewsLink) {
-      reviewsSection.hidden = !validAirbnbUrl(url);
+      reviewsSection.hidden = !validListingUrl(url) || heroReviewItems.length>0;
       if (!reviewsSection.hidden) reviewsLink.href = url;
       else reviewsLink.removeAttribute('href');
     }
@@ -208,7 +214,7 @@
       status.textContent='Please fill out all guest information in both languages.';return;
     }
     const airbnb=updates.find(r=>r.copy_key==='fhAirbnbReviewsUrl');
-    if(airbnb && [airbnb.text_en,airbnb.text_de].some(url=>url&&!validAirbnbUrl(url))){
+    if(airbnb && [airbnb.text_en,airbnb.text_de].some(url=>url&&!validListingUrl(url))){
       status.textContent='The reviews link must be a valid HTTPS Airbnb listing URL.';return;
     }
     const reviewField=updates.find(r=>r.copy_key==='fhHeroReviews');
@@ -217,7 +223,7 @@
         const lines=raw.split(/\r?\n/).filter(line=>line.trim());
         if(lines.length>10 || lines.some(line=>{
           const parts=line.split('|').map(p=>p.trim());
-          return parts.length!==3 || !parts[0] || !parts[1] || parts[0].length>70 || parts[1].length>650 || !validAirbnbUrl(parts[2]);
+          return parts.length!==3 || !parts[0] || !parts[1] || parts[0].length>70 || parts[1].length>650 || !validListingUrl(parts[2]);
         })){
           status.textContent=language+' reviews: use up to 10 lines of Guest name | Real review | Public Airbnb listing URL.';
           return;
