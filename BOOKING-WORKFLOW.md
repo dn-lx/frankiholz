@@ -40,7 +40,9 @@ Last updated: 2026-09-22
 ## Environment rules
 
 - The Admin TEST/LIVE selector controls new production-site payment setup.
-- Netlify develop/branch previews are forced to Stripe TEST mode.
+- Updated `develop` and updated production frontends both read the shared Admin TEST/LIVE setting; TEST is no longer forcibly selected on `develop`. A deliberate extra confirmation is required before LIVE checkout on development.
+- The Stripe setting is currently **global** for both sites because they share Supabase. Switching it affects *new* updated-site checkout sessions on both. It is not a branch-isolated setting. The current production `main` has older code and needs its own approved release before its frontend fully honors this selector.
+- A public `?stripe_test=1` or `?test=1` parameter cannot force sandbox mode. The Admin setting is authoritative.
 - Existing bookings keep their own `payment_mode`; switching the global environment does not migrate an existing booking from test to live or vice versa.
 
 ## Legacy path

@@ -1,5 +1,27 @@
 # Current Handoff
 
+## Calendar exclusive checkout + shared TEST/LIVE selector on develop — 2026-10-11
+
+Feature branch: `fix/calendar-checkout-stripe-env-20261011` from `develop`. Do not merge or deploy this branch directly to `main`.
+
+### Confirmed booking-calendar bug
+- Room 1 (Cozy Holz), 2026-10-13 night is available (€0.90 test rate). 2026-10-14 through 17 nights are blocked by Airbnb iCal. Confirmed booking night 2026-10-12 is unavailable.
+- Read-only production backend check: `frankiholz_estimate_total(room1,2026-10-13,2026-10-14)` returns available=true, one night. The same call to 2026-10-15 returns false. Backend correctly uses half-open [check-in, check-out) intervals.
+- Fixed an existing ternary-precedence issue in `assets/site.js` so explicit `?lang=en` is respected rather than incorrectly switching to German; this also ensures the new checkout-only text is localized correctly.
+- Frontend calendar erroneously disabled every blocked date. Updated public JS to expose first blocked morning as an interactive **check-out only** boundary once valid check-in is selected, never allowing booked/blocked overnight dates in selected range.
+- Clicking selected check-in now clears both selections. Clicking selected check-out clears check-out only. Summaries/pricing reset. Added aria labels and dashed checkout-only styling; no Airbnb blocks were edited.
+
+### Stripe safety and rollout
+- Both Stripe credentials are marked ready in shared Supabase; selected setting is currently `live`. The single `frankiholz_payment_settings` row is **GLOBAL across develop and main**. They do **not** have independent settings in the current architecture.
+- Removed old forced TEST on develop and publicly controlled `?test=1` / `?stripe_test=1` override in new frontend. Updated frontend reads Admin-protected `frankiholz_get_payment_environment` regardless of hostname, displays TEST/LIVE visibly in booking flow, and requires an explicit `LIVE` confirmation when on a development preview.
+- Updated Admin mode selector copy to explain shared setting and existing booking payment mode preservation. This is **not** a passwordless public mode switch.
+- Staged a guarded same-signature migration to set a new booking's `payment_mode` to the selected mode at initial creation, rather than column default LIVE (existing rows unchanged).
+- Staged existing LIVE Stripe Edge Function's smallest necessary callback change: use approved incoming browser Origin (allowlist already exists) for success/cancel return URLs, to return development LIVE tests back to develop rather than production. Existing production request origin still returns to production. No key, charge, or business logic changes.
+- The **deployed production main branch is 71 commits behind develop** and contains a legacy browser-side mode choice which does not respect the Admin selector. A separately reviewed and approved `develop → main` production release is required for the updated mode selection to work on main. Do not claim main is updated merely because backend was changed.
+- No real card setup or charge has been performed. Do not create artificial live bookings merely to test code.
+- Playwright tests use a mocked calendar/payment RPC for Oct 13/14, deselection, blocked dates, German labels, and backend-mode precedence over query flags. Confirm security, browser and Lighthouse checks before any code merge.
+
+
 ## Compact public site spacing and Stripe TEST/LIVE test guide — 2026-10-11
 
 Branch `fix/compact-site-spacing-20261011`, based on `develop`. No production `main` merge and no Supabase/Stripe settings changed.
