@@ -83,7 +83,6 @@ window.pickDate=async key=>{
   }
   renderCalendar();updateSummary();
 };
-function isDevelopPaymentHost(){return location.hostname==='develop--frankiholz.netlify.app'||location.hostname.endsWith('--frankiholz.netlify.app')||location.hostname==='frankiholz.shipstatic.com'||location.hostname==='localhost'||location.hostname==='127.0.0.1'}
 let currentPaymentMode=null;
 async function resolvePaymentMode(){
   // Both development and production use the same server-managed, Admin-only setting.
@@ -98,13 +97,10 @@ async function resolvePaymentMode(){
 function paintPaymentEnvironmentNotice(){
   const el=$('paymentEnvironmentNotice');
   if(!el)return;
-  const mode=currentPaymentMode;
-  el.hidden=!(mode==='test'||(mode==='live'&&isDevelopPaymentHost()));
-  if(el.hidden)return;
-  el.className='payment-environment-notice '+(mode==='live'?'mode-live':'mode-test');
-  el.textContent=mode==='test'
-    ? (currentLang==='de'?'Stripe TEST: Hier wird kein echtes Geld belastet.':'Stripe TEST: No real money will be charged.')
-    : (currentLang==='de'?'ACHTUNG – Stripe LIVE in der Entwicklung: echte Karten und echte Belastungen nach Bestätigung!':'WARNING – Stripe LIVE on development: real cards and real charges after host confirmation!');
+  // LIVE uses the normal guest checkout flow; keep only the TEST-mode notice.
+  el.hidden=currentPaymentMode!=='test';
+  el.className='payment-environment-notice mode-test';
+  el.textContent=el.hidden?'':(currentLang==='de'?'Stripe TEST: Hier wird kein echtes Geld belastet.':'Stripe TEST: No real money will be charged.');
 }
 async function refreshPaymentEnvironmentNotice(){
   const el=$('paymentEnvironmentNotice');
@@ -125,12 +121,6 @@ $('bookingForm').addEventListener('submit',async e=>{
  if(languages.length===0||intro.length<20){out.innerHTML=`<div class="notice">${currentLang==='de'?'Bitte Sprache(n) angeben und eine kurze Vorstellung mit mindestens 20 Zeichen schreiben.':'Please add at least one language and a short introduction of at least 20 characters.'}</div>`;return}
  const payload={p_room_id:selectedRoom.id,p_check_in:start,p_check_out:end,p_guest_name:$('guestName').value.trim(),p_guest_email:$('guestEmail').value.trim(),p_guest_phone:$('guestPhone').value.trim(),p_guest_country:$('guestCountry').value.trim(),p_guests:Number($('guestCount').value),p_message:intro,p_language:currentLang,p_guest_age:Number($('guestAge').value),p_guest_sex:$('guestSex').value,p_guest_languages:languages,p_guest_hobbies:$('guestHobbies').value.trim(),p_guest_returning:$('guestReturning').value==='yes'};
  let paymentMode;try{paymentMode=await resolvePaymentMode()}catch(modeError){out.innerHTML=`<div class="notice">${escapeHtml(modeError.message)}</div>`;return}
- if(paymentMode==='live'&&isDevelopPaymentHost()){
-   const code=window.prompt(currentLang==='de'
-     ?'LIVE-Test auf der Entwicklungswebsite: Hier können echte Zahlungen entstehen. Geben Sie LIVE ein, um fortzufahren.'
-     :'LIVE testing on the development site can lead to real charges. Type LIVE to proceed.','');
-   if(code!=='LIVE')return;
- }
  const rpcName='frankiholz_create_booking_v2';const rpcPayload=payload;
  const submit=e.currentTarget.querySelector('button[type=submit]');const old=submit.textContent;submit.disabled=true;submit.textContent=currentLang==='de'?'Anfrage wird gespeichert …':'Saving request …';
  const {data,error}=await sb.rpc(rpcName,rpcPayload);if(error){submit.disabled=false;submit.textContent=old;out.innerHTML=`<div class="notice">${escapeHtml(error.message)}</div>`;await loadCalendar();return}const b=data?.[0];
