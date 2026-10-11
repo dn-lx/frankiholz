@@ -1,0 +1,30 @@
+/* Guest information and trust sections */
+.fh-guest-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.fh-guest-grid>.panel{min-width:0}
+.fh-info-card h2,.fh-info-card h3{margin:0 0 14px;color:#17343d}
+.fh-info-card p{line-height:1.7}
+.fh-rules{display:grid;gap:14px}
+.fh-rules>div{padding:0 0 12px;border-bottom:1px solid #dce8e5}
+.fh-rules>div:last-child{border:0;padding-bottom:0}
+.fh-rules strong{display:block;margin:0 0 4px}
+.fh-rules p{white-space:pre-line;margin:0;color:var(--muted)}
+.fh-amenities{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:16px 0 0;padding:0;list-style:none}
+.fh-amenities li{padding:11px 12px;border-radius:11px;background:#f1f8f6;color:#17343d;font-weight:600}
+.fh-amenities li::before{content:"✓";color:#168d70;margin-right:9px;font-weight:900}
+.fh-about-text{white-space:pre-line;margin:0 0 16px}
+.fh-contact-number{font-size:1.18rem;font-weight:800;color:#126f69;text-decoration:none;overflow-wrap:anywhere}
+.fh-contact-number:hover{text-decoration:underline}
+.fh-map-placeholder{background:#edf5f4;min-height:220px;border:1px solid #dce8e5;border-radius:13px;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center}
+.fh-map-placeholder iframe{display:block;border:0;width:100%;height:320px;border-radius:12px}
+.fh-map-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.fh-map-actions a{font-weight:700}
+.fh-field{padding:16px 0;border-bottom:1px solid #dce8e5}
+.fh-field:last-child{border-bottom:0}
+.fh-field>strong{display:block;margin-bottom:9px;color:#17343d}
+.fh-field textarea{min-height:95px}
+.fh-info-card [hidden],#fhAirbnbReviews[hidden]{display:none!important}
+@media(max-width:780px){
+  .fh-guest-grid{grid-template-columns:1fr}
+  .fh-amenities{grid-template-columns:1fr 1fr}
+}
+@media(max-width:420px){.fh-amenities{grid-template-columns:1fr}}
