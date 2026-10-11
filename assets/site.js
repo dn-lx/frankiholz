@@ -27,8 +27,62 @@ function renderSelectedRoom(){const ri=roomImgs(selectedRoom.id),fallback=cover(
 window.showPhoto=(u,el)=>{$('galleryMain').src=u;document.querySelectorAll('.thumb').forEach(x=>x.classList.remove('active'));el.classList.add('active')};
 async function loadCalendar(){if(!selectedRoom)return;const from=fmt(new Date(cursorMonth.getFullYear(),cursorMonth.getMonth(),1)),to=fmt(new Date(cursorMonth.getFullYear(),cursorMonth.getMonth()+2,0));const {data,error}=await sb.rpc('frankiholz_get_calendar_rates',{p_room_id:selectedRoom.id,p_from:from,p_to:to});calendarRows=error?[]:(data||[]);if(error)console.error(error);renderCalendar()}
 function blocked(key){const row=calendarRows.find(x=>x.date===key);return !!(row&&row.is_available===false)} function rangeBlocked(a,b){if(!a||!b)return false;let d=new Date(a+'T12:00:00'),stop=new Date(b+'T12:00:00');while(d<stop){if(blocked(fmt(d)))return true;d.setDate(d.getDate()+1)}return false}
-function renderCalendar(){const y=cursorMonth.getFullYear(),m=cursorMonth.getMonth();$('monthTitle').textContent=cursorMonth.toLocaleString(currentLang==='de'?'de-DE':'en-DE',{month:'long',year:'numeric'});const labels=currentLang==='de'?['Mo','Di','Mi','Do','Fr','Sa','So']:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];let html=labels.map(x=>`<div class="dow">${x}</div>`).join('');const first=new Date(y,m,1,12),days=new Date(y,m+1,0).getDate(),pad=(first.getDay()+6)%7,today=new Date();today.setHours(0,0,0,0);for(let i=0;i<pad;i++)html+='<div></div>';for(let n=1;n<=days;n++){const d=new Date(y,m,n,12),key=fmt(d),row=calendarRows.find(x=>x.date===key),past=d<today,isBlocked=!!(row&&row.is_available===false),isBooked=!!(row&&row.availability_status==='booked'),isStart=start===key,isEnd=end===key,inRange=start&&end&&key>start&&key<end;let note=isBlocked?(isBooked?tr('booked'):tr('unavailable')):(row?.nightly_price?money(row.nightly_price):'');html+=`<button type="button" class="day ${past?'disabled':''} ${isBlocked?'blocked':''} ${isBooked?'booked-day':''} ${isStart?'start':''} ${isEnd?'end':''} ${inRange?'inrange':''}" ${past||isBlocked?'disabled':''} onclick="pickDate('${key}')"><strong>${n}</strong><small>${note}</small></button>`}$('calendar').innerHTML=html}
-window.pickDate=async key=>{if(!start||end){start=key;end=null;$('calendarNotice').className='notice';$('calendarNotice').textContent=tr('chooseCheckout')}else if(key<=start){start=key;end=null;$('calendarNotice').textContent=tr('chooseCheckout')}else if(rangeBlocked(start,key)){$('calendarNotice').className='notice';$('calendarNotice').textContent=tr('blockedPeriod');renderCalendar();return}else{end=key;await estimate()}renderCalendar();updateSummary()};
+function canCheckOutOn(key){
+  return !!(start && !end && key>start && !rangeBlocked(start,key));
+}
+function renderCalendar(){
+  const y=cursorMonth.getFullYear(),m=cursorMonth.getMonth();
+  $('monthTitle').textContent=cursorMonth.toLocaleString(currentLang==='de'?'de-DE':'en-DE',{month:'long',year:'numeric'});
+  const labels=currentLang==='de'?['Mo','Di','Mi','Do','Fr','Sa','So']:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  let html=labels.map(x=>`<div class="dow">${x}</div>`).join('');
+  const first=new Date(y,m,1,12),days=new Date(y,m+1,0).getDate(),pad=(first.getDay()+6)%7,today=fmt(new Date());
+  for(let i=0;i<pad;i++)html+='<div></div>';
+  for(let n=1;n<=days;n++){
+    const key=fmt(new Date(y,m,n,12)),row=calendarRows.find(x=>x.date===key);
+    const past=key<today,isBlocked=!!(row&&row.is_available===false),isBooked=!!(row&&row.availability_status==='booked');
+    const isStart=start===key,isEnd=end===key,inRange=start&&end&&key>start&&key<end;
+    // Blocked overnights remain unavailable; guests may leave on the first blocked morning.
+    const checkoutOnly=!past&&isBlocked&&canCheckOutOn(key);
+    const disabled=past||(isBlocked&&!checkoutOnly&&!isStart&&!isEnd);
+    const note=isEnd?'Check-out':
+      checkoutOnly?(currentLang==='de'?'Nur Check-out':'Check-out only'):
+      isBlocked?(isBooked?tr('booked'):tr('unavailable')):(row?.nightly_price?money(row.nightly_price):'');
+    const aria=(currentLang==='de'?'Datum ':'Date ')+key+
+      (isStart?(currentLang==='de'?', Check-in ausgewählt':', check-in selected'):
+        isEnd?(currentLang==='de'?', Check-out ausgewählt':', check-out selected'):
+        checkoutOnly?(currentLang==='de'?', nur Check-out':', check-out only'):
+        isBlocked?(currentLang==='de'?', nicht verfügbar':', unavailable'):'');
+    html+=`<button type="button" aria-label="${escapeHtml(aria)}" aria-pressed="${isStart||isEnd?'true':'false'}" class="day ${past?'disabled':''} ${isBlocked?'blocked':''} ${isBooked?'booked-day':''} ${checkoutOnly?'checkout-only':''} ${isStart?'start':''} ${isEnd?'end':''} ${inRange?'inrange':''}" ${disabled?'disabled':''} onclick="pickDate('${key}')"><strong>${n}</strong><small>${escapeHtml(note)}</small></button>`;
+  }
+  $('calendar').innerHTML=html;
+}
+window.pickDate=async key=>{
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(key)||key<fmt(new Date()))return;
+  const isBlocked=blocked(key),checkoutOnly=canCheckOutOn(key);
+  if(key===start){
+    start=end=null;
+    $('calendarNotice').className='notice';
+    $('calendarNotice').textContent=tr('chooseDates');
+  }else if(key===end){
+    end=null;
+    $('calendarNotice').className='notice';
+    $('calendarNotice').textContent=tr('chooseCheckout');
+  }else if(!start||end||key<start){
+    if(isBlocked)return;
+    start=key;end=null;
+    $('calendarNotice').className='notice';
+    $('calendarNotice').textContent=tr('chooseCheckout');
+  }else if(isBlocked&&!checkoutOnly){
+    return;
+  }else if(rangeBlocked(start,key)){
+    $('calendarNotice').className='notice';
+    $('calendarNotice').textContent=tr('blockedPeriod');
+  }else{
+    end=key;
+    await estimate();
+  }
+  renderCalendar();updateSummary();
+};
 function isDevelopPaymentHost(){return location.hostname==='develop--frankiholz.netlify.app'||location.hostname.endsWith('--frankiholz.netlify.app')||location.hostname==='frankiholz.shipstatic.com'||location.hostname==='localhost'||location.hostname==='127.0.0.1'}
 async function resolvePaymentMode(){const testFlag=new URLSearchParams(location.search).get('stripe_test')==='1'||new URLSearchParams(location.search).get('test')==='1';if(isDevelopPaymentHost()||testFlag)return 'test';const {data,error}=await sb.rpc('frankiholz_get_payment_environment');if(error)throw new Error(currentLang==='de'?'Zahlungsumgebung ist vorübergehend nicht verfügbar.':'Payment environment is temporarily unavailable.');if(data!=='test'&&data!=='live')throw new Error(currentLang==='de'?'Zahlungsumgebung ist nicht korrekt konfiguriert.':'Payment environment is not configured correctly.');return data}
 async function estimate(){if(!selectedRoom||!start||!end)return;const {data,error}=await sb.rpc('frankiholz_estimate_total',{p_room_id:selectedRoom.id,p_check_in:start,p_check_out:end});const e=data?.[0];if(error||!e?.available){end=null;$('calendarNotice').className='notice';$('calendarNotice').textContent=tr('datesUnavailable')}else{$('calendarNotice').className='notice success';$('calendarNotice').textContent=`${tr('availablePrefix')}: ${e.nights} ${e.nights===1?tr('nightSingular'):tr('nightPlural')} · ${money(e.total_price)}`;$('sumTotal').textContent=money(e.total_price)}updateSummary();renderCalendar()}
