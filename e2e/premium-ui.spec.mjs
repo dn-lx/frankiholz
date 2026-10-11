@@ -189,3 +189,50 @@ test('Admin navigation becomes horizontal on mobile without losing any tabs', as
   const metrics=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,screen:innerWidth}));
   expect(metrics.scroll).toBeLessThanOrEqual(metrics.screen+1);
 });
+
+
+test('public sections avoid oversized desktop spacing while preserving booking usability', async ({ page }) => {
+  await page.setViewportSize({width:1365,height:900});
+  await page.goto('/', {waitUntil:'domcontentloaded'});
+  await expect(page.locator('#roomsSection')).toBeVisible();
+  await expect(page.locator('#fhHeroReviews')).toBeVisible();
+  const rhythm=await page.evaluate(()=>{
+    const room=getComputedStyle(document.querySelector('#roomsSection'));
+    const rules=getComputedStyle(document.querySelector('#guestInfoPublic .fh-rules-card'));
+    const quick=getComputedStyle(document.querySelector('.fh-section-nav-inner'));
+    const book=getComputedStyle(document.querySelector('#bookingSection'));
+    return {
+      sectionTop:parseFloat(room.paddingTop),
+      sectionBottom:parseFloat(room.paddingBottom),
+      rulesMinHeight:parseFloat(rules.minHeight) || 0,
+      rulesGridRow:rules.gridRowEnd,
+      quickNavHeight:parseFloat(quick.minHeight),
+      bookingSectionTop:parseFloat(book.paddingTop)
+    };
+  });
+  expect(rhythm.sectionTop).toBeLessThanOrEqual(70);
+  expect(rhythm.sectionBottom).toBeLessThanOrEqual(70);
+  expect(rhythm.rulesMinHeight).toBeLessThanOrEqual(1);
+  expect(rhythm.rulesGridRow).toBe('auto');
+  expect(rhythm.quickNavHeight).toBeLessThanOrEqual(60);
+  expect(rhythm.bookingSectionTop).toBeLessThanOrEqual(70);
+  await expect(page.locator('#heroRoomsBtn')).toBeVisible();
+  await expect(page.locator('#fhReviewNext')).toBeVisible();
+});
+
+test('compact public layout remains readable without horizontal scroll on mobile', async ({ page }) => {
+  await page.setViewportSize({width:390,height:844});
+  await page.goto('/', {waitUntil:'domcontentloaded'});
+  const measured=await page.evaluate(()=>{
+    const section=getComputedStyle(document.querySelector('#guestInfoPublic'));
+    return {
+      pageWidth:document.documentElement.scrollWidth,
+      viewportWidth:window.innerWidth,
+      sectionTop:parseFloat(section.paddingTop)
+    };
+  });
+  expect(measured.pageWidth).toBeLessThanOrEqual(measured.viewportWidth+1);
+  expect(measured.sectionTop).toBeLessThanOrEqual(45);
+  await expect(page.locator('#fhContactPhoneLink')).toBeVisible();
+  await expect(page.locator('#fhWhatsappLink')).toBeVisible();
+});
