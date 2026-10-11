@@ -14,6 +14,13 @@
 .fh-about-text{white-space:pre-line;margin:0 0 16px}
 .fh-contact-number{font-size:1.18rem;font-weight:800;color:#126f69;text-decoration:none;overflow-wrap:anywhere}
 .fh-contact-number:hover{text-decoration:underline}
+.fh-contact-methods{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:19px}
+.fh-whatsapp-link{display:inline-flex;align-items:center;justify-content:center;min-width:49px;min-height:44px;padding:10px 13px;border:1px solid #b3e4c4;border-radius:12px;background:#e2f7e8;color:#12623b;font-size:13px;line-height:1;font-weight:900;letter-spacing:.025em;text-decoration:none;transition:background .2s ease,border-color .2s ease,transform .2s ease}
+.fh-whatsapp-link:hover{background:#c9efd6;border-color:#91d6a8;transform:translateY(-1px)}
+.fh-whatsapp-link:focus-visible{outline:3px solid #41ab7b;outline-offset:3px}
+.fh-whatsapp-link[hidden]{display:none!important}
+@media(prefers-reduced-motion:reduce){.fh-whatsapp-link{transition:none}.fh-whatsapp-link:hover{transform:none}}
+
 .fh-map-placeholder{background:#edf5f4;min-height:220px;border:1px solid #dce8e5;border-radius:13px;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center}
 .fh-map-placeholder iframe{display:block;border:0;width:100%;height:320px;border-radius:12px}
 .fh-map-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px;align-items:center}

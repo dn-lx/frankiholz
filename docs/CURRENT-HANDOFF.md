@@ -1,5 +1,16 @@
 # Current Handoff
 
+## Remove Sinhala placeholder + add WA contact badge — 2026-10-11
+
+Branch `fix/booking-language-wa-contact-20261011` based on `develop` after PR #43 (right-aligned hero) merged. **No production `main` changes**.
+
+- Booking page: changed free-text `#guestLanguages` placeholder from `English, German, Sinhala` to `English, German`, leaving the guest's language input, translations, and booking submission contract unchanged. No stored guest language records were changed.
+- Public Contact section: added a small visible `WA` link adjacent to the phone number. Opens `https://wa.me/4917662493041` in a new tab (no background WhatsApp request) with `rel="noopener noreferrer"` and fully labelled accessibility text.
+- The link is generated from the **existing bilingual Admin-managed `fhContactPhone` value** by `assets/guest-info.js`, not a second hardcoded phone setting. If the value is not a valid international number beginning with `+`, WA link hides rather than opening an invalid URL. Phone contact remains unchanged.
+- Added compact/responsive WA link styling with focus and reduced-motion handling. Added Playwright smoke checks for link presence, exact `WA` label, German aria-label, correct URL, the revised placeholder and CMS-backed phone updates.
+- No Supabase schema/data, payment, Stripe, booking logic, authentication, or private feed changes. CI/PR into `develop` only; do not merge to `main`.
+
+
 ## Hero badge + CTA right-side repositioning — 2026-10-11
 
 Branch `fix/hero-badge-cta-right-20261011` from `develop`, **not** a production deploy.
