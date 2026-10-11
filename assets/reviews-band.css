@@ -1,7 +1,6 @@
 /* Airbnb-sourced review strip: the section directly below the homepage quick links.
    Snapshot statistics are not represented as a real-time API. */
-.fh-hero-grid{grid-template-columns:minmax(0,1fr)!important}
-.fh-hero-grid .hero-content{max-width:840px}
+/* The reviews now live below the hero and must not constrain hero columns. */
 .fh-reviews-band{
   background:#fffefa;
   padding:clamp(21px,3vw,34px) 0 clamp(24px,3vw,36px);
