@@ -13,7 +13,7 @@
 <meta property="og:type" content="website"><meta property="og:site_name" content="FrankiHolz"><meta property="og:url" content="https://stay.frankiflow.de/">
 <meta property="og:title" content="Accommodation Frankfurt | Private Rooms at FrankiHolz"><meta property="og:description" content="Private rooms at Seehofstraße 20, 60594 Frankfurt am Main. Check availability and request your stay directly.">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"LodgingBusiness","name":"FrankiHolz","url":"https://stay.frankiflow.de/","description":"Private rooms and direct accommodation booking in Frankfurt am Main.","address":{"@type":"PostalAddress","streetAddress":"Seehofstraße 20","postalCode":"60594","addressLocality":"Frankfurt am Main","addressRegion":"Hessen","addressCountry":"DE"},"numberOfRooms":3}</script>
-<link rel="stylesheet" href="/assets/styles.css"><link rel="stylesheet" href="/assets/guest-info.css?v=20261011a"><link rel="stylesheet" href="/assets/bilingual.css?v=20260918b"><link rel="stylesheet" href="/assets/brand-overrides.css?v=20260912f"><link rel="stylesheet" href="/assets/hero-title-size.css?v=20260912a"><link rel="stylesheet" href="/assets/ui-polish.css?v=20261011b"><link rel="stylesheet" href="/assets/premium-2026.css?v=20261011a"><link rel="stylesheet" href="/assets/hero-reviews.css?v=20261011a">
+<link rel="stylesheet" href="/assets/styles.css"><link rel="stylesheet" href="/assets/guest-info.css?v=20261011a"><link rel="stylesheet" href="/assets/bilingual.css?v=20260918b"><link rel="stylesheet" href="/assets/brand-overrides.css?v=20260912f"><link rel="stylesheet" href="/assets/hero-title-size.css?v=20260912a"><link rel="stylesheet" href="/assets/ui-polish.css?v=20261011b"><link rel="stylesheet" href="/assets/premium-2026.css?v=20261011a"><link rel="stylesheet" href="/assets/hero-reviews.css?v=20261011a"><link rel="stylesheet" href="/assets/reviews-band.css?v=20261011a">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/assets/config.js"></script>
 </head>
 <body>
@@ -30,27 +30,7 @@
     <div class="fh-hero-actions"><button class="btn light" id="heroRoomsBtn" type="button" data-i18n="viewRooms">View rooms</button><a class="fh-text-link" href="#about" data-fh-label="heroAbout">Discover our place <span aria-hidden="true">↗</span></a></div>
     <div class="fh-hero-minor"><span aria-hidden="true" class="fh-hero-pulse"></span><span data-fh-label="heroMinor">Thoughtful stays in Frankfurt-Sachsenhausen</span></div>
   </div>
-  <aside id="fhHeroReviews" class="fh-hero-reviews" aria-label="Guest reviews" hidden>
-    <div class="fh-review-top">
-      <span class="fh-review-eyebrow" data-fh-label="heroReviewsEyebrow">GUEST REVIEWS · AIRBNB</span>
-      <span class="fh-review-quote-mark" aria-hidden="true">“</span>
-    </div>
-    <h2 class="fh-review-heading" data-fh-label="heroReviewsHeading">Words from our guests</h2>
-    <div class="fh-review-slide" id="fhReviewSlide" aria-live="off">
-      <blockquote class="fh-review-quote" id="fhReviewQuote"></blockquote>
-      <div class="fh-review-attribution">
-        <div class="fh-review-author" id="fhReviewAuthor"></div>
-        <a id="fhReviewSource" href="#" target="_blank" rel="noopener noreferrer" data-fh-label="heroReviewsSource">Read on Airbnb ↗</a>
-      </div>
-    </div>
-    <div class="fh-review-footer">
-      <span id="fhReviewProgress" class="fh-review-progress" aria-label="Review position"></span>
-      <div class="fh-review-controls">
-        <button type="button" id="fhReviewPrev" class="fh-review-arrow" aria-label="Previous review">←</button>
-        <button type="button" id="fhReviewNext" class="fh-review-arrow" aria-label="Next review">→</button>
-      </div>
-    </div>
-  </aside>
+
 </div>
 </header>
 <section class="trust-strip"><div class="wrap trust-grid">
@@ -68,6 +48,53 @@
   </div>
 </nav>
 <main>
+<section id="fhReviewsBand" class="fh-reviews-band" aria-labelledby="fhReviewsTitle">
+  <div class="wrap">
+    <div class="fh-review-summary">
+      <div class="fh-review-score">
+        <span class="fh-review-kicker" data-fh-label="reviewBandKicker">VERIFIED AIRBNB LISTING</span>
+        <h2 id="fhReviewsTitle" data-fh-label="reviewBandTitle">Guest reviews</h2>
+        <p class="fh-review-context" data-fh-label="reviewBandContext">See what guests have shared about their stay.</p>
+      </div>
+      <div class="fh-review-number" aria-label="Airbnb listing rating">
+        <span class="fh-review-star" aria-hidden="true">★</span>
+        <strong id="fhAirbnbRating">4.69</strong><span class="fh-review-outof">/ 5</span>
+        <span class="fh-review-count" id="fhAirbnbCount">29 reviews</span>
+        <span class="fh-review-asof" data-fh-label="reviewBandSnapshot">Airbnb listing snapshot · not live</span>
+      </div>
+      <div class="fh-review-topics">
+        <span data-fh-label="reviewBandTopics">Topics mentioned by guests</span>
+        <div class="fh-review-topic-pills">
+          <span data-fh-label="reviewTopicHost">Hospitality</span>
+          <span data-fh-label="reviewTopicLocation">Location</span>
+          <span data-fh-label="reviewTopicClean">Cleanliness</span>
+        </div>
+      </div>
+      <a class="fh-review-listing-link" id="fhReviewListingLink" href="https://www.airbnb.com/rooms/1621684668409633226" target="_blank" rel="noopener noreferrer" data-fh-label="reviewBandLink">All reviews on Airbnb ↗</a>
+    </div>
+    <div id="fhHeroReviews" class="fh-hero-reviews fh-review-carousel" aria-label="Guest reviews" hidden>
+      <div class="fh-review-top">
+        <span class="fh-review-eyebrow" data-fh-label="heroReviewsEyebrow">GUEST REVIEWS · AIRBNB</span>
+        <span class="fh-review-quote-mark" aria-hidden="true">“</span>
+      </div>
+      <h3 class="fh-review-heading" data-fh-label="heroReviewsHeading">Words from our guests</h3>
+      <div class="fh-review-slide" id="fhReviewSlide" aria-live="off">
+        <blockquote class="fh-review-quote" id="fhReviewQuote"></blockquote>
+        <div class="fh-review-attribution">
+          <div class="fh-review-author" id="fhReviewAuthor"></div>
+          <a id="fhReviewSource" href="#" target="_blank" rel="noopener noreferrer" data-fh-label="heroReviewsSource">Read on Airbnb ↗</a>
+        </div>
+      </div>
+      <div class="fh-review-footer">
+        <span id="fhReviewProgress" class="fh-review-progress" aria-label="Review position"></span>
+        <div class="fh-review-controls">
+          <button type="button" id="fhReviewPrev" class="fh-review-arrow" aria-label="Previous review">←</button>
+          <button type="button" id="fhReviewNext" class="fh-review-arrow" aria-label="Next review">→</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 <section id="roomsSection" class="section fh-room-showcase"><div class="wrap">
   <div class="fh-section-intro">
     <div><span class="section-kicker" data-i18n="stayYourWay">Stay your way</span><h2 data-i18n="chooseRoom">Choose your room</h2></div>
@@ -101,11 +128,7 @@
       <section class="panel fh-info-card fh-about-card" id="about">
         <h3 data-fh-info="fhAboutTitle">About FrankiHolz</h3>
         <p class="fh-about-text" data-fh-info="fhAboutBody">Private rooms in a shared apartment in Frankfurt am Main.</p>
-        <div id="fhAirbnbReviews" hidden>
-          <h3 data-fh-label="reviewsTitle">Guest reviews</h3>
-          <p data-fh-label="reviewsIntro">Read reviews of our accommodation on Airbnb.</p>
-          <a id="fhAirbnbReviewsLink" target="_blank" rel="noopener noreferrer" data-fh-label="reviewsLink">View Airbnb reviews ↗</a>
-        </div>
+
       </section>
       <section class="panel fh-info-card fh-contact-card" id="contact">
         <h3 data-fh-label="contactTitle">Contact your host</h3>
