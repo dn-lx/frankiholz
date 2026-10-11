@@ -1,5 +1,20 @@
 # Current Handoff
 
+## Premium Homepage + Admin UI — October 11, 2026 (feature branch, not production)
+
+Branch: `feature/premium-public-admin-redesign-20261011`, based on latest `develop`. No shared Supabase, Stripe, payments, guest data, or `main` production changes.
+
+- Reworked public homepage into an editorial split hero with a guest-facing highlight panel, bilingual room/facility/house-rule/location jump navigation, refined room cards and guest info, booking-safe CTAs and mobile-friendly layout.
+- Redesigned the authenticated Admin static shell as a responsive host workspace: desktop sidebar tabs, mobile horizontally scrollable tabs, clearer operational header, premium section/card hierarchy and updated login visuals. Existing tab buttons, IDs, RLS enforcement, RPC usage and Stripe environment controls are unchanged.
+- New `assets/premium-2026.css` layers on existing approved FrankiHolz branding; retains motion-safe/reduced-motion behavior.
+- New `e2e/premium-ui.spec.mjs` checks desktop/mobile layout, language switching, required Admin controls and no narrow-screen overflow; offline test reveals static Admin dashboard solely for layout validation and is NOT a substitute for signed-in QA.
+- Added Airbnb public listing URL guidance under the existing optional Admin reviews link. Airbnb's official host path is Listings → listing → View → Share → Copy link (or Share → Embed → Copy HTML for a separate review preview).
+- Direct Admin authentication was not possible: Supabase Auth passwords cannot be retrieved in plaintext and available browser profiles contain no saved FrankiHolz Admin login. A future live signed-in inspection requires user-controlled profile sign-in; do not reset credentials or bypass auth.
+- This change does not perform a Next.js migration; current architecture remains static HTML/JS to protect booking/payment continuity.
+
+Before merging into `develop`: inspect PR diff and GitHub CI; check authenticated Admin UI with a legitimate host session, and visually test desktop + mobile. Production release requires normal approved `develop → main` process.
+
+
 ## Admin duplication, map visibility and UI polish — 2026-10-11
 
 Feature branch: `fix/admin-map-ui-refresh-20261011` from current `develop`. Production `main` and the shared Supabase/Stripe backend were not changed.
