@@ -36,6 +36,7 @@ test('premium homepage has clear hospitality navigation and working room call to
   await expect(page.locator('#fhAirbnbCount')).toHaveText('35 Bewertungen');
   await expect(page.locator('#fhReviewStarRating')).toHaveAttribute('aria-label','5 von 5 Sternen');
   await expect(page.locator('#fhReviewNature')).toHaveText('Zusammenfassung der Airbnb-Bewertung');
+  await expect(page.locator('#fhReviewQuote')).toContainText('Zentrale Lage, gute Erreichbarkeit');
 });
 
 test('twelve genuine Airbnb five-star review summaries can be navigated', async ({ page }) => {
