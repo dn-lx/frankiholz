@@ -1,12 +1,13 @@
 /* Focused FrankiHolz hero positioning: text left, badge and room CTA right.
    The location badge and CTA are single DOM elements, preserving locale and booking handlers. */
 .fh-hero-grid.fh-hero-split{
-  grid-template-columns:minmax(0,1.34fr) minmax(248px,.66fr)!important;
+  grid-template-columns:minmax(0,1.34fr) minmax(248px,.66fr);
   align-items:stretch;
   gap:clamp(25px,3.8vw,60px);
 }
 .fh-hero-split .hero-content{
   min-width:0;
+  max-width:720px;
   padding-top:32px;
 }
 .fh-hero-split .fh-hero-rail{
@@ -33,7 +34,7 @@
 }
 @media(max-width:900px){
   .fh-hero-grid.fh-hero-split{
-    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-columns:minmax(0,1fr);
     gap:18px;
     padding-block:155px 70px;
   }
