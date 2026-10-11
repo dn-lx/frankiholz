@@ -1,5 +1,21 @@
 # Current Handoff
 
+## Verified Airbnb listing review strip below the homepage hero — 2026-10-11
+
+Branch: `feature/airbnb-reviews-below-hero-20261011` based on current `develop`. Production `main`, Supabase and Stripe are unchanged.
+
+- The owner supplied public listing `https://www.airbnb.com/rooms/1621684668409633226`, already saved in protected/Admin-editable `public.frankiholz_copy.fhAirbnbReviewsUrl` for both languages (existing copy included tracking query string).
+- Airbnb indexed page snapshots differed: an older fetched version showed **4.61 / 23 reviews**, whereas a newer search-indexed snapshot displayed **4.69 / 29 reviews**. Thus numbers are **not live**; UI displays the newer known snapshot and an explicit "Airbnb listing snapshot · not live" disclosure, with direct canonical source link. Admin editors can manually revise `fhAirbnbRating` and `fhAirbnbCount` (fallback defaults 4.69, 29; no database migration).
+- No individual written review texts/guest names were accessible from the public Airbnb page: the reviews section showed zero review items in non-JS retrieval, though aggregate rating/tags were visible. Do not invent quotations. Only confirmed public review topic labels (hospitality, location, cleanliness) are shown without claiming exact guest quotes.
+- Moved reviews to the screenshot-requested space **after the quick-navigation row and before Rooms**; removed review panel from inside hero, keeping the hero fully wide.
+- Real quotations if later collected through owner-verified sources may be displayed in the existing optional sliding carousel in this same strip via bilingual Admin `fhHeroReviews` records (author | exact quote | canonical Airbnb listing URL).
+- The lower About Us review link was removed to avoid duplicate review placement. All reviews link directly to the official listing.
+- Tests cover location, source URL, English/German, snapshot, hidden default carousel and mock review slider.
+- No standalone Airbnb public review sync API has been verified; official listing-embed process is documented by Airbnb at `https://www.airbnb.com/help/article/923`, but the exact host-provided embed code has not been supplied.
+
+Before merging: run Playwright, security and static UI checks; verify desktop/mobile. Standard release path feature→develop then approved develop→main. Do not call a snapshot "live synchronized".
+
+
 ## Remove hero welcome panel + prepare genuine Airbnb reviews — 2026-10-11
 
 Branch: `feature/airbnb-hero-reviews-20261011` based on `develop`. Do not deploy or modify production/main or shared booking/payment data.
