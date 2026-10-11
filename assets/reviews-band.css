@@ -76,3 +76,31 @@
 @media(prefers-reduced-motion:reduce){
   .fh-review-listing-link{transition:none}
 }
+
+/* Review-first layout: visible quotations are primary, snapshot is secondary. */
+.fh-reviews-band .fh-reviews-intro{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:18px}
+.fh-reviews-intro h2{margin:0;font-size:clamp(23px,3vw,32px);letter-spacing:-.04em;color:#173b43}
+.fh-reviews-intro .fh-review-kicker{margin-bottom:6px}
+.fh-review-source-summary{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap;color:#3d5c53;font-size:12px}
+.fh-review-source-summary strong{font-size:25px;letter-spacing:-.04em;color:#143d45}
+.fh-review-source-summary .fh-review-star{font-size:19px}
+.fh-review-source-summary #fhAirbnbCount{font-size:11px;font-weight:800;white-space:nowrap;margin-left:8px}
+.fh-review-source-summary small{display:block;flex-basis:100%;color:#657e77;font-size:10px}
+.fh-reviews-intro .fh-review-listing-link{max-width:none;min-height:44px}
+.fh-reviews-band .fh-review-carousel{margin:0;min-height:205px;grid-template-columns:minmax(0,.36fr) minmax(0,1fr) auto}
+.fh-reviews-band .fh-review-slide{min-height:100px}
+.fh-reviews-band .fh-review-quote{font-size:clamp(20px,2.3vw,29px);font-weight:700;line-height:1.45}
+.fh-reviews-band .fh-review-heading{font-size:18px!important}
+@media(max-width:880px){
+  .fh-reviews-band .fh-review-carousel{grid-template-columns:1fr auto}
+  .fh-reviews-band .fh-review-slide{grid-column:1;grid-row:3}
+  .fh-reviews-band .fh-review-footer{grid-column:2;grid-row:1/4}
+}
+@media(max-width:650px){
+  .fh-reviews-band .fh-reviews-intro{align-items:flex-start}
+  .fh-reviews-intro .fh-review-listing-link{width:100%}
+  .fh-review-source-summary{width:100%}
+  .fh-reviews-band .fh-review-carousel{display:flex;flex-direction:column;align-items:stretch;min-height:unset}
+  .fh-reviews-band .fh-review-footer{width:100%}
+  .fh-reviews-band .fh-review-quote{font-size:20px}
+}
