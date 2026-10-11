@@ -34,7 +34,7 @@ test('premium homepage remains usable at narrow phone widths', async ({ page }) 
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#heroRoomsBtn')).toBeVisible();
   await expect(page.locator('.fh-stay-note')).toHaveCount(0);
-  await expect(page.locator('#fhHeroReviews')).toBeHidden();
+  await expect(page.locator('#fhHeroReviews')).toBeVisible();
   await expect(page.locator('#guestInfoPublic')).toBeVisible();
   const metrics=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,screen:innerWidth}));
   expect(metrics.scroll).toBeLessThanOrEqual(metrics.screen+1);
