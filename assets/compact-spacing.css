@@ -1,0 +1,71 @@
+/* FrankiHolz public website: tighter vertical rhythm without compacting touch targets.
+   Loaded last so inherited older padding/min-height rules do not create empty sections. */
+@media (min-width:901px){
+  .hero{min-height:clamp(580px,66vh,665px)}
+  .fh-hero-grid.fh-hero-split{
+    padding-block:clamp(138px,15vh,155px) clamp(65px,8vh,82px);
+  }
+}
+.fh-section-nav-inner{min-height:56px}
+.section{padding-block:clamp(45px,4.9vw,66px)}
+.fh-section-intro{margin-bottom:24px}
+.fh-reviews-band{padding-block:16px 21px}
+.fh-reviews-band .fh-reviews-intro{margin-bottom:13px}
+.fh-reviews-band .fh-review-carousel{min-height:174px;padding:19px 24px}
+.fh-reviews-band + .fh-room-showcase{padding-top:clamp(43px,4.3vw,62px)}
+.fh-room-showcase{padding-bottom:clamp(44px,4.8vw,65px)}
+.fh-room-showcase .rooms{gap:19px}
+.fh-room-showcase .room-card .room-body{padding:21px 23px 23px}
+#guestInfoPublic{padding-block:clamp(45px,5vw,67px)}
+#guestInfoPublic .fh-guest-editorial{
+  align-items:start;
+  margin-top:23px;
+  gap:16px;
+}
+#guestInfoPublic .fh-rules-card{
+  min-height:0;
+  grid-row:auto;
+}
+#guestInfoPublic .fh-contact-card{min-height:0}
+#guestInfoPublic .fh-guest-editorial>.panel{padding:clamp(22px,2.4vw,29px)}
+#guestInfoPublic .fh-rules{gap:10px}
+#guestInfoPublic .fh-rules>div{padding-bottom:11px}
+#guestInfoPublic .fh-about-text{line-height:1.7}
+#bookingSection{padding-block:clamp(47px,4.7vw,66px)}
+#bookingSection .booking-shell{margin-top:16px!important;gap:20px}
+#bookingSection .panel{padding:clamp(20px,2.2vw,28px)}
+#bookingSection .panel h2{margin-bottom:13px}
+#bookingSection .selected-summary{margin-block:13px}
+#location{padding-block:clamp(43px,4.9vw,65px)}
+#location .fh-location-layout{gap:clamp(22px,3vw,39px);padding:clamp(22px,3vw,36px)}
+#location .fh-location-description p{margin-bottom:15px}
+#location .fh-location-description address{margin-bottom:17px!important}
+#location .fh-map-embed,#location .fh-map-embed iframe{min-height:315px}
+.cancellation-policy{padding-bottom:clamp(40px,4.5vw,62px)}
+#bookingStatusSection{padding-block:clamp(43px,4.5vw,61px)}
+.footer{padding-block:33px}
+@media(max-width:900px){
+  .fh-hero-grid.fh-hero-split{padding-block:139px 59px;gap:14px}
+  .fh-hero-split .fh-hero-minor{margin-top:17px}
+  .section{padding-block:clamp(38px,5.5vw,52px)}
+  #guestInfoPublic .fh-guest-editorial{gap:15px}
+  #guestInfoPublic .fh-rules-card{grid-row:auto}
+  .fh-reviews-band{padding-block:12px 20px}
+  #location .fh-map-embed,#location .fh-map-embed iframe{min-height:290px}
+}
+@media(max-width:600px){
+  .fh-hero-grid.fh-hero-split{padding-block:134px 55px;gap:13px}
+  .fh-hero-split .hero-content h1{margin-block:9px 15px}
+  .fh-section-nav-inner{min-height:52px}
+  .section{padding-block:39px}
+  .fh-reviews-band .fh-review-carousel{padding:18px 19px;min-height:0}
+  .fh-reviews-band + .fh-room-showcase{padding-top:40px}
+  #guestInfoPublic{padding-block:40px}
+  #guestInfoPublic .fh-guest-editorial{margin-top:19px;gap:14px}
+  #guestInfoPublic .fh-guest-editorial>.panel{padding:22px}
+  #bookingSection{padding-block:42px}
+  #bookingSection .panel{padding:19px}
+  #location{padding-block:40px}
+  #location .fh-map-embed,#location .fh-map-embed iframe{min-height:270px}
+  .footer{padding-block:29px}
+}
