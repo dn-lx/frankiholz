@@ -161,7 +161,7 @@
   if($('guestInfoPublic')){
     renderPublic();
     load();
-    document.querySelectorAll('.lang-btn').forEach(btn=>btn.addEventListener('click',()=>queueMicrotask(renderPublic)));
+    document.querySelectorAll('.lang-btn').forEach(btn=>btn.addEventListener('click',()=>{document.documentElement.lang=btn.dataset.lang;renderPublic();}));
   }
   if($('guestInfoEditor')){
     const saveBtn=$('saveGuestInfo');
