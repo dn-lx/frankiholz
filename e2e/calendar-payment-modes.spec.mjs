@@ -122,10 +122,19 @@ for(const mode of ['live','test']){
       page.on('pageerror',error=>errors.push(error.message));
       // Intercept before the external-network blocker; never send to Supabase or Stripe.
       await page.route('**/functions/v1/frankiholz-create-authorization-*',async route=>{
+        const headers={
+          'access-control-allow-origin':new URL(page.url()).origin,
+          'access-control-allow-headers':'content-type,apikey',
+          'access-control-allow-methods':'POST,OPTIONS'
+        };
+        if(route.request().method()==='OPTIONS'){
+          await route.fulfill({status:204,headers,body:''});
+          return;
+        }
         checkoutRequests.push({url:route.request().url(),body:route.request().postDataJSON()});
         const destination=new URL('/__stripe-checkout-stub__',page.url());
         destination.searchParams.set('mode',mode);
-        await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({checkout_url:destination.href})});
+        await route.fulfill({status:200,headers,contentType:'application/json',body:JSON.stringify({checkout_url:destination.href})});
       });
       await page.route('**/__stripe-checkout-stub__*',route=>route.fulfill({
         status:200,contentType:'text/html',body:'<!doctype html><title>Mock checkout only</title><p>No payment created.</p>'
