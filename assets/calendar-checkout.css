@@ -1,0 +1,19 @@
+/* Guest calendar: check-out is an exclusive date. A blocked incoming night can still
+   be the morning of departure, but never a check-in date or an overnight selection. */
+.day.checkout-only{
+  background:linear-gradient(180deg,#f3fbf6,#e9f7ef);
+  border:1.5px dashed #409b74;
+  color:#175444;
+  cursor:pointer;
+  opacity:1;
+}
+.day.checkout-only small{color:#21724d;font-size:10px;font-weight:750;line-height:1.25}
+.day.checkout-only:not(:disabled):hover{background:#d9f3e4;border-color:#247651}
+.day.start,.day.end{outline:2px solid rgba(47,143,107,.22);outline-offset:-2px}
+.day.end.blocked{background:linear-gradient(135deg,#2f8f6b,#247557);color:#fff;border-color:transparent}
+.day.end.blocked small{color:rgba(255,255,255,.87)}
+.day:focus-visible{outline:3px solid #297856;outline-offset:2px}
+.day[aria-pressed="true"]{font-weight:800}
+@media (max-width:650px){
+  .day.checkout-only small{font-size:9px;line-height:1.1}
+}
