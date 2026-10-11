@@ -30,10 +30,16 @@ async function mockPublicBackend(page, mode='test'){
       },
       rpc(name,params){
         if(name==='frankiholz_get_calendar_rates')return Promise.resolve({data:rows,error:null});
-        if(name==='frankiholz_get_payment_environment')return Promise.resolve({data:paymentMode,error:null});
+        if(name==='frankiholz_get_payment_environment'){
+          // Exercise a real asynchronous boundary without contacting the backend.
+          return new Promise(resolve=>setTimeout(()=>resolve({data:paymentMode,error:null}),20));
+        }
         if(name==='frankiholz_estimate_total'){
           const available=params.p_check_in==='2026-10-13'&&params.p_check_out==='2026-10-14';
           return Promise.resolve({data:[{available,total_price:available?'0.90':'0',nights:available?1:2}],error:null});
+        }
+        if(name==='frankiholz_create_booking_v2'){
+          return Promise.resolve({data:[{reference:'FH-UI-ONLY',total_price:'0.90'}],error:null});
         }
         return Promise.resolve({data:[],error:null});
       },
@@ -92,12 +98,85 @@ test('German checkout boundary label is visible and actual TEST mode is displaye
   await expect(page.locator('#paymentEnvironmentNotice')).toContainText('Stripe TEST');
 });
 
-test('development reads live mode from backend, not old stripe_test query flag',async ({page})=>{
+test('development still reads LIVE from backend but shows no LIVE warning',async ({page})=>{
   await mockPublicBackend(page,'live');
   await page.goto('/?lang=en&stripe_test=1',{waitUntil:'domcontentloaded'});
   await page.evaluate(async()=>{await window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14')});
-  await expect(page.locator('#paymentEnvironmentNotice')).toContainText('Stripe LIVE');
-  await expect(page.locator('#paymentEnvironmentNotice')).toHaveClass(/mode-live/);
   const selected=await page.evaluate(async()=>await resolvePaymentMode());
   expect(selected).toBe('live');
+  await expect(page.locator('#paymentEnvironmentNotice')).toBeHidden();
+  await expect(page.locator('#paymentEnvironmentNotice')).toHaveText('');
+  await page.locator('.lang-btn[data-lang="de"]').click();
+  await expect(page.locator('#paymentEnvironmentNotice')).toBeHidden();
+  await expect(page.locator('#paymentEnvironmentNotice')).toHaveText('');
+});
+
+for(const mode of ['live','test']){
+  for(const language of ['en','de']){
+    test(`${mode.toUpperCase()} ${language} guest submission reaches correct checkout without a browser prompt`,async ({page})=>{
+      await mockPublicBackend(page,mode);
+      const dialogs=[];
+      const checkoutRequests=[];
+      const errors=[];
+      page.on('dialog',async dialog=>{dialogs.push(dialog.type());await dialog.dismiss();});
+      page.on('pageerror',error=>errors.push(error.message));
+      // Intercept before the external-network blocker; never send to Supabase or Stripe.
+      await page.route('**/functions/v1/frankiholz-create-authorization-*',async route=>{
+        const headers={
+          'access-control-allow-origin':new URL(page.url()).origin,
+          'access-control-allow-headers':'content-type,apikey',
+          'access-control-allow-methods':'POST,OPTIONS'
+        };
+        if(route.request().method()==='OPTIONS'){
+          await route.fulfill({status:204,headers,body:''});
+          return;
+        }
+        checkoutRequests.push({url:route.request().url(),body:route.request().postDataJSON()});
+        const destination=new URL('/__stripe-checkout-stub__',page.url());
+        destination.searchParams.set('mode',mode);
+        await route.fulfill({status:200,headers,contentType:'application/json',body:JSON.stringify({checkout_url:destination.href})});
+      });
+      await page.route('**/__stripe-checkout-stub__*',route=>route.fulfill({
+        status:200,contentType:'text/html',body:'<!doctype html><title>Mock checkout only</title><p>No payment created.</p>'
+      }));
+      await page.goto(`/?lang=${language}`,{waitUntil:'domcontentloaded'});
+      await page.evaluate(async()=>{await window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14')});
+      await button(page,'2026-10-13').click();
+      await button(page,'2026-10-14').click();
+      await page.locator('#guestName').fill('Frontend Test Guest');
+      await page.locator('#guestEmail').fill('checkout-ui@example.invalid');
+      await page.locator('#guestPhone').fill('+491700000000');
+      await page.locator('#guestCountry').fill('Germany');
+      await page.locator('#guestAge').fill('21');
+      await page.locator('#guestSex').selectOption('prefer_not_to_say');
+      await page.locator('#guestLanguages').fill('English, German');
+      await page.locator('#guestHobbies').fill('Test fixture');
+      await page.locator('#guestReturning').selectOption('no');
+      await page.locator('#message').fill('This is an isolated browser regression test with no real reservation.');
+      if(mode==='live')await expect(page.locator('#paymentEnvironmentNotice')).toBeHidden();
+      else await expect(page.locator('#paymentEnvironmentNotice')).toContainText('Stripe TEST');
+      // Keep the ordinary charge-timing disclosure, not the removed development warning.
+      await expect(page.locator('[data-i18n="pendingNote"]')).toContainText('14');
+      await expect(page.locator('[data-i18n="pendingNote"]')).toContainText(language==='de'?/keine Belastung|nicht belastet/:/not charged/);
+      await page.locator('#bookingForm button[type="submit"]').click();
+      await expect(page).toHaveURL(new RegExp(`/__stripe-checkout-stub__\\?mode=${mode}$`));
+      expect(dialogs).toEqual([]);
+      expect(errors).toEqual([]);
+      expect(checkoutRequests).toHaveLength(1);
+      const expectedEndpoint=mode==='live'?'frankiholz-create-authorization-v2':'frankiholz-create-authorization-test';
+      expect(new URL(checkoutRequests[0].url).pathname).toBe('/functions/v1/'+expectedEndpoint);
+      expect(checkoutRequests[0].body).toEqual({reference:'FH-UI-ONLY',email:'checkout-ui@example.invalid'});
+    });
+  }
+}
+
+test('unavailable payment configuration is reported instead of silently defaulting to LIVE',async ({page})=>{
+  await mockPublicBackend(page,null);
+  await page.goto('/?lang=en',{waitUntil:'domcontentloaded'});
+  await page.evaluate(async()=>{await window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14')});
+  await expect(page.locator('#paymentEnvironmentNotice')).toContainText('Payment environment is not configured correctly.');
+  const result=await page.evaluate(async()=>{
+    try{await resolvePaymentMode();return 'unexpected success';}catch(error){return error.message;}
+  });
+  expect(result).toBe('Payment environment is not configured correctly.');
 });
