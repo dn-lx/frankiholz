@@ -26,7 +26,7 @@ test('admin includes safe closed-booking cleanup controls', async ({ page }) => 
 });
 
 
-test('guest rules, amenities, contact and privacy-aware map are available', async ({ page }) => {
+test('guest rules, amenities, contact and visible location map are available', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#houseRules')).toBeVisible();
   await expect(page.locator('#facilities')).toBeVisible();
@@ -35,10 +35,11 @@ test('guest rules, amenities, contact and privacy-aware map are available', asyn
   await expect(page.locator('#fhContactPhoneLink')).toHaveAttribute('href', 'tel:+4917662493041');
   await expect(page.locator('#fhAmenitiesList')).toContainText('Wi-Fi');
   await expect(page.locator('#fhAmenitiesList')).toContainText('Laundry (additional charge)');
-  await expect(page.locator('#fhMapTarget iframe')).toHaveCount(0);
-  await page.locator('#fhLoadMap').click();
   await expect(page.locator('#fhMapTarget iframe')).toHaveCount(1);
+  await expect(page.locator('#fhMapTarget iframe')).toHaveAttribute('loading', 'lazy');
   await expect(page.locator('#fhMapTarget iframe')).toHaveAttribute('src', /google\.com\/maps/);
+  await expect(page.locator('#fhLoadMap')).toHaveCount(0);
+  await expect(page.locator('.fh-directions-link')).toHaveAttribute('href', /maps\/search/);
 });
 
 test('new guest information sections follow the German language switch', async ({ page }) => {
@@ -53,4 +54,22 @@ test('admin contains bilingual guest-information editor shell', async ({ page })
   await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#guestInfoEditor')).toHaveCount(1);
   await expect(page.locator('#saveGuestInfo')).toHaveCount(1);
+});
+
+test('Stripe environment control renders only once even if the script loads again', async ({ page }) => {
+  await page.goto('/admin.html#integrations', { waitUntil: 'domcontentloaded' });
+  const panels = page.locator('[data-admin-panel="integrations"] [data-stripe-environment-panel]');
+  await expect(panels).toHaveCount(1);
+  await expect(page.locator('#stripeEnvironmentToggle')).toHaveCount(1);
+  await page.addScriptTag({ url: '/assets/payment-environment-admin.js?duplicate-check=1' });
+  await expect(panels).toHaveCount(1);
+  await expect(page.locator('#stripeEnvironmentToggle')).toHaveCount(1);
+  await expect(page.locator('script[src*="/assets/payment-environment-admin.js"]')).toHaveCount(2);
+});
+
+test('location map and section headings are bilingual', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.locator('.lang-btn[data-lang="de"]').click();
+  await expect(page.locator('.fh-location-map-heading h3')).toHaveText('Unser Standort auf der Karte');
+  await expect(page.locator('.fh-map-disclosure')).toContainText('Google Maps');
 });
