@@ -1,5 +1,18 @@
 # Current Handoff
 
+## Remove hero welcome panel + prepare genuine Airbnb reviews — 2026-10-11
+
+Branch: `feature/airbnb-hero-reviews-20261011` based on `develop`. Do not deploy or modify production/main or shared booking/payment data.
+
+- Removed the entire decorative `fh-stay-note` hero information card requested by the host. The hero becomes a full-width editorial layout when no reviews exist.
+- Added `#fhHeroReviews`, a responsive, motion-aware guest review slider in the hero, initially **hidden**. No fictional or sample reviews are shipped in the public website.
+- Reused protected bilingual `public.frankiholz_copy` storage by adding optional `fhHeroReviews` Admin content field: one review per line, `Guest name | Exact review quote | Public Airbnb listing URL`, maximum ten per language. A separate test fixture uses clearly synthetic quotations only in Playwright tests.
+- Every visible quote retains a direct, validated Airbnb listing link; no HTML is injected from guest text. Existing `fhAirbnbReviewsUrl` still supports the old public listing link where there is no hero carousel, preventing duplicate review placement.
+- Auto-scroll every 7.5 s when multiple review entries exist, pauses on hover/focus/hidden browser tab and honors reduced-motion preferences; previous/next buttons remain available.
+- **No automatic review sync.** Airbnb officially documents embedding a listing preview with reviews (`https://www.airbnb.com/help/article/923`), but does not provide a verified general public reviews feed in the current integration. Do not scrape reviews or mislabel manually copied quotes as synchronized. When owner provides listing(s), verify what reviews and embeds are actually available, and obtain permission/accuracy for any displayed content.
+- No Supabase schema migration or live write; retain the existing authenticated Admin and RLS constraints. Check browser/CI before merging feature into `develop`. Future `develop → main` requires normal production approval.
+
+
 ## Premium Homepage + Admin UI — October 11, 2026 (feature branch, not production)
 
 Branch: `feature/premium-public-admin-redesign-20261011`, based on latest `develop`. No shared Supabase, Stripe, payments, guest data, or `main` production changes.
