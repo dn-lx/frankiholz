@@ -17,3 +17,17 @@
 @media (max-width:650px){
   .day.checkout-only small{font-size:9px;line-height:1.1}
 }
+
+.payment-environment-notice{
+  display:block;
+  margin:8px 0 12px;
+  padding:11px 14px;
+  border-radius:12px;
+  font-size:12px;
+  font-weight:750;
+  line-height:1.6;
+}
+.payment-environment-notice[hidden]{display:none!important}
+.payment-environment-notice.mode-test{border:1px solid #b9dbcc;background:#e8f5ed;color:#146344}
+.payment-environment-notice.mode-live{border:2px solid #ec9a72;background:#fff2e8;color:#8a3819}
+.payment-environment-notice.mode-warning{border:1px solid #dfb86f;background:#fff6e4;color:#6c501c}
