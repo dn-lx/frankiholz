@@ -104,3 +104,18 @@
   .fh-reviews-band .fh-review-footer{width:100%}
   .fh-reviews-band .fh-review-quote{font-size:20px}
 }
+
+/* Distinct per-guest star ratings (not the aggregate listing score). */
+.fh-review-ratings-row{display:flex;align-items:center;gap:10px 16px;flex-wrap:wrap;margin:0 0 6px}
+.fh-review-star-rating{display:inline-flex;align-items:center;gap:10px;color:#ffcd64;white-space:nowrap}
+.fh-review-star-rating[hidden]{display:none!important}
+.fh-review-star-glyphs{font-size:clamp(22px,2.4vw,27px);font-weight:900;letter-spacing:.09em;line-height:1;white-space:nowrap;text-shadow:0 2px 9px rgba(0,0,0,.13)}
+.fh-review-star-value{font-size:12px;font-weight:850;color:#fff4d5;letter-spacing:.02em}
+.fh-review-nature{font-size:11px;line-height:1.5;font-weight:700;letter-spacing:.02em;color:#c8e9dc}
+.fh-reviews-band .fh-review-slide{min-width:0}
+.fh-reviews-band .fh-review-quote{margin:0;overflow-wrap:anywhere}
+@media(max-width:650px){
+  .fh-review-ratings-row{justify-content:flex-start}
+  .fh-review-star-glyphs{font-size:23px}
+  .fh-review-nature{width:100%}
+}
