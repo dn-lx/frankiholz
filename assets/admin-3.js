@@ -63,7 +63,7 @@ function renderRooms(){
 }
 
 window.saveRoom=async id=>{
-  const {error}=await sb.from('frankiholz_rooms').update({
+  const payload={
     name:$(`rn-${id}`).value.trim(),
     description:$(`rd-${id}`).value.trim(),
     name_de:$(`rnd-${id}`).value.trim(),
@@ -72,9 +72,20 @@ window.saveRoom=async id=>{
     max_guests:Number($(`rg-${id}`).value),
     active:$(`ra-${id}`).value==='true',
     updated_at:new Date().toISOString()
-  }).eq('id',id);
-  roomMsg(id,error?error.message:'Room saved.',!error);
-  if(!error)await loadAll()
+  };
+  if(!payload.name||!payload.name_de||!payload.description||!payload.description_de){
+    roomMsg(id,'Please provide room names and descriptions in both languages.');return;
+  }
+  const {data:saved,error}=await sb.from('frankiholz_rooms').update(payload).eq('id',id)
+    .select('id,name,name_de,description,description_de').maybeSingle();
+  if(error||!saved){
+    roomMsg(id,error?.message||'No room row was updated. Please check admin permissions and try again.');return;
+  }
+  if(saved.description!==payload.description||saved.description_de!==payload.description_de){
+    roomMsg(id,'The saved descriptions did not match the submitted text. Please try again.');return;
+  }
+  await loadAll();
+  roomMsg(id,'Room descriptions saved and verified.',true);
 };
 
 window.uploadRoomImages=async id=>{
