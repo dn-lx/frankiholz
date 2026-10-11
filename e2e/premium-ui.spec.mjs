@@ -16,7 +16,7 @@ test('premium homepage has clear hospitality navigation and working room call to
   const template = await page.locator('.fh-hero-grid').evaluate(element => getComputedStyle(element).gridTemplateColumns);
   expect(template.trim().split(/\s+/).length).toBe(1);
   await page.locator('.lang-btn[data-lang="de"]').click();
-  await expect(page.locator('[data-fh-label="heroNoteTitle"]')).toHaveText('Ihr gemütlicher Ausgangspunkt in Frankfurt.');
+  await expect(page.locator('[data-fh-label="heroAbout"]')).toHaveText('Unsere Unterkunft entdecken');
   await expect(page.locator('[data-fh-label="quickFacilities"]')).toHaveText('Ausstattung');
 });
 
@@ -36,7 +36,7 @@ test('attributed Airbnb review slides render only from content, with source link
   await page.addInitScript(() => {
     const testReviews=[
       {copy_key:'fhHeroReviews',text_en:
-        'Test Guest A | Sample review for a browser test only. | https://www.airbnb.com/rooms/123456789\\nTest Guest B | Another synthetic test quotation. | https://www.airbnb.com/rooms/123456789',
+        'Test Guest A | Sample review for a browser test only. | https://www.airbnb.com/rooms/123456789\nTest Guest B | Another synthetic test quotation. | https://www.airbnb.com/rooms/123456789',
         text_de:'Testgast A | Nur ein Testzitat. | https://www.airbnb.com/rooms/123456789'},
       {copy_key:'fhAirbnbReviewsUrl',text_en:'https://www.airbnb.com/rooms/123456789',text_de:'https://www.airbnb.com/rooms/123456789'}
     ];
