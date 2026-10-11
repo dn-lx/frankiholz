@@ -26,7 +26,7 @@
       extraGuestsTitle:'Additional guests',otherRulesTitle:'Taking care of the accommodation',
       facilitiesTitle:'Facilities & amenities',facilitiesIntro:'Available facilities and shared spaces. Please ask the host if a specific amenity is essential for your stay.',
       reviewsTitle:'Guest reviews',reviewsIntro:'Read reviews of our accommodation on Airbnb.',reviewsLink:'View Airbnb reviews ↗',
-      heroReviewsEyebrow:'GUEST REVIEWS · AIRBNB',heroReviewsHeading:'Words from our guests',heroReviewsSource:'Read on Airbnb ↗',
+      heroReviewsEyebrow:'GUEST REVIEWS · AIRBNB',heroReviewsHeading:'Guest feedback',heroReviewsSource:'Read on Airbnb ↗',
       reviewBandKicker:'AIRBNB GUEST FEEDBACK',reviewBandTitle:'Guest reviews',reviewBandContext:'Feedback from our Airbnb listing.',
       reviewBandSnapshot:'Airbnb listing snapshot · not live',reviewBandTopics:'Topics guests mention',
       reviewTopicHost:'Hospitality',reviewTopicLocation:'Location',reviewTopicClean:'Cleanliness',reviewBandLink:'Read reviews on Airbnb ↗',
@@ -43,7 +43,7 @@
       extraGuestsTitle:'Zusätzliche Gäste',otherRulesTitle:'Sorgsamer Umgang mit der Unterkunft',
       facilitiesTitle:'Ausstattung & Einrichtungen',facilitiesIntro:'Vorhandene Ausstattung und gemeinsam genutzte Bereiche. Bitte fragen Sie nach, wenn eine Ausstattung für Ihren Aufenthalt unverzichtbar ist.',
       reviewsTitle:'Gästebewertungen',reviewsIntro:'Lesen Sie Bewertungen unserer Unterkunft auf Airbnb.',reviewsLink:'Airbnb-Bewertungen ansehen ↗',
-      heroReviewsEyebrow:'GÄSTEBEWERTUNGEN · AIRBNB',heroReviewsHeading:'Das sagen unsere Gäste',heroReviewsSource:'Auf Airbnb lesen ↗',
+      heroReviewsEyebrow:'GÄSTEBEWERTUNGEN · AIRBNB',heroReviewsHeading:'Gästestimmen',heroReviewsSource:'Auf Airbnb lesen ↗',
       reviewBandKicker:'AIRBNB-GÄSTEBEWERTUNGEN',reviewBandTitle:'Gästebewertungen',reviewBandContext:'Bewertungen aus unserem Airbnb-Inserat.',
       reviewBandSnapshot:'Airbnb-Momentaufnahme · nicht live',reviewBandTopics:'Häufig erwähnte Themen',
       reviewTopicHost:'Gastfreundschaft',reviewTopicLocation:'Lage',reviewTopicClean:'Sauberkeit',reviewBandLink:'Bewertungen auf Airbnb ansehen ↗',
@@ -67,21 +67,35 @@
   const heroReviewReducedMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const parseReviewEntries = (value) => String(value || '').split(/\r?\n/).map(line => {
     const parts = line.split('|').map(p => p.trim());
-    if(parts.length !== 3 || !parts[0] || !parts[1] || !validListingUrl(parts[2])) return null;
-    return {author:parts[0],quote:parts[1],url:parts[2]};
-  }).filter(Boolean).slice(0,10);
-  // Short, source-verified excerpts from the official listing review modal.
-  // Only excerpts are stored: do not misrepresent these as complete reviews.
+    if(![3,4].includes(parts.length) || !parts[0] || !parts[1] || !validListingUrl(parts[2])) return null;
+    if(parts.length === 4 && !/^[1-5]$/.test(parts[3])) return null;
+    return {author:parts[0],quote:parts[1],url:parts[2],rating:parts.length === 4 ? Number(parts[3]) : null,kind:'quote'};
+  }).filter(Boolean).slice(0,12);
+  // These are individually attributed paraphrases of 12 genuine five-star Airbnb reviews
+  // observed in the public listing's review dialog on 2026-10-11. They are NOT verbatim
+  // quotations or a live Airbnb reviews feed. Each links to the original listing.
   const verifiedReviewExcerpts = [
-    {author:'Imanol · Airbnb review excerpt',quote:'Very friendly and understanding.',url:'https://www.airbnb.com/rooms/1621684668409633226'},
-    {author:'Anas · Airbnb review excerpt',quote:'Great place, great location, great host. Definitely recommended',url:'https://www.airbnb.com/rooms/1621684668409633226'},
-    {author:'Ke · Airbnb review excerpt',quote:'Inura is very friendly. Very nice trip and stay there :)',url:'https://www.airbnb.com/rooms/1621684668409633226'}
+    {author:"Katharina",quote:"Central location, easy access to the city and a helpful, flexible host.",quote_de:"Zentrale Lage, gute Erreichbarkeit der Stadt und ein hilfsbereiter, flexibler Gastgeber.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
+    {author:"Catarina",quote:"Welcoming hosts, a clean and comfortable room and convenient transportation. Check-in and check-out were easy.",quote_de:"Herzliche Gastgeber, ein sauberes, bequemes Zimmer und gute Verkehrsanbindung. Check-in und Check-out waren unkompliziert.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
+    {author:"Ke",quote:"A friendly host and a pleasant stay.",quote_de:"Ein freundlicher Gastgeber und ein angenehmer Aufenthalt.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
+    {author:"Imanol",quote:"Friendly and understanding hosting.",quote_de:"Freundliche und verständnisvolle Gastfreundschaft.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
+    {author:"Anas",quote:"A great host and a well-located place that the guest recommends.",quote_de:"Ein toller Gastgeber und eine gut gelegene Unterkunft, die der Gast weiterempfiehlt.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
+    {author:"Patricia",quote:"A friendly, accommodating host, with a cozy, clean room and a smooth stay.",quote_de:"Ein freundlicher, entgegenkommender Gastgeber, ein gemütliches, sauberes Zimmer und ein reibungsloser Aufenthalt.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
+    {author:"Kai",quote:"Friendly hosting, a convenient location and good value for a budget-conscious traveler.",quote_de:"Freundliche Gastgeber, eine praktische Lage und eine gute Option für preisbewusste Reisende.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
+    {author:"Josephin Alina",quote:"Everything went smoothly, and the guest would happily stay again.",quote_de:"Alles verlief problemlos, und der Gast würde gerne wiederkommen.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
+    {author:"Abhiram",quote:"Comfortable, well-maintained accommodation with helpful hosts and a convenient location.",quote_de:"Bequeme, gepflegte Unterkunft mit hilfsbereiten Gastgebern und praktischer Lage.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
+    {author:"Sophie",quote:"Welcoming and accommodating hosting, with a practical room for a short stay.",quote_de:"Herzlicher, zuvorkommender Gastgeber und ein praktisches Zimmer für einen kurzen Aufenthalt.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
+    {author:"Alexander",quote:"A comfortable, clean space and an accommodating host, even when travel was delayed.",quote_de:"Eine gemütliche, saubere Unterkunft und ein zuvorkommender Gastgeber, auch bei verspäteter Anreise.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
+    {author:"Dai",quote:"A comfortable room with excellent amenities, even during warm summer weather.",quote_de:"Ein bequemes Zimmer mit sehr guter Ausstattung, auch bei sommerlicher Wärme.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'}
   ];
   const heroReviewSourceLanguage = (lang) => {
     const local = parseReviewEntries(rows.fhHeroReviews?.['text_'+lang]);
     if(local.length) return local;
     const other = parseReviewEntries(rows.fhHeroReviews?.[lang==='de'?'text_en':'text_de']);
-    return other.length ? other : verifiedReviewExcerpts;
+    return other.length ? other : verifiedReviewExcerpts.map(item=>({
+      ...item,
+      quote:lang==='de'?item.quote_de:item.quote
+    }));
   };
   function stopHeroReviewTimer(){
     if(heroReviewTimer !== null) {clearInterval(heroReviewTimer); heroReviewTimer=null;}
@@ -101,6 +115,23 @@
     const item=heroReviewItems[heroReviewIndex];
     $('fhReviewQuote').textContent=item.quote;
     $('fhReviewAuthor').textContent=item.author;
+    const lang=uiLang();
+    const isSummary=item.kind==='summary';
+    const nature=$('fhReviewNature');
+    if(nature)nature.textContent=isSummary
+      ? (lang==='de'?'Zusammenfassung der Airbnb-Bewertung':'Airbnb review summary')
+      : (lang==='de'?'Airbnb-Gästebewertung':'Airbnb guest review');
+    const stars=$('fhReviewStarRating');
+    if(stars){
+      const rating=Number(item.rating);
+      const validRating=Number.isInteger(rating) && rating>=1 && rating<=5;
+      stars.hidden=!validRating;
+      if(validRating){
+        $('fhReviewStarGlyphs').textContent='★'.repeat(rating)+'☆'.repeat(5-rating);
+        $('fhReviewStarValue').textContent=rating+' / 5';
+        stars.setAttribute('aria-label',lang==='de' ? rating+' von 5 Sternen' : rating+' out of 5 stars');
+      }
+    }
     const link=$('fhReviewSource');
     link.href=item.url;
     const position=String(heroReviewIndex+1).padStart(2,'0');
@@ -204,7 +235,7 @@
         if(f.kind!=='input')control.rows=f.key==='fhAboutBody'?5:3;
         if(f.key==='fhAirbnbReviewsUrl')control.placeholder='https://www.airbnb.com/rooms/...';
         if(f.key==='fhHeroReviews'){
-          control.placeholder='Guest first name | Exact guest review | https://www.airbnb.com/rooms/123456789';
+          control.placeholder='Guest name | Review text | https://www.airbnb.com/rooms/123456789 | 5';
           control.rows=7;
         }
         control.value=fieldValue(f.key,lang);
@@ -214,7 +245,7 @@
       if(f.key==='fhHeroReviews'){
         const help=document.createElement('p');
         help.className='fh-admin-form-help';
-        help.textContent='Optional: genuine guest quotations appear in the reviews strip below the hero. One per line: Guest name | Exact review text | Public Airbnb listing URL (max 10). Do not invent or scrape quotations; always check the original.';
+        help.textContent='Optional: entries shown in the guest reviews slider. Use Guest name | Accurate review text | Public Airbnb listing URL | Star rating (1–5) on each line (max 12). The rating is optional if unknown. Do not invent reviews or ratings; check the original source.';
         block.appendChild(help);
       }
       if(f.key==='fhAirbnbRating'||f.key==='fhAirbnbCount'){
@@ -255,11 +286,11 @@
     if(reviewField){
       for(const [language,raw] of [['English',reviewField.text_en],['German',reviewField.text_de]]){
         const lines=raw.split(/\r?\n/).filter(line=>line.trim());
-        if(lines.length>10 || lines.some(line=>{
+        if(lines.length>12 || lines.some(line=>{
           const parts=line.split('|').map(p=>p.trim());
-          return parts.length!==3 || !parts[0] || !parts[1] || parts[0].length>70 || parts[1].length>650 || !validListingUrl(parts[2]);
+          return ![3,4].includes(parts.length) || !parts[0] || !parts[1] || parts[0].length>70 || parts[1].length>650 || !validListingUrl(parts[2]) || (parts.length===4 && !/^[1-5]$/.test(parts[3]));
         })){
-          status.textContent=language+' reviews: use up to 10 lines of Guest name | Real review | Public Airbnb listing URL.';
+          status.textContent=language+' reviews: up to 12 lines of Name | Review | Public Airbnb URL | Optional star rating (1–5).';
           return;
         }
       }

@@ -1,5 +1,18 @@
 # Current Handoff
 
+## Expanded Airbnb review carousel with per-guest stars — 2026-10-11
+
+Feature branch: `feature/airbnb-twelve-starred-reviews-20261011` from current `develop`.
+
+- Expanded the below-hero genuine guest feedback slider from three to **twelve** individually attributed summaries of public **five-star** Airbnb reviews from listing `https://www.airbnb.com/rooms/1621684668409633226`, personally checked against the public Airbnb review dialog on 2026-10-11.
+- Review authors: Katharina, Catarina, Ke, Imanol, Anas, Patricia, Kai, Josephin Alina, Abhiram, Sophie, Alexander, Dai. Verified five-star ratings for all 12; do **not** claim their exact guest text is reproduced — the visible summaries are faithful paraphrases of reviews, labelled as such in both languages and linked to the original public listing.
+- Each individual card now has visible gold star glyphs `★★★★★`, numerical `5 / 5` and an accessible rating label. German/English review summaries and rating labels follow the language switch.
+- Expanded protected optional Admin input to up to 12 items. For custom guest feedback, the optional fourth pipe-separated field records the **known** individual 1–5 star rating; if the rating is unknown, no stars are displayed rather than fabricating five stars.
+- No Supabase writes, auth changes, Stripe/booking changes, or production `main` deployment. Carousel stays motion-aware with controls and attribution.
+- Added Playwright coverage for all 12 authors and star ratings, forward/loop navigation, German summaries, responsive rendering and custom Admin ratings (including a four-star review).
+- Production release remains develop→main only, separately reviewed and approved.
+
+
 ## Verified Airbnb listing review strip below the homepage hero — 2026-10-11
 
 Branch: `feature/airbnb-reviews-below-hero-20261011` based on current `develop`. Production `main`, Supabase and Stripe are unchanged.

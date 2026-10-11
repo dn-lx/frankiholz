@@ -9,7 +9,14 @@ test('premium homepage has clear hospitality navigation and working room call to
   await expect(page.locator('.fh-hero-grid')).toBeVisible();
   await expect(page.locator('.fh-stay-note')).toHaveCount(0);
   await expect(page.locator('#fhHeroReviews')).toBeVisible();
-  await expect(page.locator('#fhReviewQuote')).toContainText('Very friendly and understanding.');
+  await expect(page.locator('#fhReviewQuote')).toContainText('Central location, easy access');
+  await expect(page.locator('#fhReviewAuthor')).toHaveText('Katharina');
+  await expect(page.locator('#fhReviewProgress')).toHaveText('01 / 12');
+  await expect(page.locator('#fhReviewStarRating')).toBeVisible();
+  await expect(page.locator('#fhReviewStarGlyphs')).toHaveText('★★★★★');
+  await expect(page.locator('#fhReviewStarValue')).toHaveText('5 / 5');
+  await expect(page.locator('#fhReviewStarRating')).toHaveAttribute('aria-label','5 out of 5 stars');
+  await expect(page.locator('#fhReviewNature')).toHaveText('Airbnb review summary');
   await expect(page.locator('#fhReviewsBand')).toBeVisible();
   await expect(page.locator('#fhReviewsBand')).toContainText('4.74');
   await expect(page.locator('#fhAirbnbCount')).toHaveText('35 reviews');
@@ -27,6 +34,25 @@ test('premium homepage has clear hospitality navigation and working room call to
   await expect(page.locator('[data-fh-label="quickFacilities"]')).toHaveText('Ausstattung');
   await expect(page.locator('#fhReviewListingLink')).toHaveText('Bewertungen auf Airbnb ansehen ↗');
   await expect(page.locator('#fhAirbnbCount')).toHaveText('35 Bewertungen');
+  await expect(page.locator('#fhReviewStarRating')).toHaveAttribute('aria-label','5 von 5 Sternen');
+  await expect(page.locator('#fhReviewNature')).toHaveText('Zusammenfassung der Airbnb-Bewertung');
+  await expect(page.locator('#fhReviewQuote')).toContainText('Zentrale Lage, gute Erreichbarkeit');
+});
+
+test('twelve genuine Airbnb five-star review summaries can be navigated', async ({ page }) => {
+  await page.goto('/', {waitUntil:'domcontentloaded'});
+  const authors = ['Katharina','Catarina','Ke','Imanol','Anas','Patricia','Kai','Josephin Alina','Abhiram','Sophie','Alexander','Dai'];
+  await expect(page.locator('#fhReviewProgress')).toHaveText('01 / 12');
+  for(let i=0;i<authors.length;i++){
+    await expect(page.locator('#fhReviewAuthor')).toHaveText(authors[i]);
+    await expect(page.locator('#fhReviewStarGlyphs')).toHaveText('★★★★★');
+    await expect(page.locator('#fhReviewStarValue')).toHaveText('5 / 5');
+    await expect(page.locator('#fhReviewSource')).toHaveAttribute('href','https://www.airbnb.com/rooms/1621684668409633226');
+    if(i < authors.length-1)await page.locator('#fhReviewNext').click();
+  }
+  await expect(page.locator('#fhReviewProgress')).toHaveText('12 / 12');
+  await page.locator('#fhReviewNext').click();
+  await expect(page.locator('#fhReviewAuthor')).toHaveText('Katharina');
 });
 
 test('premium homepage remains usable at narrow phone widths', async ({ page }) => {
@@ -35,6 +61,7 @@ test('premium homepage remains usable at narrow phone widths', async ({ page }) 
   await expect(page.locator('#heroRoomsBtn')).toBeVisible();
   await expect(page.locator('.fh-stay-note')).toHaveCount(0);
   await expect(page.locator('#fhHeroReviews')).toBeVisible();
+  await expect(page.locator('#fhReviewStarGlyphs')).toHaveText('★★★★★');
   await expect(page.locator('#guestInfoPublic')).toBeVisible();
   const metrics=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,screen:innerWidth}));
   expect(metrics.scroll).toBeLessThanOrEqual(metrics.screen+1);
@@ -45,8 +72,8 @@ test('attributed Airbnb review slides render only from content, with source link
   await page.addInitScript(() => {
     const testReviews=[
       {copy_key:'fhHeroReviews',text_en:
-        'Test Guest A | Sample review for a browser test only. | https://www.airbnb.com/rooms/123456789\nTest Guest B | Another synthetic test quotation. | https://www.airbnb.com/rooms/123456789',
-        text_de:'Testgast A | Nur ein Testzitat. | https://www.airbnb.com/rooms/123456789'},
+        'Test Guest A | Sample review for a browser test only. | https://www.airbnb.com/rooms/123456789 | 5\nTest Guest B | Another synthetic test quotation. | https://www.airbnb.com/rooms/123456789 | 4',
+        text_de:'Testgast A | Nur ein Testzitat. | https://www.airbnb.com/rooms/123456789 | 5'},
       {copy_key:'fhAirbnbReviewsUrl',text_en:'https://www.airbnb.com/rooms/123456789',text_de:'https://www.airbnb.com/rooms/123456789'}
     ];
     window.supabase={createClient:()=>({
@@ -70,11 +97,16 @@ test('attributed Airbnb review slides render only from content, with source link
   await expect(page.locator('#fhReviewAuthor')).toHaveText('Test Guest A');
   await expect(page.locator('#fhReviewSource')).toHaveAttribute('href','https://www.airbnb.com/rooms/123456789');
   await expect(page.locator('#fhReviewSource')).toHaveAttribute('href', /airbnb.com\/rooms\/1621684668409633226|airbnb.com\/rooms\/123456789/);
+  await expect(page.locator('#fhReviewStarGlyphs')).toHaveText('★★★★★');
+  await expect(page.locator('#fhReviewNature')).toHaveText('Airbnb guest review');
   await page.locator('#fhReviewNext').click();
   await expect(page.locator('#fhReviewQuote')).toContainText('Another synthetic test quotation.');
+  await expect(page.locator('#fhReviewStarGlyphs')).toHaveText('★★★★☆');
+  await expect(page.locator('#fhReviewStarValue')).toHaveText('4 / 5');
   await page.locator('.lang-btn[data-lang="de"]').click();
   await expect(page.locator('#fhReviewQuote')).toHaveText('Nur ein Testzitat.');
   await expect(page.locator('#fhReviewNext')).toBeDisabled();
+  await expect(page.locator('#fhReviewStarRating')).toHaveAttribute('aria-label','5 von 5 Sternen');
 });
 
 test('Admin has a desktop sidebar and preserves protected section controls', async ({ page }) => {
