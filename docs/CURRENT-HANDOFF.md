@@ -1,5 +1,18 @@
 # Current Handoff
 
+## Compact public site spacing and Stripe TEST/LIVE test guide — 2026-10-11
+
+Branch `fix/compact-site-spacing-20261011`, based on `develop`. No production `main` merge and no Supabase/Stripe settings changed.
+
+- Added `assets/compact-spacing.css` as a final public-page stylesheet, reducing unnecessary vertical gaps in the hero, quick navigation, guest-review strip, room cards, house rules/amenities, booking section, location and footer. Touch targets and critical calendar/booking controls remain usable.
+- Removed the public rules card's fixed 570px minimum and two-row span to avoid large empty card space; sections and spacing become responsive.
+- Added desktop/mobile Playwright checks for section padding, min-height removal, no horizontal overflow and preservation of the guest booking/contact controls.
+- Current source-of-truth Stripe model is documented in `STRIPE.md` and `BOOKING-WORKFLOW.md`: v2 saved-card setup (no initial charge), Admin host decision, charge 14 days before check-in or immediately for stays within 14 days. Develop/branch previews are forced to TEST; live production uses the Admin environment selector; existing bookings keep their original environment.
+- A downloadable Stripe testing guide has been generated separately for the user. It distinguishes the production Admin selector from develop preview test-mode forcing and cautions about live payments. It is not a change to runtime configuration.
+
+Review CI, desktop/mobile, and the hidden-until-selected booking panel before merging into develop; do not promote to main without production approval.
+
+
 ## Header width, hero right alignment and WhatsApp icon — 2026-10-11
 
 Branch: `fix/hero-right-align-whatsapp-icon-20261011` from current `develop`, **not** `main`.
