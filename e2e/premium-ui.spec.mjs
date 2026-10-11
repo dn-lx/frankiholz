@@ -9,6 +9,12 @@ test('premium homepage has clear hospitality navigation and working room call to
   await expect(page.locator('.fh-hero-grid')).toBeVisible();
   await expect(page.locator('.fh-stay-note')).toHaveCount(0);
   await expect(page.locator('#fhHeroReviews')).toBeHidden();
+  await expect(page.locator('#fhReviewsBand')).toBeVisible();
+  await expect(page.locator('#fhReviewsBand')).toContainText('4.69');
+  await expect(page.locator('#fhAirbnbCount')).toHaveText('29 reviews');
+  await expect(page.locator('#fhReviewListingLink')).toHaveAttribute('href', 'https://www.airbnb.com/rooms/1621684668409633226');
+  await expect(page.locator('#fhHeroReviews')).toHaveCount(1);
+  await expect(page.locator('.fh-hero-grid #fhHeroReviews')).toHaveCount(0);
   await expect(page.locator('.fh-section-nav')).toBeVisible();
   await expect(page.locator('a[href="#facilities"]')).toHaveCount(2);
   await expect(page.locator('#heroRoomsBtn')).toBeVisible();
@@ -18,6 +24,8 @@ test('premium homepage has clear hospitality navigation and working room call to
   await page.locator('.lang-btn[data-lang="de"]').click();
   await expect(page.locator('[data-fh-label="heroAbout"]')).toHaveText('Unsere Unterkunft entdecken');
   await expect(page.locator('[data-fh-label="quickFacilities"]')).toHaveText('Ausstattung');
+  await expect(page.locator('#fhReviewListingLink')).toHaveText('Bewertungen auf Airbnb ansehen ↗');
+  await expect(page.locator('#fhAirbnbCount')).toHaveText('29 Bewertungen');
 });
 
 test('premium homepage remains usable at narrow phone widths', async ({ page }) => {
@@ -55,6 +63,8 @@ test('attributed Airbnb review slides render only from content, with source link
   });
   await page.goto('/', {waitUntil:'domcontentloaded'});
   await expect(page.locator('#fhHeroReviews')).toBeVisible();
+  await expect(page.locator('#fhReviewsBand #fhHeroReviews')).toHaveCount(1);
+  await expect(page.locator('#fhReviewListingLink')).toHaveAttribute('href','https://www.airbnb.com/rooms/123456789');
   await expect(page.locator('#fhReviewQuote')).toContainText('Sample review for a browser test only.');
   await expect(page.locator('#fhReviewAuthor')).toHaveText('Test Guest A');
   await expect(page.locator('#fhReviewSource')).toHaveAttribute('href','https://www.airbnb.com/rooms/123456789');

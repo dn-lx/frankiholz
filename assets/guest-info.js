@@ -12,7 +12,9 @@
     {key:'fhAboutBody',label:'About us: introduction',en:'FrankiHolz offers private rooms in a shared three-bedroom apartment in Frankfurt am Main. Guests can contact the host directly with questions about their stay and the shared facilities. Our goal is to make expectations clear before arrival and offer a straightforward booking experience.',de:'FrankiHolz bietet private Zimmer in einer Dreizimmer-Wohngemeinschaft in Frankfurt am Main. Bei Fragen zum Aufenthalt und den gemeinschaftlich genutzten Bereichen können Gäste den Gastgeber direkt kontaktieren. Wir möchten die Erwartungen vor der Anreise transparent machen und eine unkomplizierte Buchung ermöglichen.',kind:'textarea'},
     {key:'fhContactPhone',label:'Contact: phone number',en:'+49 176 62493 041',de:'+49 176 62493 041',kind:'input'},
     {key:'fhAirbnbReviewsUrl',label:'Reviews: official Airbnb listing URL (optional)',en:'',de:'',kind:'input',optional:true},
-    {key:'fhHeroReviews',label:'Hero: genuine Airbnb reviews (optional)',en:'',de:'',kind:'textarea',optional:true}
+    {key:'fhHeroReviews',label:'Below-hero reviews: genuine Airbnb guest quotations (optional)',en:'',de:'',kind:'textarea',optional:true},
+    {key:'fhAirbnbRating',label:'Airbnb listing rating (snapshot, manually updated)',en:'4.69',de:'4.69',kind:'input',optional:true},
+    {key:'fhAirbnbCount',label:'Airbnb listing review count (snapshot, manually updated)',en:'29',de:'29',kind:'input',optional:true}
   ];
   const labels = {
     en: {
@@ -25,6 +27,9 @@
       facilitiesTitle:'Facilities & amenities',facilitiesIntro:'Available facilities and shared spaces. Please ask the host if a specific amenity is essential for your stay.',
       reviewsTitle:'Guest reviews',reviewsIntro:'Read reviews of our accommodation on Airbnb.',reviewsLink:'View Airbnb reviews ↗',
       heroReviewsEyebrow:'GUEST REVIEWS · AIRBNB',heroReviewsHeading:'Words from our guests',heroReviewsSource:'Read on Airbnb ↗',
+      reviewBandKicker:'AIRBNB GUEST FEEDBACK',reviewBandTitle:'Guest reviews',reviewBandContext:'Feedback from our Airbnb listing.',
+      reviewBandSnapshot:'Airbnb listing snapshot · not live',reviewBandTopics:'Topics guests mention',
+      reviewTopicHost:'Hospitality',reviewTopicLocation:'Location',reviewTopicClean:'Cleanliness',reviewBandLink:'Read reviews on Airbnb ↗',
       contactTitle:'Contact your host',contactIntro:'Questions about arrival, facilities or your booking? Contact us directly.',
       mapKicker:'Location',mapTitle:'Find us on the map',mapPrivacy:'Map provided by Google Maps. Viewing it may share data with Google.',
       directions:'Open directions ↗'
@@ -39,6 +44,9 @@
       facilitiesTitle:'Ausstattung & Einrichtungen',facilitiesIntro:'Vorhandene Ausstattung und gemeinsam genutzte Bereiche. Bitte fragen Sie nach, wenn eine Ausstattung für Ihren Aufenthalt unverzichtbar ist.',
       reviewsTitle:'Gästebewertungen',reviewsIntro:'Lesen Sie Bewertungen unserer Unterkunft auf Airbnb.',reviewsLink:'Airbnb-Bewertungen ansehen ↗',
       heroReviewsEyebrow:'GÄSTEBEWERTUNGEN · AIRBNB',heroReviewsHeading:'Das sagen unsere Gäste',heroReviewsSource:'Auf Airbnb lesen ↗',
+      reviewBandKicker:'AIRBNB-GÄSTEBEWERTUNGEN',reviewBandTitle:'Gästebewertungen',reviewBandContext:'Bewertungen aus unserem Airbnb-Inserat.',
+      reviewBandSnapshot:'Airbnb-Momentaufnahme · nicht live',reviewBandTopics:'Häufig erwähnte Themen',
+      reviewTopicHost:'Gastfreundschaft',reviewTopicLocation:'Lage',reviewTopicClean:'Sauberkeit',reviewBandLink:'Bewertungen auf Airbnb ansehen ↗',
       contactTitle:'Kontakt zum Gastgeber',contactIntro:'Fragen zur Anreise, Ausstattung oder Buchung? Kontaktieren Sie uns direkt.',
       mapKicker:'Standort',mapTitle:'Unser Standort auf der Karte',mapPrivacy:'Die Karte wird von Google Maps bereitgestellt. Bei der Anzeige können Daten an Google übertragen werden.',
       directions:'Route öffnen ↗'
@@ -104,7 +112,7 @@
     heroReviewItems=heroReviewSourceLanguage(uiLang());
     heroReviewIndex=0;
     panel.hidden=heroReviewItems.length===0;
-    document.querySelector('.fh-hero-grid')?.classList.toggle('fh-reviews-empty',!heroReviewItems.length);
+    // The carousel now sits below the hero; keep the hero's full-width layout.
     if(heroReviewItems.length) showHeroReview();
     startHeroReviewTimer();
   }
@@ -132,6 +140,18 @@
     if($('fhHeroReviews'))$('fhHeroReviews').setAttribute('aria-label',lang==='de'?'Gästebewertungen':'Guest reviews');
     document.querySelectorAll('[data-fh-label]').forEach(node=>{node.textContent=labels[lang][node.dataset.fhLabel]||node.textContent;});
     renderHeroReviews();
+    const listing = fieldValue('fhAirbnbReviewsUrl',lang);
+    const href = validListingUrl(listing) ? new URL(listing).origin + new URL(listing).pathname
+      : 'https://www.airbnb.com/rooms/1621684668409633226';
+    const listingLink = $('fhReviewListingLink');
+    if(listingLink)listingLink.href=href;
+    const rating=Number(fieldValue('fhAirbnbRating',lang));
+    if($('fhAirbnbRating'))$('fhAirbnbRating').textContent =
+      Number.isFinite(rating)&&rating>=0&&rating<=5 ? rating.toFixed(2) : '4.69';
+    const count=Number(fieldValue('fhAirbnbCount',lang));
+    const safeCount=Number.isInteger(count)&&count>=0&&count<=100000?count:29;
+    if($('fhAirbnbCount'))$('fhAirbnbCount').textContent =
+      safeCount + ' ' + (lang==='de'?'Bewertungen':'reviews');
     document.querySelectorAll('[data-fh-info]').forEach(node=>{
       node.textContent = fieldValue(node.dataset.fhInfo,lang);
     });
@@ -185,7 +205,12 @@
       if(f.key==='fhHeroReviews'){
         const help=document.createElement('p');
         help.className='fh-admin-form-help';
-        help.textContent='Optional: one genuine guest review per line, formatted: Guest name | Original review text | Public Airbnb listing URL. Up to 10 entries in each language. Do not invent, scrape, or translate reviews without reviewing the source. If empty, the hero remains free of review cards.';
+        help.textContent='Optional: genuine guest quotations appear in the reviews strip below the hero. One per line: Guest name | Exact review text | Public Airbnb listing URL (max 10). Do not invent or scrape quotations; always check the original.';
+        block.appendChild(help);
+      }
+      if(f.key==='fhAirbnbRating'||f.key==='fhAirbnbCount'){
+        const help=document.createElement('p');help.className='fh-admin-form-help';
+        help.textContent='A snapshot only: the rating and review count do not sync automatically. Check the public Airbnb listing periodically before updating these values.';
         block.appendChild(help);
       }
       if(f.key==='fhAirbnbReviewsUrl'){
@@ -228,6 +253,15 @@
           status.textContent=language+' reviews: use up to 10 lines of Guest name | Real review | Public Airbnb listing URL.';
           return;
         }
+      }
+    }
+    for (const r of updates.filter(r=>r.copy_key==='fhAirbnbRating'||r.copy_key==='fhAirbnbCount')) {
+      const values=[r.text_en,r.text_de].filter(Boolean);
+      if(r.copy_key==='fhAirbnbRating'&&values.some(v=>!/^(?:[0-4](?:\.\d{1,2})?|5(?:\.0{1,2})?)$/.test(v))){
+        status.textContent='Airbnb rating must be between 0 and 5, with up to two decimals.';return;
+      }
+      if(r.copy_key==='fhAirbnbCount'&&values.some(v=>!/^\d{1,6}$/.test(v)||Number(v)>100000)){
+        status.textContent='Airbnb review count must be a whole number.';return;
       }
     }
     status.textContent='Saving…';
