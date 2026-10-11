@@ -13,8 +13,8 @@
     {key:'fhContactPhone',label:'Contact: phone number',en:'+49 176 62493 041',de:'+49 176 62493 041',kind:'input'},
     {key:'fhAirbnbReviewsUrl',label:'Reviews: official Airbnb listing URL (optional)',en:'',de:'',kind:'input',optional:true},
     {key:'fhHeroReviews',label:'Below-hero reviews: genuine Airbnb guest quotations (optional)',en:'',de:'',kind:'textarea',optional:true},
-    {key:'fhAirbnbRating',label:'Airbnb listing rating (snapshot, manually updated)',en:'4.69',de:'4.69',kind:'input',optional:true},
-    {key:'fhAirbnbCount',label:'Airbnb listing review count (snapshot, manually updated)',en:'29',de:'29',kind:'input',optional:true}
+    {key:'fhAirbnbRating',label:'Airbnb listing rating (snapshot, manually updated)',en:'4.74',de:'4.74',kind:'input',optional:true},
+    {key:'fhAirbnbCount',label:'Airbnb listing review count (snapshot, manually updated)',en:'35',de:'35',kind:'input',optional:true}
   ];
   const labels = {
     en: {
@@ -70,9 +70,18 @@
     if(parts.length !== 3 || !parts[0] || !parts[1] || !validListingUrl(parts[2])) return null;
     return {author:parts[0],quote:parts[1],url:parts[2]};
   }).filter(Boolean).slice(0,10);
+  // Short, source-verified excerpts from the official listing review modal.
+  // Only excerpts are stored: do not misrepresent these as complete reviews.
+  const verifiedReviewExcerpts = [
+    {author:'Imanol · Airbnb review excerpt',quote:'Very friendly and understanding.',url:'https://www.airbnb.com/rooms/1621684668409633226'},
+    {author:'Anas · Airbnb review excerpt',quote:'Great place, great location, great host. Definitely recommended',url:'https://www.airbnb.com/rooms/1621684668409633226'},
+    {author:'Ke · Airbnb review excerpt',quote:'Inura is very friendly. Very nice trip and stay there :)',url:'https://www.airbnb.com/rooms/1621684668409633226'}
+  ];
   const heroReviewSourceLanguage = (lang) => {
     const local = parseReviewEntries(rows.fhHeroReviews?.['text_'+lang]);
-    return local.length ? local : parseReviewEntries(rows.fhHeroReviews?.[lang==='de'?'text_en':'text_de']);
+    if(local.length) return local;
+    const other = parseReviewEntries(rows.fhHeroReviews?.[lang==='de'?'text_en':'text_de']);
+    return other.length ? other : verifiedReviewExcerpts;
   };
   function stopHeroReviewTimer(){
     if(heroReviewTimer !== null) {clearInterval(heroReviewTimer); heroReviewTimer=null;}
@@ -147,9 +156,9 @@
     if(listingLink)listingLink.href=href;
     const rating=Number(fieldValue('fhAirbnbRating',lang));
     if($('fhAirbnbRating'))$('fhAirbnbRating').textContent =
-      Number.isFinite(rating)&&rating>=0&&rating<=5 ? rating.toFixed(2) : '4.69';
+      Number.isFinite(rating)&&rating>=0&&rating<=5 ? rating.toFixed(2) : '4.74';
     const count=Number(fieldValue('fhAirbnbCount',lang));
-    const safeCount=Number.isInteger(count)&&count>=0&&count<=100000?count:29;
+    const safeCount=Number.isInteger(count)&&count>=0&&count<=100000?count:35;
     if($('fhAirbnbCount'))$('fhAirbnbCount').textContent =
       safeCount + ' ' + (lang==='de'?'Bewertungen':'reviews');
     document.querySelectorAll('[data-fh-info]').forEach(node=>{
