@@ -13,6 +13,28 @@
     {key:'fhContactPhone',label:'Contact: phone number',en:'+49 176 62493 041',de:'+49 176 62493 041',kind:'input'},
     {key:'fhAirbnbReviewsUrl',label:'Reviews: official Airbnb listing URL (optional)',en:'',de:'',kind:'input',optional:true}
   ];
+  const labels = {
+    en: {
+      welcome:'Before your stay',guestInfoTitle:'Your stay at FrankiHolz',guestInfoIntro:'House rules, shared facilities and ways to reach the host.',
+      rulesTitle:'House rules & important information',checkInTitle:'Check-in',checkOutTitle:'Check-out',quietTitle:'Quiet hours',
+      extraGuestsTitle:'Additional guests',otherRulesTitle:'Taking care of the accommodation',
+      facilitiesTitle:'Facilities & amenities',facilitiesIntro:'Available facilities and shared spaces. Please ask the host if a specific amenity is essential for your stay.',
+      reviewsTitle:'Guest reviews',reviewsIntro:'Read reviews of our accommodation on Airbnb.',reviewsLink:'View Airbnb reviews ↗',
+      contactTitle:'Contact your host',contactIntro:'Questions about arrival, facilities or your booking? Contact us directly.',
+      mapTitle:'Find us on the map',mapPrivacy:'Load the map when you are ready. Google Maps will only be contacted after you click.',
+      loadMap:'Show map',directions:'Open directions ↗'
+    },
+    de: {
+      welcome:'Vor Ihrem Aufenthalt',guestInfoTitle:'Ihr Aufenthalt bei FrankiHolz',guestInfoIntro:'Hausregeln, Gemeinschaftsbereiche und Kontaktmöglichkeiten.',
+      rulesTitle:'Hausregeln & wichtige Informationen',checkInTitle:'Check-in',checkOutTitle:'Check-out',quietTitle:'Ruhezeiten',
+      extraGuestsTitle:'Zusätzliche Gäste',otherRulesTitle:'Sorgsamer Umgang mit der Unterkunft',
+      facilitiesTitle:'Ausstattung & Einrichtungen',facilitiesIntro:'Vorhandene Ausstattung und gemeinsam genutzte Bereiche. Bitte fragen Sie nach, wenn eine Ausstattung für Ihren Aufenthalt unverzichtbar ist.',
+      reviewsTitle:'Gästebewertungen',reviewsIntro:'Lesen Sie Bewertungen unserer Unterkunft auf Airbnb.',reviewsLink:'Airbnb-Bewertungen ansehen ↗',
+      contactTitle:'Kontakt zum Gastgeber',contactIntro:'Fragen zur Anreise, Ausstattung oder Buchung? Kontaktieren Sie uns direkt.',
+      mapTitle:'Unser Standort auf der Karte',mapPrivacy:'Die Karte wird erst nach Ihrem Klick geladen. Dabei wird Google Maps kontaktiert.',
+      loadMap:'Karte anzeigen',directions:'Route öffnen ↗'
+    }
+  };
   const byKey = Object.fromEntries(fields.map(f=>[f.key,f]));
   let rows = {};
   const $ = id => document.getElementById(id);
@@ -37,6 +59,7 @@
   function renderPublic() {
     if (!$('guestInfoPublic')) return;
     const lang = uiLang();
+    document.querySelectorAll('[data-fh-label]').forEach(node=>{node.textContent=labels[lang][node.dataset.fhLabel]||node.textContent;});
     document.querySelectorAll('[data-fh-info]').forEach(node=>{
       node.textContent = fieldValue(node.dataset.fhInfo,lang);
     });
@@ -130,7 +153,7 @@
       iframe.referrerPolicy='no-referrer-when-downgrade';
       iframe.src='https://www.google.com/maps?q='+encodeURIComponent('Seehofstraße 20, 60594 Frankfurt am Main, Germany')+'&output=embed';
       iframe.allowFullscreen=true;
-      target.appendChild(iframe);
+      target.replaceChildren(iframe);
       button.hidden=true;
     });
   }
