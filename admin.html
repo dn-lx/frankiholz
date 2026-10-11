@@ -1,14 +1,30 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>FrankiHolz Admin</title><link rel="icon" href="/assets/frankiholz-favicon.svg?v=20260911" type="image/svg+xml"><link rel="shortcut icon" href="/assets/frankiholz-favicon.svg?v=20260911"><link rel="stylesheet" href="/assets/styles.css"><link rel="stylesheet" href="/assets/guest-info.css?v=20261011a"><link rel="stylesheet" href="/assets/bilingual.css?v=20260918b"><link rel="stylesheet" href="/assets/ui-polish.css?v=20261011b"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/assets/config.js"></script></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>FrankiHolz Admin</title><link rel="icon" href="/assets/frankiholz-favicon.svg?v=20260911" type="image/svg+xml"><link rel="shortcut icon" href="/assets/frankiholz-favicon.svg?v=20260911"><link rel="stylesheet" href="/assets/styles.css"><link rel="stylesheet" href="/assets/guest-info.css?v=20261011a"><link rel="stylesheet" href="/assets/bilingual.css?v=20260918b"><link rel="stylesheet" href="/assets/ui-polish.css?v=20261011b"><link rel="stylesheet" href="/assets/premium-2026.css?v=20261011a"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/assets/config.js"></script></head>
 <body class="admin-page">
-<section id="loginView" class="login-card"><h2>FrankiHolz Admin</h2><p class="muted">Secure management portal for FrankiHolz by FrankiFlow.</p><form id="loginForm"><label>Email</label><input id="adminEmail" type="email" required autocomplete="username"><label>Password</label><input id="adminPassword" type="password" required autocomplete="current-password"><button class="btn secondary" type="submit" style="width:100%;margin-top:15px">Sign in</button></form><div id="loginStatus"></div><p style="margin-top:16px"><a href="/">← Public website</a></p></section>
-<main id="dashboard" hidden><div class="wrap"><div class="admin-header"><div><div style="font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:6px">FrankiFlow management</div><h1>FrankiHolz Admin</h1><div>Bookings, rooms, pricing, website content and integrations — organized in separate areas.</div></div><div style="display:flex;gap:9px"><a class="btn light" href="/">View website</a><button class="btn danger" id="logoutBtn">Logout</button></div></div>
+<section id="loginView" class="login-card">
+  <div class="fh-admin-login-kicker">FRANKIHOLZ · HOST PORTAL</div>
+  <h2>Welcome back</h2>
+  <p class="muted">Your rooms, reservations and guest experience—all in one private workspace.</p>
+  <div class="fh-login-divider"></div>
+  <h3 class="fh-login-signin-heading">Sign in to your dashboard</h3>
+  <form id="loginForm"><label>Email</label><input id="adminEmail" type="email" required autocomplete="username"><label>Password</label><input id="adminPassword" type="password" required autocomplete="current-password"><button class="btn secondary" type="submit" style="width:100%;margin-top:15px">Sign in</button></form><div id="loginStatus"></div><p style="margin-top:16px"><a href="/">← Public website</a></p></section>
+<main id="dashboard" hidden><div class="wrap">
+  <header class="admin-header">
+    <div class="fh-admin-heading">
+      <div class="fh-admin-overline">FRANKIHOLZ <span aria-hidden="true">/</span> HOST WORKSPACE</div>
+      <h1>Property management<span class="fh-title-dot" aria-hidden="true">.</span></h1>
+      <p>Bookings, rooms and guest-facing content in one secure workspace.</p>
+    </div>
+    <div class="fh-admin-header-actions"><a class="btn light" href="/" target="_blank" rel="noopener noreferrer">View website ↗</a><button class="btn danger" id="logoutBtn">Sign out</button></div>
+  </header>
 <nav class="admin-tabs" role="tablist" aria-label="FrankiHolz administration sections">
-  <button class="admin-tab active" type="button" role="tab" aria-selected="true" data-admin-tab="bookings">Bookings</button>
-  <button class="admin-tab" type="button" role="tab" aria-selected="false" data-admin-tab="rooms">Rooms & availability</button>
-  <button class="admin-tab" type="button" role="tab" aria-selected="false" data-admin-tab="pricing">Pricing</button>
-  <button class="admin-tab" type="button" role="tab" aria-selected="false" data-admin-tab="website">Website content</button>
-  <button class="admin-tab" type="button" role="tab" aria-selected="false" data-admin-tab="integrations">Integrations</button>
+  <div class="fh-admin-sidebar-top"><span class="fh-admin-sidebar-caption">YOUR WORKSPACE</span><span class="fh-admin-sidebar-accent" aria-hidden="true"></span></div>
+  <button class="admin-tab active" type="button" role="tab" aria-selected="true" data-admin-tab="bookings"><span class="fh-admin-tab-icon" aria-hidden="true">◷</span><span>Bookings</span><span class="fh-tab-arrow" aria-hidden="true">›</span></button>
+  <button class="admin-tab" type="button" role="tab" aria-selected="false" data-admin-tab="rooms"><span class="fh-admin-tab-icon" aria-hidden="true">⌂</span><span>Rooms & availability</span><span class="fh-tab-arrow" aria-hidden="true">›</span></button>
+  <button class="admin-tab" type="button" role="tab" aria-selected="false" data-admin-tab="pricing"><span class="fh-admin-tab-icon" aria-hidden="true">€</span><span>Pricing</span><span class="fh-tab-arrow" aria-hidden="true">›</span></button>
+  <button class="admin-tab" type="button" role="tab" aria-selected="false" data-admin-tab="website"><span class="fh-admin-tab-icon" aria-hidden="true">✎</span><span>Website content</span><span class="fh-tab-arrow" aria-hidden="true">›</span></button>
+  <button class="admin-tab" type="button" role="tab" aria-selected="false" data-admin-tab="integrations"><span class="fh-admin-tab-icon" aria-hidden="true">⇄</span><span>Integrations</span><span class="fh-tab-arrow" aria-hidden="true">›</span></button>
+<div class="fh-sidebar-support"><span class="fh-sidebar-support-dot" aria-hidden="true"></span><span>Protected Admin access</span></div>
 </nav>
 <div class="admin-tab-panel" role="tabpanel" data-admin-panel="bookings">
   <section class="panel"><div class="section-heading" style="margin-bottom:10px"><div><span class="section-kicker">Reservations</span><h2 style="margin:0;color:#17343d">Bookings</h2><p class="lead" style="margin:6px 0 0">Guests save a card securely with Stripe first. Confirm a request to schedule the automatic charge 14 days before check-in, or charge immediately when check-in is already within 14 days. Rejecting an unconfirmed request does not charge the card.</p></div></div><div id="bookingCleanupTools" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 14px;margin:12px 0;border:1px solid #dce8e5;border-radius:14px;background:#f7fbfa"><label style="display:flex;align-items:center;gap:8px;margin:0;font-weight:700"><input id="selectAllDeletableBookings" type="checkbox"> Select all deletable closed bookings</label><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span id="bookingDeleteSelection" class="muted">0 selected</span><button class="btn danger small" id="deleteSelectedBookings" type="button" disabled>Delete selected</button></div></div><div id="bookingDeleteStatus"></div><div id="bookings"></div></section>
