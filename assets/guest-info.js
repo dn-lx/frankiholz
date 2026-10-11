@@ -11,7 +11,8 @@
     {key:'fhAboutTitle',label:'About us: heading',en:'About FrankiHolz',de:'Über FrankiHolz',kind:'input'},
     {key:'fhAboutBody',label:'About us: introduction',en:'FrankiHolz offers private rooms in a shared three-bedroom apartment in Frankfurt am Main. Guests can contact the host directly with questions about their stay and the shared facilities. Our goal is to make expectations clear before arrival and offer a straightforward booking experience.',de:'FrankiHolz bietet private Zimmer in einer Dreizimmer-Wohngemeinschaft in Frankfurt am Main. Bei Fragen zum Aufenthalt und den gemeinschaftlich genutzten Bereichen können Gäste den Gastgeber direkt kontaktieren. Wir möchten die Erwartungen vor der Anreise transparent machen und eine unkomplizierte Buchung ermöglichen.',kind:'textarea'},
     {key:'fhContactPhone',label:'Contact: phone number',en:'+49 176 62493 041',de:'+49 176 62493 041',kind:'input'},
-    {key:'fhAirbnbReviewsUrl',label:'Reviews: official Airbnb listing URL (optional)',en:'',de:'',kind:'input',optional:true}
+    {key:'fhAirbnbReviewsUrl',label:'Reviews: official Airbnb listing URL (optional)',en:'',de:'',kind:'input',optional:true},
+    {key:'fhHeroReviews',label:'Hero: genuine Airbnb reviews (optional)',en:'',de:'',kind:'textarea',optional:true}
   ];
   const labels = {
     en: {
@@ -23,6 +24,7 @@
       extraGuestsTitle:'Additional guests',otherRulesTitle:'Taking care of the accommodation',
       facilitiesTitle:'Facilities & amenities',facilitiesIntro:'Available facilities and shared spaces. Please ask the host if a specific amenity is essential for your stay.',
       reviewsTitle:'Guest reviews',reviewsIntro:'Read reviews of our accommodation on Airbnb.',reviewsLink:'View Airbnb reviews ↗',
+      heroReviewsEyebrow:'GUEST REVIEWS · AIRBNB',heroReviewsHeading:'Words from our guests',heroReviewsSource:'Read on Airbnb ↗',
       contactTitle:'Contact your host',contactIntro:'Questions about arrival, facilities or your booking? Contact us directly.',
       mapKicker:'Location',mapTitle:'Find us on the map',mapPrivacy:'Map provided by Google Maps. Viewing it may share data with Google.',
       directions:'Open directions ↗'
@@ -36,6 +38,7 @@
       extraGuestsTitle:'Zusätzliche Gäste',otherRulesTitle:'Sorgsamer Umgang mit der Unterkunft',
       facilitiesTitle:'Ausstattung & Einrichtungen',facilitiesIntro:'Vorhandene Ausstattung und gemeinsam genutzte Bereiche. Bitte fragen Sie nach, wenn eine Ausstattung für Ihren Aufenthalt unverzichtbar ist.',
       reviewsTitle:'Gästebewertungen',reviewsIntro:'Lesen Sie Bewertungen unserer Unterkunft auf Airbnb.',reviewsLink:'Airbnb-Bewertungen ansehen ↗',
+      heroReviewsEyebrow:'GÄSTEBEWERTUNGEN · AIRBNB',heroReviewsHeading:'Das sagen unsere Gäste',heroReviewsSource:'Auf Airbnb lesen ↗',
       contactTitle:'Kontakt zum Gastgeber',contactIntro:'Fragen zur Anreise, Ausstattung oder Buchung? Kontaktieren Sie uns direkt.',
       mapKicker:'Standort',mapTitle:'Unser Standort auf der Karte',mapPrivacy:'Die Karte wird von Google Maps bereitgestellt. Bei der Anzeige können Daten an Google übertragen werden.',
       directions:'Route öffnen ↗'
@@ -49,6 +52,62 @@
     const saved = rows[key]?.['text_'+lang];
     return typeof saved === 'string' && saved.trim() ? saved.trim() : (byKey[key]?.[lang] ?? '');
   };
+  let heroReviewItems = [];
+  let heroReviewIndex = 0;
+  let heroReviewTimer = null;
+  let heroReviewPaused = false;
+  const heroReviewReducedMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const parseReviewEntries = (value) => String(value || '').split(/\r?\n/).map(line => {
+    const parts = line.split('|').map(p => p.trim());
+    if(parts.length !== 3 || !parts[0] || !parts[1] || !validAirbnbUrl(parts[2])) return null;
+    return {author:parts[0],quote:parts[1],url:parts[2]};
+  }).filter(Boolean).slice(0,10);
+  const heroReviewSourceLanguage = (lang) => {
+    const local = parseReviewEntries(rows.fhHeroReviews?.['text_'+lang]);
+    return local.length ? local : parseReviewEntries(rows.fhHeroReviews?.[lang==='de'?'text_en':'text_de']);
+  };
+  function stopHeroReviewTimer(){
+    if(heroReviewTimer !== null) {clearInterval(heroReviewTimer); heroReviewTimer=null;}
+  }
+  function startHeroReviewTimer(){
+    stopHeroReviewTimer();
+    if(heroReviewItems.length < 2 || heroReviewReducedMotion()) return;
+    heroReviewTimer = setInterval(() => {
+      if(!heroReviewPaused && document.visibilityState === 'visible'){
+        heroReviewIndex=(heroReviewIndex+1)%heroReviewItems.length;
+        showHeroReview();
+      }
+    },7500);
+  }
+  function showHeroReview(){
+    if(!heroReviewItems.length)return;
+    const item=heroReviewItems[heroReviewIndex];
+    $('fhReviewQuote').textContent=item.quote;
+    $('fhReviewAuthor').textContent=item.author;
+    const link=$('fhReviewSource');
+    link.href=item.url;
+    const position=String(heroReviewIndex+1).padStart(2,'0');
+    const count=String(heroReviewItems.length).padStart(2,'0');
+    $('fhReviewProgress').textContent=position+' / '+count;
+    $('fhReviewPrev').disabled=heroReviewItems.length<2;
+    $('fhReviewNext').disabled=heroReviewItems.length<2;
+    const slide=$('fhReviewSlide');
+    if(!heroReviewReducedMotion()){
+      slide.classList.remove('fh-review-enter');
+      void slide.offsetWidth; // Restart the short visual transition on slide change.
+      slide.classList.add('fh-review-enter');
+    }
+  }
+  function renderHeroReviews(){
+    const panel=$('fhHeroReviews');
+    if(!panel)return;
+    heroReviewItems=heroReviewSourceLanguage(uiLang());
+    heroReviewIndex=0;
+    panel.hidden=heroReviewItems.length===0;
+    document.querySelector('.fh-hero-grid')?.classList.toggle('fh-reviews-empty',!heroReviewItems.length);
+    if(heroReviewItems.length) showHeroReview();
+    startHeroReviewTimer();
+  }
   const validAirbnbUrl = value => {
     try {
       const url = new URL(value);
@@ -66,6 +125,7 @@
     if (!$('guestInfoPublic')) return;
     const lang = uiLang();
     document.querySelectorAll('[data-fh-label]').forEach(node=>{node.textContent=labels[lang][node.dataset.fhLabel]||node.textContent;});
+    renderHeroReviews();
     document.querySelectorAll('[data-fh-info]').forEach(node=>{
       node.textContent = fieldValue(node.dataset.fhInfo,lang);
     });
@@ -108,10 +168,20 @@
         control.id='fh-edit-'+f.key+'-'+lang;
         if(f.kind!=='input')control.rows=f.key==='fhAboutBody'?5:3;
         if(f.key==='fhAirbnbReviewsUrl')control.placeholder='https://www.airbnb.com/rooms/...';
+        if(f.key==='fhHeroReviews'){
+          control.placeholder='Guest first name | Exact guest review | https://www.airbnb.com/rooms/123456789';
+          control.rows=7;
+        }
         control.value=fieldValue(f.key,lang);
         col.append(label,control);grid.appendChild(col);
       });
       block.appendChild(grid);
+      if(f.key==='fhHeroReviews'){
+        const help=document.createElement('p');
+        help.className='fh-admin-form-help';
+        help.textContent='Optional: one genuine guest review per line, formatted: Guest name | Original review text | Public Airbnb listing URL. Up to 10 entries in each language. Do not invent, scrape, or translate reviews without reviewing the source. If empty, the hero remains free of review cards.';
+        block.appendChild(help);
+      }
       if(f.key==='fhAirbnbReviewsUrl'){
         const help=document.createElement('p');
         help.className='fh-admin-form-help';
@@ -134,12 +204,25 @@
       text_de:$('fh-edit-'+f.key+'-de').value.trim(),
       updated_at:new Date().toISOString()
     }));
-    if(updates.some(r=>r.copy_key!=='fhAirbnbReviewsUrl'&&(!r.text_en||!r.text_de))){
+    if(updates.some(r=>!byKey[r.copy_key].optional&&(!r.text_en||!r.text_de))){
       status.textContent='Please fill out all guest information in both languages.';return;
     }
     const airbnb=updates.find(r=>r.copy_key==='fhAirbnbReviewsUrl');
     if(airbnb && [airbnb.text_en,airbnb.text_de].some(url=>url&&!validAirbnbUrl(url))){
       status.textContent='The reviews link must be a valid HTTPS Airbnb listing URL.';return;
+    }
+    const reviewField=updates.find(r=>r.copy_key==='fhHeroReviews');
+    if(reviewField){
+      for(const [language,raw] of [['English',reviewField.text_en],['German',reviewField.text_de]]){
+        const lines=raw.split(/\r?\n/).filter(line=>line.trim());
+        if(lines.length>10 || lines.some(line=>{
+          const parts=line.split('|').map(p=>p.trim());
+          return parts.length!==3 || !parts[0] || !parts[1] || parts[0].length>70 || parts[1].length>650 || !validAirbnbUrl(parts[2]);
+        })){
+          status.textContent=language+' reviews: use up to 10 lines of Guest name | Real review | Public Airbnb listing URL.';
+          return;
+        }
+      }
     }
     status.textContent='Saving…';
     const {error}=await sb.from('frankiholz_copy').upsert(updates,{onConflict:'copy_key'});
@@ -155,6 +238,23 @@
     status.textContent='Guest information saved and verified.';
   }
   if($('guestInfoPublic')){
+    const reviewsPanel=$('fhHeroReviews');
+    if(reviewsPanel){
+      reviewsPanel.addEventListener('mouseenter',()=>{heroReviewPaused=true;});
+      reviewsPanel.addEventListener('mouseleave',()=>{heroReviewPaused=false;});
+      reviewsPanel.addEventListener('focusin',()=>{heroReviewPaused=true;});
+      reviewsPanel.addEventListener('focusout',event=>{if(!reviewsPanel.contains(event.relatedTarget))heroReviewPaused=false;});
+      $('fhReviewPrev').addEventListener('click',()=>{
+        if(heroReviewItems.length<2)return;
+        heroReviewIndex=(heroReviewIndex-1+heroReviewItems.length)%heroReviewItems.length;
+        showHeroReview(); startHeroReviewTimer();
+      });
+      $('fhReviewNext').addEventListener('click',()=>{
+        if(heroReviewItems.length<2)return;
+        heroReviewIndex=(heroReviewIndex+1)%heroReviewItems.length;
+        showHeroReview(); startHeroReviewTimer();
+      });
+    }
     renderPublic();
     load();
     document.querySelectorAll('.lang-btn').forEach(btn=>btn.addEventListener('click',()=>{document.documentElement.lang=btn.dataset.lang;renderPublic();}));
