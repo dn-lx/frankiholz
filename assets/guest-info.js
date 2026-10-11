@@ -16,6 +16,9 @@
   const labels = {
     en: {
       welcome:'Before your stay',guestInfoTitle:'Your stay at FrankiHolz',guestInfoIntro:'House rules, shared facilities and ways to reach the host.',
+      heroAbout:'Discover our place',heroMinor:'Thoughtful stays in Frankfurt-Sachsenhausen',heroNoteTop:'WELCOME TO FRANKIHOLZ',
+      heroNoteTitle:'A comfortable base for your time in Frankfurt.',heroFact1:'Private rooms in a shared apartment',heroFact2:'Shared kitchen and practical amenities',heroFact3:'Direct contact with your host',
+      explore:'EXPLORE THE STAY',quickRooms:'Our rooms',quickFacilities:'Amenities',quickRules:'House rules',quickLocation:'Location',
       rulesTitle:'House rules & important information',checkInTitle:'Check-in',checkOutTitle:'Check-out',quietTitle:'Quiet hours',
       extraGuestsTitle:'Additional guests',otherRulesTitle:'Taking care of the accommodation',
       facilitiesTitle:'Facilities & amenities',facilitiesIntro:'Available facilities and shared spaces. Please ask the host if a specific amenity is essential for your stay.',
@@ -26,6 +29,9 @@
     },
     de: {
       welcome:'Vor Ihrem Aufenthalt',guestInfoTitle:'Ihr Aufenthalt bei FrankiHolz',guestInfoIntro:'Hausregeln, Gemeinschaftsbereiche und Kontaktmöglichkeiten.',
+      heroAbout:'Unsere Unterkunft entdecken',heroMinor:'Angenehm übernachten in Frankfurt-Sachsenhausen',heroNoteTop:'WILLKOMMEN BEI FRANKIHOLZ',
+      heroNoteTitle:'Ihr gemütlicher Ausgangspunkt in Frankfurt.',heroFact1:'Private Zimmer in einer Wohngemeinschaft',heroFact2:'Gemeinschaftsküche und praktische Ausstattung',heroFact3:'Direkter Kontakt mit dem Gastgeber',
+      explore:'UNTERKUNFT ENTDECKEN',quickRooms:'Unsere Zimmer',quickFacilities:'Ausstattung',quickRules:'Hausregeln',quickLocation:'Standort',
       rulesTitle:'Hausregeln & wichtige Informationen',checkInTitle:'Check-in',checkOutTitle:'Check-out',quietTitle:'Ruhezeiten',
       extraGuestsTitle:'Zusätzliche Gäste',otherRulesTitle:'Sorgsamer Umgang mit der Unterkunft',
       facilitiesTitle:'Ausstattung & Einrichtungen',facilitiesIntro:'Vorhandene Ausstattung und gemeinsam genutzte Bereiche. Bitte fragen Sie nach, wenn eine Ausstattung für Ihren Aufenthalt unverzichtbar ist.',
@@ -105,7 +111,14 @@
         control.value=fieldValue(f.key,lang);
         col.append(label,control);grid.appendChild(col);
       });
-      block.appendChild(grid);root.appendChild(block);
+      block.appendChild(grid);
+      if(f.key==='fhAirbnbReviewsUrl'){
+        const help=document.createElement('p');
+        help.className='fh-admin-form-help';
+        help.textContent='In Airbnb: Listings → choose listing → View → Share → Copy link. Paste the public listing URL, not your private calendar (.ics) link. Add the same URL to both language fields.';
+        block.appendChild(help);
+      }
+      root.appendChild(block);
     });
   }
   async function save() {
