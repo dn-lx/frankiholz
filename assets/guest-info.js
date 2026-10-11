@@ -75,24 +75,27 @@
   // observed in the public listing's review dialog on 2026-10-11. They are NOT verbatim
   // quotations or a live Airbnb reviews feed. Each links to the original listing.
   const verifiedReviewExcerpts = [
-    {author:"Katharina",quote:"Central location, easy access to the city and a helpful, flexible host.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
-    {author:"Catarina",quote:"Welcoming hosts, a clean and comfortable room and convenient transportation. Check-in and check-out were easy.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
-    {author:"Ke",quote:"A friendly host and a pleasant stay.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
-    {author:"Imanol",quote:"Friendly and understanding hosting.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
-    {author:"Anas",quote:"A great host and a well-located place that the guest recommends.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
-    {author:"Patricia",quote:"A friendly, accommodating host, with a cozy, clean room and a smooth stay.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
-    {author:"Kai",quote:"Friendly hosting, a convenient location and good value for a budget-conscious traveler.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
-    {author:"Josephin Alina",quote:"Everything went smoothly, and the guest would happily stay again.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
-    {author:"Abhiram",quote:"Comfortable, well-maintained accommodation with helpful hosts and a convenient location.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
-    {author:"Sophie",quote:"Welcoming and accommodating hosting, with a practical room for a short stay.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
-    {author:"Alexander",quote:"A comfortable, clean space and an accommodating host, even when travel was delayed.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
-    {author:"Dai",quote:"A comfortable room with excellent amenities, even during warm summer weather.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'}
+    {author:"Katharina",quote:"Central location, easy access to the city and a helpful, flexible host.",quote_de:"Zentrale Lage, gute Erreichbarkeit der Stadt und ein hilfsbereiter, flexibler Gastgeber.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
+    {author:"Catarina",quote:"Welcoming hosts, a clean and comfortable room and convenient transportation. Check-in and check-out were easy.",quote_de:"Herzliche Gastgeber, ein sauberes, bequemes Zimmer und gute Verkehrsanbindung. Check-in und Check-out waren unkompliziert.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
+    {author:"Ke",quote:"A friendly host and a pleasant stay.",quote_de:"Ein freundlicher Gastgeber und ein angenehmer Aufenthalt.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
+    {author:"Imanol",quote:"Friendly and understanding hosting.",quote_de:"Freundliche und verständnisvolle Gastfreundschaft.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
+    {author:"Anas",quote:"A great host and a well-located place that the guest recommends.",quote_de:"Ein toller Gastgeber und eine gut gelegene Unterkunft, die der Gast weiterempfiehlt.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
+    {author:"Patricia",quote:"A friendly, accommodating host, with a cozy, clean room and a smooth stay.",quote_de:"Ein freundlicher, entgegenkommender Gastgeber, ein gemütliches, sauberes Zimmer und ein reibungsloser Aufenthalt.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
+    {author:"Kai",quote:"Friendly hosting, a convenient location and good value for a budget-conscious traveler.",quote_de:"Freundliche Gastgeber, eine praktische Lage und eine gute Option für preisbewusste Reisende.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
+    {author:"Josephin Alina",quote:"Everything went smoothly, and the guest would happily stay again.",quote_de:"Alles verlief problemlos, und der Gast würde gerne wiederkommen.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
+    {author:"Abhiram",quote:"Comfortable, well-maintained accommodation with helpful hosts and a convenient location.",quote_de:"Bequeme, gepflegte Unterkunft mit hilfsbereiten Gastgebern und praktischer Lage.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
+    {author:"Sophie",quote:"Welcoming and accommodating hosting, with a practical room for a short stay.",quote_de:"Herzlicher, zuvorkommender Gastgeber und ein praktisches Zimmer für einen kurzen Aufenthalt.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
+    {author:"Alexander",quote:"A comfortable, clean space and an accommodating host, even when travel was delayed.",quote_de:"Eine gemütliche, saubere Unterkunft und ein zuvorkommender Gastgeber, auch bei verspäteter Anreise.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'},
+    {author:"Dai",quote:"A comfortable room with excellent amenities, even during warm summer weather.",quote_de:"Ein bequemes Zimmer mit sehr guter Ausstattung, auch bei sommerlicher Wärme.",url:"https://www.airbnb.com/rooms/1621684668409633226",rating:5,kind:'summary'}
   ];
   const heroReviewSourceLanguage = (lang) => {
     const local = parseReviewEntries(rows.fhHeroReviews?.['text_'+lang]);
     if(local.length) return local;
     const other = parseReviewEntries(rows.fhHeroReviews?.[lang==='de'?'text_en':'text_de']);
-    return other.length ? other : verifiedReviewExcerpts;
+    return other.length ? other : verifiedReviewExcerpts.map(item=>({
+      ...item,
+      quote:lang==='de'?item.quote_de:item.quote
+    }));
   };
   function stopHeroReviewTimer(){
     if(heroReviewTimer !== null) {clearInterval(heroReviewTimer); heroReviewTimer=null;}
