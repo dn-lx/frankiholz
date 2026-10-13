@@ -8,6 +8,10 @@ test.beforeEach(async ({ page }) => {
 
 async function mockPublicBackend(page, mode='test'){
   await page.addInitScript(({paymentMode})=>{
+    // selectRoom() starts a smooth-scroll animation. Disable only that animation
+    // in this isolated calendar fixture so WebKit/iPhone click coordinates stay
+    // stable; Playwright still clicks the actual date buttons.
+    Element.prototype.scrollIntoView = function() {};
     const roomId='2facc875-9470-4b12-9b28-cd65b7360b14';
     const rows=[
       {date:'2026-10-12',is_available:false,availability_status:'booked',nightly_price:null},
