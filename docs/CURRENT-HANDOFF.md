@@ -1,5 +1,14 @@
 # Current Handoff
 
+## Payment gateway construction notice before develop → main — 2026-10-13
+
+- Owner explicitly requested a bilingual public message that the online payment gateway is under construction and guests should contact the FrankiHolz host for an alternative payment method, followed by a `develop → main` production release.
+- Implemented the English/German notice and direct #contact link in the guest booking panel, public cancellation/payment section, homepage booking status section, and standalone booking-status page. The text is intentionally a warning only: existing booking and Stripe routing/checkout endpoints remain unchanged.
+- Automated Playwright smoke checks cover English/German copy, language switching and links without backend writes.
+- At this point, Stripe LIVE remains restricted pending Stripe business onboarding (card payment capability inactive and charges disabled at the last direct check). Supabase's separate `live_ready` setting is not an account-level Stripe activation guarantee. Do not claim production LIVE checkout works until Stripe capability status and a controlled real end-to-end card-saving test have been verified.
+- Before release, follow repository `.agents/skills/release-workflow/SKILL.md`: feature PR into develop with checks, then same-repository `develop → main` with `production-approved` label and release checks; preserve webhook/keys and inspect the 75+ pending commits. Post-merge, verify Netlify main deploy, guest pages and rollback path.
+
+
 ## Calendar exclusive checkout + shared TEST/LIVE selector on develop — 2026-10-11
 
 Feature branch: `fix/calendar-checkout-stripe-env-20261011` from `develop`. Do not merge or deploy this branch directly to `main`.

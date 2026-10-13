@@ -86,6 +86,8 @@ test('mobile hero stacks the badge ahead of copy and keeps a reachable single CT
 });
 
 test('twelve genuine Airbnb five-star review summaries can be navigated', async ({ page }) => {
+  // Exercise manual navigation deterministically; autoplay is a separate concern.
+  await page.clock.install({ time: new Date('2026-10-11T12:00:00+02:00') });
   await page.goto('/', {waitUntil:'domcontentloaded'});
   const authors = ['Katharina','Catarina','Ke','Imanol','Anas','Patricia','Kai','Josephin Alina','Abhiram','Sophie','Alexander','Dai'];
   await expect(page.locator('#fhReviewProgress')).toHaveText('01 / 12');
