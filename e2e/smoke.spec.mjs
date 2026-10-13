@@ -106,3 +106,21 @@ test('WhatsApp contact uses the Admin-managed international number', async ({ pa
   await expect(page.locator('#fhContactPhoneLink')).toHaveText('+49 170 1234 567');
   await expect(page.locator('#fhWhatsappLink')).toHaveAttribute('href','https://wa.me/491701234567');
 });
+
+
+test('online payment gateway notice is bilingual and directs guests to the host', async ({ page }) => {
+  await page.goto('/?lang=en', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#cancellationPolicy [data-i18n="gatewayNoticeTitle"]')).toHaveText('Online payment gateway temporarily unavailable');
+  await expect(page.locator('#bookingStatusSection [data-i18n="gatewayNoticeText"]')).toContainText('alternative payment method');
+  await expect(page.locator('#cancellationPolicy a[data-i18n="contactHost"]')).toHaveAttribute('href', '#contact');
+  await page.locator('.lang-btn[data-lang="de"]').click();
+  await expect(page.locator('#cancellationPolicy [data-i18n="gatewayNoticeTitle"]')).toHaveText('Online-Zahlung vorübergehend nicht verfügbar');
+  await expect(page.locator('#bookingStatusSection [data-i18n="gatewayNoticeText"]')).toContainText('alternative Zahlungsmethode');
+
+  await page.goto('/booking-status.html?lang=en', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#gatewayNoticeText')).toContainText('alternative payment method');
+  await expect(page.locator('#gatewayContactLink')).toHaveAttribute('href', '/?lang=en#contact');
+  await page.locator('.lang-btn[data-lang="de"]').click();
+  await expect(page.locator('#gatewayNoticeTitle')).toHaveText('Online-Zahlung vorübergehend nicht verfügbar');
+  await expect(page.locator('#gatewayContactLink')).toHaveAttribute('href', '/?lang=de#contact');
+});
