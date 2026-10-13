@@ -1,0 +1,36 @@
+name: Documentation drift
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - scripts/documentation-drift.mjs
+      - .github/workflows/documentation-drift.yml
+  schedule:
+    - cron: "0 17 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: develop
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Review last 24 hours
+        run: |
+          node scripts/documentation-drift.mjs
+          cat documentation-drift-report.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload documentation drift report
+        uses: actions/upload-artifact@v5
+        with:
+          name: documentation-drift-${{ github.run_id }}
+          path: documentation-drift-report.md
+          retention-days: 30

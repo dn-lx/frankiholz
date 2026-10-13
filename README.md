@@ -1,5 +1,7 @@
 # FrankiHolz Accommodation Website
 
+**FrankiFlow Projects:** This repository is part of the FrankiFlow project family. See [`PROJECT-FAMILY.md`](PROJECT-FAMILY.md) for the shared engineering/agent architecture.
+
 Production source for **FrankiHolz** direct accommodation and booking management.
 
 ## Production

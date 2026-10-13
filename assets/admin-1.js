@@ -13,7 +13,6 @@ $('saveHeroText').onclick=async()=>{const payload={hero_title:$('heroTitle').val
 function renderPricing(p){
   if(!p)return;
   $('p-weekend').value=p.weekend_markup_pct;
-  $('p-hold').value=p.payment_hold_minutes;
   $('p-occ1-level').value=p.occupancy_level_1_pct;
   $('p-occ1-markup').value=p.occupancy_markup_1_pct;
   $('p-occ2-level').value=p.occupancy_level_2_pct;
@@ -28,7 +27,6 @@ function renderPricing(p){
 $('savePricing').onclick=async()=>{
   const payload={
     weekend_markup_pct:Number($('p-weekend').value),
-    payment_hold_minutes:Number($('p-hold').value),
     occupancy_level_1_pct:Number($('p-occ1-level').value),
     occupancy_markup_1_pct:Number($('p-occ1-markup').value),
     occupancy_level_2_pct:Number($('p-occ2-level').value),

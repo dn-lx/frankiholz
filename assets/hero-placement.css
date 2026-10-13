@@ -1,0 +1,75 @@
+/* Focused FrankiHolz hero positioning: text left, badge and room CTA right.
+   The location badge and CTA are single DOM elements, preserving locale and booking handlers. */
+.fh-hero-grid.fh-hero-split{
+  grid-template-columns:minmax(0,1.10fr) minmax(290px,.90fr);
+  align-items:stretch;
+  gap:clamp(25px,3vw,42px);
+}
+.fh-hero-split .hero-content{
+  min-width:0;
+  max-width:720px;
+  padding-top:32px;
+}
+.fh-hero-split .fh-hero-rail{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  justify-content:space-between;
+  text-align:right;
+  min-width:0;
+  padding-bottom:17px;
+}
+.fh-hero-split .fh-hero-rail .eyebrow{
+  align-self:flex-end;
+  font-size:11px;
+  letter-spacing:.1em;
+  max-width:100%;
+  white-space:normal;
+  line-height:1.5;
+}
+.fh-hero-split .fh-hero-rail #heroRoomsBtn{
+  align-self:flex-end;
+  min-height:49px;
+  padding:14px 23px;
+  font-size:14px;
+  margin:0;
+  white-space:nowrap;
+}
+@media(min-width:901px){
+  /* Slightly wider top navigation, centered independently of the hero text. */
+  .site-nav{width:min(1370px,96vw);max-width:1370px}
+}
+@media(max-width:900px){
+  .fh-hero-grid.fh-hero-split{
+    grid-template-columns:minmax(0,1fr);
+    gap:18px;
+    padding-block:155px 70px;
+  }
+  .fh-hero-split .fh-hero-rail{display:contents}
+  .fh-hero-split .fh-hero-rail .eyebrow{
+    order:-1;
+    justify-self:start;
+    align-self:start;
+    max-width:100%;
+  }
+  .fh-hero-split .hero-content{
+    order:0;
+    padding-top:0;
+  }
+  .fh-hero-split .hero-content h1{margin-top:8px}
+  .fh-hero-split .fh-hero-rail #heroRoomsBtn{
+    order:1;
+    justify-self:start;
+    align-self:start;
+    margin-top:4px;
+  }
+  .fh-hero-split .fh-hero-minor{margin-top:23px}
+}
+@media(max-width:600px){
+  .fh-hero-grid.fh-hero-split{padding-block:142px 64px}
+  .fh-hero-split .fh-hero-rail .eyebrow{font-size:10px;letter-spacing:.055em}
+  .fh-hero-split .fh-hero-rail #heroRoomsBtn{min-height:46px;padding:12px 19px}
+}
+@media(prefers-reduced-motion:reduce){
+  .fh-hero-split #heroRoomsBtn{transition:none}
+}

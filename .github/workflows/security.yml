@@ -1,0 +1,92 @@
+name: Security checks
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop]
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  semgrep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install Semgrep
+        run: python -m pip install --disable-pip-version-check semgrep
+      - name: Scan high-severity findings
+        run: >
+          semgrep scan
+          --config auto
+          --severity ERROR
+          --error
+          --exclude .graphify
+          --exclude node_modules
+          --exclude dist
+          --exclude coverage
+          .
+
+  gitleaks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Scan changed commits for secrets
+        if: ${{ github.event_name != 'schedule' }}
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            RANGE="${PR_BASE_SHA}..${PR_HEAD_SHA}"
+          elif [[ "$EVENT_NAME" == "push" && -n "${PUSH_BEFORE:-}" && "$PUSH_BEFORE" != "0000000000000000000000000000000000000000" ]]; then
+            RANGE="${PUSH_BEFORE}..${CURRENT_SHA}"
+          else
+            RANGE="${CURRENT_SHA}^..${CURRENT_SHA}"
+          fi
+          echo "Scanning commit range: $RANGE"
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.24.3 git /repo --redact --no-banner --log-opts="$RANGE"
+      - name: Audit full repository history
+        if: ${{ github.event_name == 'schedule' }}
+        continue-on-error: true
+        run: |
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.24.3 git /repo --redact --no-banner
+
+  runtime-dependencies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Audit production dependencies when package.json exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -f package.json ]]; then
+            echo "No package.json; dependency audit not applicable."
+            exit 0
+          fi
+          npm install --package-lock-only --ignore-scripts --no-fund
+          npm audit --omit=dev --audit-level=high

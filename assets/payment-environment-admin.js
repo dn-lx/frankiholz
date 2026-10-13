@@ -1,9 +1,10 @@
 (()=>{
   const panelHost=document.querySelector('[data-admin-panel="integrations"]');
-  if(!panelHost)return;
+  if(!panelHost || panelHost.querySelector('[data-stripe-environment-panel]'))return;
 
   const section=document.createElement('section');
-  section.className='panel';
+  section.className='panel stripe-environment-panel';
+  section.dataset.stripeEnvironmentPanel='true';
   section.style.marginBottom='20px';
   section.innerHTML=`
     <div class="section-heading" style="margin-bottom:14px">
@@ -30,7 +31,7 @@
       </label>
     </div>
     <div id="stripeEnvironmentStatus"></div>
-    <p class="muted" style="font-size:12px;margin:13px 0 0">Existing bookings keep the Stripe environment in which their card was authorized. This switch is visible only in FrankiHolz Admin.</p>
+    <p class="muted" style="font-size:12px;margin:13px 0 0">This is one shared Stripe setting for the FrankiHolz database. Updated development and production websites both use the selected mode for new card setups; changing it here affects both sites. Existing card authorizations keep their original mode.</p>
     <style>
       .stripe-mode-control{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:20px;border:1px solid #dce8e5;border-radius:20px;background:#f8fbfa}
       .stripe-mode-copy{min-width:0;flex:1}.stripe-mode-state-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}.stripe-mode-label{font-size:18px;font-weight:800;color:#17343d}.stripe-connection-summary{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.stripe-toggle{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;flex:0 0 auto}.stripe-toggle input{position:absolute;opacity:0;pointer-events:none}.stripe-toggle-track{position:relative;width:62px;height:34px;border-radius:999px;background:#d9e4e2;box-shadow:inset 0 0 0 1px #cad9d6;transition:.2s ease}.stripe-toggle-thumb{position:absolute;width:26px;height:26px;left:4px;top:4px;border-radius:50%;background:#fff;box-shadow:0 2px 7px rgba(12,52,71,.22);transition:.2s ease}.stripe-toggle input:checked+.stripe-toggle-track{background:#0c3447}.stripe-toggle input:checked+.stripe-toggle-track .stripe-toggle-thumb{transform:translateX(28px)}.stripe-toggle input:focus-visible+.stripe-toggle-track{outline:3px solid rgba(20,169,165,.28);outline-offset:3px}.stripe-toggle input:disabled+.stripe-toggle-track{opacity:.55;cursor:not-allowed}.stripe-toggle-text{font-size:12px;font-weight:850;letter-spacing:.05em;color:#47636b}
@@ -78,7 +79,7 @@
   async function switchTo(target){
     if(!state||busy)return;
     if(target==='live'){
-      const typed=window.prompt('LIVE mode uses real card authorizations and real money. Type LIVE to confirm.','');
+      const typed=window.prompt('LIVE affects both updated develop and main sites. Real card charges are possible when bookings are confirmed. Type LIVE to confirm.','');
       if(typed!=='LIVE'){render();return;}
     }
     busy=true;render();

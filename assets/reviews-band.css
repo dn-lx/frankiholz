@@ -1,0 +1,120 @@
+/* Airbnb-sourced review strip: the section directly below the homepage quick links.
+   Snapshot statistics are not represented as a real-time API. */
+/* The reviews now live below the hero and must not constrain hero columns. */
+.fh-reviews-band{
+  background:#fffefa;
+  padding:clamp(21px,3vw,34px) 0 clamp(24px,3vw,36px);
+  border-bottom:1px solid #e1e9e2;
+}
+.fh-review-summary{
+  display:grid;
+  grid-template-columns:minmax(195px,1.15fr) minmax(145px,.72fr) minmax(185px,1fr) auto;
+  align-items:center;
+  gap:clamp(16px,2.4vw,36px);
+  padding:clamp(20px,2.6vw,33px);
+  background:linear-gradient(125deg,#f4f9f4,#fff);
+  border:1px solid #d9e9dd;
+  border-radius:21px;
+  box-shadow:0 12px 35px rgba(15,63,58,.06);
+}
+.fh-review-kicker{display:block;font-size:10px;font-weight:900;letter-spacing:.13em;color:#397e61;margin-bottom:10px}
+.fh-review-score h2{margin:0 0 7px;font-size:clamp(21px,2.25vw,29px);line-height:1.2;color:#153742;letter-spacing:-.04em}
+.fh-review-context{font-size:12px;line-height:1.6;margin:0;color:#697f7b}
+.fh-review-number{display:flex;align-items:baseline;flex-wrap:wrap;column-gap:7px;row-gap:2px}
+.fh-review-star{color:#d8a943;font-size:23px;line-height:1}
+.fh-review-number strong{font-size:clamp(28px,3vw,39px);line-height:1;color:#153b3f;letter-spacing:-.07em;font-variant-numeric:tabular-nums}
+.fh-review-outof{font-size:13px;color:#57716e;font-weight:700}
+.fh-review-count{width:100%;padding-left:28px;font-size:12px;font-weight:800;color:#20493f;white-space:nowrap}
+.fh-review-asof{width:100%;padding-left:28px;font-size:10px;color:#68827b;line-height:1.4}
+.fh-review-topics>span{display:block;font-size:11px;font-weight:800;color:#365b53;margin-bottom:10px}
+.fh-review-topic-pills{display:flex;gap:6px;flex-wrap:wrap}
+.fh-review-topic-pills span{display:inline-flex;padding:8px 9px;background:#e9f4ec;border:1px solid #dbe9dd;border-radius:9px;font-size:10px;font-weight:750;color:#316a57}
+.fh-review-listing-link{display:inline-flex;align-items:center;justify-content:center;min-height:46px;max-width:220px;padding:12px 17px;background:#143b48;color:#fff;border-radius:12px;text-decoration:none;font-size:12px;font-weight:800;line-height:1.35;text-align:center;white-space:normal;box-shadow:0 9px 18px rgba(12,49,57,.12);transition:background .2s,transform .2s}
+.fh-review-listing-link:hover{background:#20645c;transform:translateY(-1px)}
+.fh-review-listing-link:focus-visible{outline:3px solid #4aa782;outline-offset:3px}
+.fh-reviews-band .fh-review-carousel{
+  margin:18px auto 0;max-width:none;align-self:auto;width:100%;
+  display:grid;grid-template-columns:minmax(0,.55fr) minmax(0,1.4fr) auto;
+  align-items:center;gap:20px;
+  padding:22px 26px;
+  background:linear-gradient(130deg,#153d46,#1b6559);border:1px solid #245e55;
+  border-radius:19px;color:#fff;
+  box-shadow:0 12px 27px rgba(15,55,62,.10);
+}
+.fh-reviews-band .fh-review-top{grid-column:1;display:flex;align-items:center;gap:10px;align-self:start}
+.fh-reviews-band .fh-review-quote-mark{display:none}
+.fh-reviews-band .fh-review-heading{grid-column:1;font-size:19px!important;line-height:1.3!important;margin:12px 0 0!important;align-self:end}
+.fh-reviews-band .fh-review-slide{grid-column:2;grid-row:1/3;min-height:0;display:flex;gap:13px;justify-content:center}
+.fh-reviews-band .fh-review-quote{font-size:clamp(14px,1.5vw,19px);line-height:1.48}
+.fh-reviews-band .fh-review-attribution{display:flex;flex-direction:row;gap:12px;align-items:center;flex-wrap:wrap}
+.fh-reviews-band .fh-review-attribution a{font-size:11px}
+.fh-reviews-band .fh-review-footer{grid-column:3;grid-row:1/3;margin:0;padding:0;border:0;flex-direction:column;gap:9px}
+.fh-reviews-band + .fh-room-showcase{padding-top:clamp(48px,5.3vw,73px)}
+@media(max-width:1020px){
+  .fh-review-summary{grid-template-columns:1fr .7fr;gap:17px}
+  .fh-review-topics{grid-column:1}
+  .fh-review-listing-link{grid-column:2;grid-row:2;max-width:none}
+  .fh-reviews-band .fh-review-carousel{grid-template-columns:1fr auto}
+  .fh-reviews-band .fh-review-top{grid-column:1}
+  .fh-reviews-band .fh-review-heading{grid-column:1}
+  .fh-reviews-band .fh-review-slide{grid-column:1;grid-row:3;justify-content:flex-start}
+  .fh-reviews-band .fh-review-footer{grid-column:2;grid-row:1/4}
+}
+@media(max-width:650px){
+  .fh-reviews-band{padding:20px 0 25px}
+  .fh-review-summary{grid-template-columns:1fr 1fr;border-radius:15px;padding:19px;gap:16px}
+  .fh-review-score{grid-column:1/-1}
+  .fh-review-number{grid-column:1}
+  .fh-review-topics{grid-column:2}
+  .fh-review-count,.fh-review-asof{padding-left:0}
+  .fh-review-listing-link{grid-column:1/-1;grid-row:auto;max-width:none;width:100%}
+  .fh-reviews-band .fh-review-carousel{padding:20px;grid-template-columns:1fr;gap:10px}
+  .fh-reviews-band .fh-review-top,.fh-reviews-band .fh-review-heading,.fh-reviews-band .fh-review-slide,.fh-reviews-band .fh-review-footer{grid-column:1;grid-row:auto}
+  .fh-reviews-band .fh-review-footer{flex-direction:row;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,.22);margin-top:7px;padding-top:13px}
+}
+@media(prefers-reduced-motion:reduce){
+  .fh-review-listing-link{transition:none}
+}
+
+/* Review-first layout: visible quotations are primary, snapshot is secondary. */
+.fh-reviews-band .fh-reviews-intro{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:18px}
+.fh-reviews-intro h2{margin:0;font-size:clamp(23px,3vw,32px);letter-spacing:-.04em;color:#173b43}
+.fh-reviews-intro .fh-review-kicker{margin-bottom:6px}
+.fh-review-source-summary{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap;color:#3d5c53;font-size:12px}
+.fh-review-source-summary strong{font-size:25px;letter-spacing:-.04em;color:#143d45}
+.fh-review-source-summary .fh-review-star{font-size:19px}
+.fh-review-source-summary #fhAirbnbCount{font-size:11px;font-weight:800;white-space:nowrap;margin-left:8px}
+.fh-review-source-summary small{display:block;flex-basis:100%;color:#657e77;font-size:10px}
+.fh-reviews-intro .fh-review-listing-link{max-width:none;min-height:44px}
+.fh-reviews-band .fh-review-carousel{margin:0;min-height:205px;grid-template-columns:minmax(0,.36fr) minmax(0,1fr) auto}
+.fh-reviews-band .fh-review-slide{min-height:100px}
+.fh-reviews-band .fh-review-quote{font-size:clamp(20px,2.3vw,29px);font-weight:700;line-height:1.45}
+.fh-reviews-band .fh-review-heading{font-size:18px!important}
+@media(max-width:880px){
+  .fh-reviews-band .fh-review-carousel{grid-template-columns:1fr auto}
+  .fh-reviews-band .fh-review-slide{grid-column:1;grid-row:3}
+  .fh-reviews-band .fh-review-footer{grid-column:2;grid-row:1/4}
+}
+@media(max-width:650px){
+  .fh-reviews-band .fh-reviews-intro{align-items:flex-start}
+  .fh-reviews-intro .fh-review-listing-link{width:100%}
+  .fh-review-source-summary{width:100%}
+  .fh-reviews-band .fh-review-carousel{display:flex;flex-direction:column;align-items:stretch;min-height:unset}
+  .fh-reviews-band .fh-review-footer{width:100%}
+  .fh-reviews-band .fh-review-quote{font-size:20px}
+}
+
+/* Distinct per-guest star ratings (not the aggregate listing score). */
+.fh-review-ratings-row{display:flex;align-items:center;gap:10px 16px;flex-wrap:wrap;margin:0 0 6px}
+.fh-review-star-rating{display:inline-flex;align-items:center;gap:10px;color:#ffcd64;white-space:nowrap}
+.fh-review-star-rating[hidden]{display:none!important}
+.fh-review-star-glyphs{font-size:clamp(22px,2.4vw,27px);font-weight:900;letter-spacing:.09em;line-height:1;white-space:nowrap;text-shadow:0 2px 9px rgba(0,0,0,.13)}
+.fh-review-star-value{font-size:12px;font-weight:850;color:#fff4d5;letter-spacing:.02em}
+.fh-review-nature{font-size:11px;line-height:1.5;font-weight:700;letter-spacing:.02em;color:#c8e9dc}
+.fh-reviews-band .fh-review-slide{min-width:0}
+.fh-reviews-band .fh-review-quote{margin:0;overflow-wrap:anywhere}
+@media(max-width:650px){
+  .fh-review-ratings-row{justify-content:flex-start}
+  .fh-review-star-glyphs{font-size:23px}
+  .fh-review-nature{width:100%}
+}
