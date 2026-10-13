@@ -109,6 +109,19 @@ test('WhatsApp contact uses the Admin-managed international number', async ({ pa
 
 
 test('online payment gateway notice is bilingual and directs guests to the host', async ({ page }) => {
+  // The global external-network blocker also blocks the Supabase CDN. Mock it
+  // so site.js initializes and its DE/EN switch can run without backend writes.
+  await page.addInitScript(() => {
+    window.supabase = {createClient:()=>({
+      from(){return {
+        select(){return this},eq(){return this},order(){return this},in(){return this},
+        maybeSingle:async()=>({data:null,error:null}),
+        then(resolve,reject){return Promise.resolve({data:[],error:null}).then(resolve,reject)}
+      }},
+      rpc:async()=>({data:[],error:null}),
+      auth:{getSession:async()=>({data:{session:null}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}
+    })};
+  });
   await page.goto('/?lang=en', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#cancellationPolicy [data-i18n="gatewayNoticeTitle"]')).toHaveText('Online payment gateway temporarily unavailable');
   await expect(page.locator('#bookingStatusSection [data-i18n="gatewayNoticeText"]')).toContainText('alternative payment method');
