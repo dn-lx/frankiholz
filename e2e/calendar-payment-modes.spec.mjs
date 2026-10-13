@@ -55,6 +55,8 @@ const button=(page,date)=>page.locator('#calendar button[onclick="pickDate(\''+d
 test('a blocked October 14 is available only as checkout after a free October 13',async ({page})=>{
   await mockPublicBackend(page);
   await page.goto('/?lang=en',{waitUntil:'domcontentloaded'});
+  // Wait for the initial mocked room load before selecting; init() is async in WebKit.
+  await expect(page.locator('#rooms')).toContainText('Cozy Holz');
   await page.evaluate(async()=>{await window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14')});
   await expect(button(page,'2026-10-14')).toBeDisabled();
   await expect(button(page,'2026-10-12')).toBeDisabled();
@@ -76,6 +78,8 @@ test('a blocked October 14 is available only as checkout after a free October 13
 test('clicking already selected checkout or checkin toggles that date off',async ({page})=>{
   await mockPublicBackend(page);
   await page.goto('/?lang=en',{waitUntil:'domcontentloaded'});
+  // Wait for the initial mocked room load before selecting; init() is async in WebKit.
+  await expect(page.locator('#rooms')).toContainText('Cozy Holz');
   await page.evaluate(async()=>{await window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14')});
   await button(page,'2026-10-13').click();
   await button(page,'2026-10-14').click();
@@ -92,6 +96,8 @@ test('clicking already selected checkout or checkin toggles that date off',async
 test('German checkout boundary label is visible and actual TEST mode is displayed',async ({page})=>{
   await mockPublicBackend(page,'test');
   await page.goto('/?lang=de',{waitUntil:'domcontentloaded'});
+  // Wait for the initial mocked room load before selecting; init() is async in WebKit.
+  await expect(page.locator('#rooms')).toContainText('Cozy Holz');
   await page.evaluate(async()=>{await window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14')});
   await button(page,'2026-10-13').click();
   await expect(button(page,'2026-10-14')).toContainText('Nur Check-out');
@@ -101,6 +107,8 @@ test('German checkout boundary label is visible and actual TEST mode is displaye
 test('development still reads LIVE from backend but shows no LIVE warning',async ({page})=>{
   await mockPublicBackend(page,'live');
   await page.goto('/?lang=en&stripe_test=1',{waitUntil:'domcontentloaded'});
+  // Wait for the initial mocked room load before selecting; init() is async in WebKit.
+  await expect(page.locator('#rooms')).toContainText('Cozy Holz');
   await page.evaluate(async()=>{await window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14')});
   const selected=await page.evaluate(async()=>await resolvePaymentMode());
   expect(selected).toBe('live');
@@ -140,7 +148,9 @@ for(const mode of ['live','test']){
         status:200,contentType:'text/html',body:'<!doctype html><title>Mock checkout only</title><p>No payment created.</p>'
       }));
       await page.goto(`/?lang=${language}`,{waitUntil:'domcontentloaded'});
-      await page.evaluate(async()=>{await window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14')});
+      // Wait for the initial mocked room load before selecting; init() is async in WebKit.
+  await expect(page.locator('#rooms')).toContainText('Cozy Holz');
+  await page.evaluate(async()=>{await window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14')});
       await button(page,'2026-10-13').click();
       await button(page,'2026-10-14').click();
       await page.locator('#guestName').fill('Frontend Test Guest');
@@ -173,6 +183,8 @@ for(const mode of ['live','test']){
 test('unavailable payment configuration is reported instead of silently defaulting to LIVE',async ({page})=>{
   await mockPublicBackend(page,null);
   await page.goto('/?lang=en',{waitUntil:'domcontentloaded'});
+  // Wait for the initial mocked room load before selecting; init() is async in WebKit.
+  await expect(page.locator('#rooms')).toContainText('Cozy Holz');
   await page.evaluate(async()=>{await window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14')});
   await expect(page.locator('#paymentEnvironmentNotice')).toContainText('Payment environment is not configured correctly.');
   const result=await page.evaluate(async()=>{
