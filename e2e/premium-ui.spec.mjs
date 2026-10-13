@@ -86,7 +86,8 @@ test('mobile hero stacks the badge ahead of copy and keeps a reachable single CT
 });
 
 test('twelve genuine Airbnb five-star review summaries can be navigated', async ({ page }) => {
-  // Exercise manual navigation deterministically; autoplay is a separate concern.
+  // Exercise real keyboard activation of the review button. A separate test
+  // verifies pointer clicking; keyboard avoids WebKit's animated pointer race.
   await page.clock.install({ time: new Date('2026-10-11T12:00:00+02:00') });
   await page.goto('/', {waitUntil:'domcontentloaded'});
   const authors = ['Katharina','Catarina','Ke','Imanol','Anas','Patricia','Kai','Josephin Alina','Abhiram','Sophie','Alexander','Dai'];
@@ -96,10 +97,10 @@ test('twelve genuine Airbnb five-star review summaries can be navigated', async 
     await expect(page.locator('#fhReviewStarGlyphs')).toHaveText('★★★★★');
     await expect(page.locator('#fhReviewStarValue')).toHaveText('5 / 5');
     await expect(page.locator('#fhReviewSource')).toHaveAttribute('href','https://www.airbnb.com/rooms/1621684668409633226');
-    if(i < authors.length-1)await page.locator('#fhReviewNext').click();
+    if(i < authors.length-1)await page.locator('#fhReviewNext').press('Enter');
   }
   await expect(page.locator('#fhReviewProgress')).toHaveText('12 / 12');
-  await page.locator('#fhReviewNext').click();
+  await page.locator('#fhReviewNext').press('Enter');
   await expect(page.locator('#fhReviewAuthor')).toHaveText('Katharina');
 });
 
