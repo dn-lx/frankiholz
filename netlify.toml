@@ -1,80 +1,19 @@
+# FrankiHolz v2 — isolated branch configuration. Production main/develop remain unchanged.
 [build]
-  publish = "."
+  base = "v2"
+  command = "npm run build"
+  publish = ".next"
 
-[[redirects]]
-  from = "/de"
-  to = "/?lang=de"
-  status = 302
-
-[[redirects]]
-  from = "/de/"
-  to = "/?lang=de"
-  status = 302
-
-[[redirects]]
-  from = "/en"
-  to = "/?lang=en"
-  status = 302
-
-[[redirects]]
-  from = "/en/"
-  to = "/?lang=en"
-  status = 302
-
-[[redirects]]
-  from = "/index.html"
-  to = "/"
-  status = 301
-
-[[redirects]]
-  from = "/admin"
-  to = "/admin.html"
-  status = 200
-
-[[redirects]]
-  from = "/admin/"
-  to = "/admin.html"
-  status = 200
-
-[[redirects]]
-  from = "/booking-status"
-  to = "/booking-status.html"
-  status = 200
-
-[[redirects]]
-  from = "/booking-status/"
-  to = "/booking-status.html"
-  status = 200
-
-[[redirects]]
-  from = "/payment-success"
-  to = "/payment-success.html"
-  status = 200
-
-[[redirects]]
-  from = "/payment-success/"
-  to = "/payment-success.html"
-  status = 200
+[build.environment]
+  NODE_VERSION = "22"
 
 [[headers]]
   for = "/*"
   [headers.values]
-    Strict-Transport-Security = "max-age=31536000"
-    Content-Security-Policy = "upgrade-insecure-requests; block-all-mixed-content"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
 [[headers]]
-  for = "/admin*"
-  [headers.values]
-    X-Robots-Tag = "noindex, nofollow"
-
-[[headers]]
-  for = "/booking-status*"
-  [headers.values]
-    X-Robots-Tag = "noindex, nofollow"
-
-[[headers]]
-  for = "/payment-success*"
+  for = "/admin/*"
   [headers.values]
     X-Robots-Tag = "noindex, nofollow"
