@@ -1,0 +1,39 @@
+name: FrankiHolz V2 / Next build and visual QA
+on:
+  push:
+    branches: [v2]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  next-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: v2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Static contract check
+        run: npm test
+      - name: Build Next.js
+        run: npm run build
+      - name: TypeScript check
+        run: npm run typecheck
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+      - name: Run responsive smoke and capture screenshots
+        run: mkdir -p artifacts && npx playwright test
+      - name: Upload visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frankiholz-v2-visual-qa
+          path: |
+            v2/artifacts
+            v2/test-results
+          if-no-files-found: ignore
