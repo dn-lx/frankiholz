@@ -1,0 +1,3 @@
+import Link from 'next/link';
+export const metadata={title:'Datenschutz | FrankiHolz'};
+export default function Privacy(){return <main id="main" className="legal-route"><Link href="/">← FrankiHolz</Link><h1>Datenschutz</h1><p>Bei Buchungsanfragen werden personenbezogene Angaben verarbeitet. Zahlkartendaten werden über Stripe verarbeitet, nicht direkt auf dieser Website gespeichert. Für den Karten-/Buchungsvorgang sind die jeweils gültigen Datenschutzinformationen zu beachten.</p><p><strong>Wichtig:</strong> Vor öffentlicher Nutzung müssen die vollständige Datenschutzerklärung, verantwortliche Stelle, Auftragsverarbeiter, Rechtsgrundlagen, Speicherdauer und Betroffenenrechte geprüft und veröffentlicht werden.</p></main>}
