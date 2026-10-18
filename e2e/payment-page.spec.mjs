@@ -12,7 +12,7 @@ for(const lang of ['en','de'])for(const width of [390,1280])test(`payment choice
  await fixture(page);await page.setViewportSize({width,height:900});await page.goto('/payment.html?reference=FH-PAYMENT&lang='+lang);
  await expect(page.locator('#paymentContent')).toBeVisible();await expect(page.locator('#paymentSummary')).toContainText(lang==='de'?'0,50':'0.50');
  await expect(page.locator('#savedPayment')).toHaveText(lang==='de'?'Methode bei Stripe wählen':'Choose a method on Stripe');
- await expect(page.locator('#bankPayment')).toBeVisible();await expect(page.locator('#paymentChoices')).toContainText('SEPA');
+ await expect(page.locator('#bankPayment')).toBeHidden();await expect(page.locator('#paymentChoices')).toContainText('SEPA');
  await expect(page.locator('#paymentChoices')).toContainText('14');await expect(page.locator('#modeNotice')).toBeHidden();
  const size=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:innerWidth}));expect(size.scroll).toBeLessThanOrEqual(size.width+1);
  await page.locator('#paymentLookupPanel summary').click();await page.locator('#email').fill('wrong@example.invalid');await expect(page.locator('#paymentContent')).toBeHidden();
@@ -26,7 +26,7 @@ for(const state of ['payment_method_saved','scheduled_charge','processing','paid
 test('cancelled request and existing bank instructions cannot offer a new saved method',async({page})=>{
  await fixture(page,{booking_status:'cancelled'});await page.goto('/payment.html?reference=FH-PAYMENT');await expect(page.locator('#paymentChoices')).toBeHidden();await expect(page.locator('#paymentState')).toContainText('closed');
  await fixture(page,{payment_collection_mode:'bank_transfer',payment_status:'awaiting_payment'});await page.reload();
- await expect(page.locator('#savedPayment')).toBeHidden();await expect(page.locator('#bankPayment')).toBeVisible();await expect(page.locator('#paymentState')).toContainText('same details');
+ await expect(page.locator('#savedPayment')).toBeHidden();await expect(page.locator('#bankPayment')).toBeVisible();await expect(page.locator('#existingTransfer')).toContainText('transfer in progress');
 });
 test('environment changes are blocked and test bookings remain explicitly labelled',async({page})=>{
  let requests=0;await fixture(page,{payment_mode:'test'});await page.route('**/functions/v1/**',route=>{requests++;return route.abort()});await page.goto('/payment.html?reference=FH-PAYMENT');

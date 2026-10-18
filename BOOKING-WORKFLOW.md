@@ -7,7 +7,7 @@ Last updated: 2026-10-18
 1. **Choose room and dates.** FrankiHolz combines its calendar, confirmed bookings and imported Airbnb/iCal blocks.
 2. **Calculate the stay total.** The server-side pricing RPC returns the current total.
 3. **Create the booking request.** The public site uses `frankiholz_create_booking_v2`, which records the guest profile and `payment_schedule_version = v2_14_day`.
-4. **Choose payment on the payment page.** After creating the request, guests choose saved-method setup (the Stripe-hosted chooser offers eligible cards, wallets and bank debit) or immediate EUR/SEPA bank-transfer instructions. Setup saves a method without charging. A transfer is sent by the guest before host approval. Receipt does not confirm the stay.
+4. **Choose payment on the payment page.** After creating the request, guests continue to saved-method setup (the Stripe-hosted chooser offers eligible cards, wallets and bank debit). Setup saves a method without charging. New EUR/SEPA bank transfers are disabled. Existing transfer instructions, receipt reconciliation and refund handling remain available for transfers already initiated. Receipt does not confirm the stay.
 5. **Card setup completes.** The Stripe webhook records the Customer, SetupIntent and PaymentMethod, then sets `payment_status = payment_method_saved`.
 6. **Host reviews the request.** The booking remains pending until FrankiHolz confirms or rejects it.
 7. **Host confirms.**
@@ -67,3 +67,8 @@ The browser shows selection controls only for eligible rows, and the authenticat
 ## Explicit administrator availability override
 
 Make available reopens each selected calendar night even if an existing reservation or imported calendar blocks it. The override is stored server-side and honoured by Admin, public calendar, quotes and booking creation. It does not cancel or refund the original reservation. A new host confirmation reserves the dates again and consumes the override. Adjacent nights remain unchanged.
+
+
+## Request list
+
+Admin sorts requests newest received first by immutable created_at, with id as a deterministic tie-breaker. Each request displays Received in Europe/Berlin time, separately from payment scheduling. Payment updates do not change received order. Refresh requests reloads current state; removed requests use the same ordering. Long messages preserve line breaks and wrap inside their cards.

@@ -262,7 +262,7 @@ test('invalid codes and below-minimum discounts show errors without retaining a 
   expect(await page.evaluate(()=>window.__rpcCalls.some(c=>c.name.includes('create_booking')))).toBe(false);
 });
 
-test('bank-transfer selection and promo send no browser amount and one mocked request email',async({page})=>{
+test('saved-method selection and promo send no browser amount and one mocked request email',async({page})=>{
   const requests=[];
   await selectPromoDates(page);
   // Installed last so it overrides the general external-network blocker.
@@ -276,7 +276,7 @@ test('bank-transfer selection and promo send no browser amount and one mocked re
     const headers={'access-control-allow-origin':'*','access-control-allow-headers':'content-type,apikey'};
     if(route.request().method()==='OPTIONS')return route.fulfill({status:204,headers,body:''});
     requests.push({path:new URL(route.request().url()).pathname,body:route.request().postDataJSON()});
-    return route.fulfill({status:200,headers,contentType:'application/json',body:JSON.stringify({checkout_url:'https://payments.stripe.com/__promo_checkout_stub__'})});
+    return route.fulfill({status:200,headers,contentType:'application/json',body:JSON.stringify({checkout_url:'https://checkout.stripe.com/__promo_checkout_stub__'})});
   });
   await page.route('**/__promo_checkout_stub__',route=>route.fulfill({status:200,contentType:'text/html',body:'<title>Mock setup</title>'}));
   await page.locator('#promoCode').fill('FrankiHolzGuest75');
@@ -296,17 +296,17 @@ test('bank-transfer selection and promo send no browser amount and one mocked re
   });
   await page.locator('#bookingForm button[type="submit"]').click();
   await expect(page).toHaveURL(/payment.html\?reference=FH-PROMO-UI/);
-  await expect(page.locator('#bankPayment')).toBeVisible();
-  await expect(page.locator('#paymentChoices')).toContainText('immediately');
+  await expect(page.locator('#bankPayment')).toBeHidden();
+  await expect(page.locator('#savedPayment')).toBeVisible();
   const sent=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('promoPayload')));
-  await page.locator('#bankPayment').click();
+  await page.locator('#savedPayment').click();
   await expect(page).toHaveURL(/__promo_checkout_stub__$/);
   expect(sent.p_promo_code).toBe('FrankiHolzGuest75');
   expect(sent).not.toHaveProperty('total_price');
   expect(sent).not.toHaveProperty('discount_percent');
   expect(requests.filter(r=>r.path.endsWith('/frankiholz-guest-email'))).toHaveLength(1);
   expect(requests.filter(r=>r.path.endsWith('/frankiholz-create-authorization-test'))).toHaveLength(1);
-  expect(requests.find(r=>r.path.endsWith('/frankiholz-create-authorization-test')).body).toEqual({reference:'FH-PROMO-UI',email:'promo-ui@example.invalid',payment_collection_mode:'bank_transfer'});
+  expect(requests.find(r=>r.path.endsWith('/frankiholz-create-authorization-test')).body).toEqual({reference:'FH-PROMO-UI',email:'promo-ui@example.invalid',payment_collection_mode:'saved_method'});
 });
 
 for(const width of [360,390,1280]){
@@ -350,4 +350,10 @@ test('a delayed old promo quote cannot overwrite a newer code or room selection'
   await page.evaluate(async()=>window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14'));
   await expect(page.locator('#sumTotal')).toHaveText('—');
   await expect(page.locator('#promoStatus')).toHaveText('');
+});
+for(const width of [360,768,1280])for(const language of ['en','de'])test(`homepage and booking form stay contained and labelled at ${width}px in ${language}`,async({page})=>{
+ await page.setViewportSize({width,height:900});await mockPublicBackend(page,'live');await page.goto('/?lang='+language,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#rooms')).toContainText('Cozy Holz');await page.evaluate(async()=>window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14'));
+ const metrics=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:innerWidth,unlabelled:['guestName','guestEmail','guestPhone','guestCountry','guestAge','guestSex','guestLanguages','guestHobbies','guestReturning','guestCount','message'].filter(id=>!document.getElementById(id).labels.length)}));
+ expect(metrics.scroll).toBeLessThanOrEqual(metrics.width+1);expect(metrics.unlabelled).toEqual([]);
 });
