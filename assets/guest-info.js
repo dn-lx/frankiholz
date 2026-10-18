@@ -2,8 +2,8 @@
    Uses existing bilingual frankiholz_copy records; does not change booking flows. */
 (() => {
   const fields = [
-    {key:'fhCheckIn',label:'House rules: check-in',en:'Check-in: Please agree on your arrival time with the host in advance.',de:'Check-in: Bitte stimmen Sie Ihre Ankunftszeit im Voraus mit dem Gastgeber ab.',kind:'textarea'},
-    {key:'fhCheckOut',label:'House rules: check-out',en:'Check-out: Please confirm your departure time with the host before your stay.',de:'Check-out: Bitte klären Sie Ihre Abreisezeit vor dem Aufenthalt mit dem Gastgeber.',kind:'textarea'},
+    {key:'fhCheckIn',label:'House rules: check-in',en:'Check-in: From 17:00 on your arrival date.',de:'Check-in: Ab 17:00 Uhr am Anreisetag.',kind:'textarea'},
+    {key:'fhCheckOut',label:'House rules: check-out',en:'Check-out: By 11:00 on your departure date (the following day for a one-night stay).',de:'Check-out: Bis 11:00 Uhr am Abreisetag (bei einer Übernachtung am folgenden Tag).',kind:'textarea'},
     {key:'fhQuietHours',label:'House rules: quiet hours',en:'Please respect neighbours and keep noise low, especially at night. Exact quiet hours will be confirmed by the host.',de:'Bitte nehmen Sie Rücksicht auf Nachbarn und vermeiden Sie insbesondere nachts Lärm. Die genauen Ruhezeiten bestätigt der Gastgeber.',kind:'textarea'},
     {key:'fhExtraGuests',label:'House rules: additional guests',en:'Only registered guests may stay overnight. Additional guests or visitors require the host’s approval in advance.',de:'Nur angemeldete Gäste dürfen übernachten. Zusätzliche Gäste oder Besucher benötigen die vorherige Zustimmung des Gastgebers.',kind:'textarea'},
     {key:'fhOtherRules',label:'House rules: additional information',en:'Please treat the apartment and shared areas with care.',de:'Bitte behandeln Sie die Wohnung und Gemeinschaftsbereiche sorgfältig.',kind:'textarea'},

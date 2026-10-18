@@ -1,6 +1,6 @@
 function isBookingDeletable(b){
   const pay=String(b?.payment_status||'');
-  return b?.status==='cancelled'&&!['paid','refunded'].includes(pay)&&!b?.stripe_payment_method_id;
+  return b?.status==='cancelled'&&!['paid','refunded','processing'].includes(pay)&&!b?.stripe_payment_method_id&&!b?.payment_operation_token&&!b?.bank_transfer_review_required&&!b?.refund_review_required;
 }
 
 function selectedBookingCleanupItems(){
@@ -73,7 +73,7 @@ async function deleteSelectedBookings(){
 async function loadBookings(){
   const {data,error}=await sb.from('frankiholz_bookings').select('*,frankiholz_rooms(name)').order('created_at',{ascending:false});
   if(error){$('bookings').innerHTML=`<div class="notice">${esc(error.message)}</div>`;return}
-  const labels={not_started:'card setup not started',awaiting_payment:'card setup incomplete',payment_method_saved:'card saved',scheduled_charge:'payment scheduled',paid:'paid',failed:'payment failed',released:'released',refunded:'refunded',expired:'expired',authorized:'authorized'};
+  const labels={not_started:'payment setup not started',awaiting_payment:'payment details or bank transfer outstanding',payment_method_saved:'payment method saved',processing:'payment processing',scheduled_charge:'payment scheduled',paid:'paid',failed:'payment failed',released:'released',refunded:'refunded',expired:'expired',authorized:'authorized'};
   $('bookings').innerHTML=(data||[]).map(b=>{
     const pay=b.payment_status||'not_started',isV2=b.payment_schedule_version==='v2_14_day',mode=b.payment_mode||'live';
     const payClass=pay==='paid'?'confirmed':(['failed','expired'].includes(pay)?'cancelled':'');
@@ -82,12 +82,12 @@ async function loadBookings(){
     const cleanup=deletable?`<label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;margin-right:8px"><input class="booking-delete-check" type="checkbox" data-booking-id="${attr(b.id)}" data-booking-ref="${attr(b.reference)}" data-booking-mode="${attr(mode)}"> Select for deletion</label>`:'';
     let actions='';
     if(isV2){
-      if(b.status==='pending'&&pay==='payment_method_saved'){
-        actions+=`<button class="btn small secondary" onclick="decideBooking('${b.id}','accept',this,true)">Confirm booking</button>`;
-        actions+=`<button class="btn small danger" onclick="decideBooking('${b.id}','reject',this,true)">Reject request</button>`;
+      if(b.status==='pending'&&['payment_method_saved','paid'].includes(pay)){
+        actions+=`<button class="btn small secondary" onclick="decideBooking('${b.id}','accept',this,true,'${b.payment_collection_mode==='bank_transfer'?'bank_transfer':'saved_method'}')">Confirm booking</button>`;
+        actions+=`<button class="btn small danger" onclick="decideBooking('${b.id}','reject',this,true,'${b.payment_collection_mode==='bank_transfer'?'bank_transfer':'saved_method'}')">Reject request</button>`;
       }else if(b.status==='pending'&&['not_started','awaiting_payment'].includes(pay)){
-        actions+=`<span class="status">Waiting for guest card setup</span><button class="btn small danger" onclick="decideBooking('${b.id}','reject',this,true)">Reject request</button>`;
-      }else if(b.status==='confirmed'&&pay==='scheduled_charge'){
+        actions+=`<span class="status">Waiting for guest payment</span><button class="btn small danger" onclick="decideBooking('${b.id}','reject',this,true,'${b.payment_collection_mode==='bank_transfer'?'bank_transfer':'saved_method'}')">Reject request</button>`;
+      }else if(pay==='processing'){actions+=`<span class="status">Payment processing · awaiting settlement</span>`;}else if(b.status==='confirmed'&&pay==='scheduled_charge'){
         actions+=`<span class="status confirmed">Confirmed · payment scheduled</span>`;
       }else if(b.status==='confirmed'&&pay==='paid'){
         actions+=`<span class="status confirmed">Paid & confirmed</span>`;
@@ -106,6 +106,9 @@ async function loadBookings(){
         actions+=`<span class="status">Legacy payment flow</span>`;
       }
     }
+    if(b.refund_review_required)actions+=`<span class="status cancelled">Refund pending / requires review in Stripe</span>`;
+    if(b.bank_transfer_review_required)actions+=`<span class="status cancelled">Bank-transfer funds review required in Stripe (partial, excess or late receipts)</span>`;
+    if(b.payment_operation_token)actions+=`<span class="status cancelled">Payment operation locked · reconcile Stripe before retrying</span>`;
     const due=isV2&&b.charge_due_at?` · scheduled charge ${new Date(b.charge_due_at).toLocaleString()}`:(!isV2&&b.payment_due_at?` · decision/payment deadline ${new Date(b.payment_due_at).toLocaleString()}`:'');
     return `<div class="booking-row">
       <div>${cleanup}<b>${esc(b.reference)}</b> · ${esc(b.frankiholz_rooms?.name||'')} · ${modeBadge} · <span class="status ${b.status}">${esc(b.status)}</span> · <span class="status ${payClass}">${esc(labels[pay]||pay.replaceAll('_',' '))}</span></div>
@@ -118,9 +121,9 @@ async function loadBookings(){
   wireBookingCleanupControls();
 }
 
-window.decideBooking=async(id,action,button,isV2)=>{
+window.decideBooking=async(id,action,button,isV2,collectionMode)=>{
   const accept=action==='accept';
-  const question=isV2
+  const question=isV2&&collectionMode==='bank_transfer'?(accept?'Confirm this booking? The bank payment has already been received.':'Reject this bank-transfer request? Received payment will be refunded. Review any partial, excess or late funds in Stripe.'):isV2
     ?(accept?'Confirm this booking? Payment will be scheduled for 14 days before check-in, or charged now if the stay begins within 14 days.':'Reject this booking request? The saved card will not be charged.')
     :(accept?'Accept this legacy booking and capture the existing card authorization?':'Reject this legacy booking and release the card authorization?');
   if(!confirm(question))return;
