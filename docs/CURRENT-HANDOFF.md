@@ -1,5 +1,22 @@
 # Current Handoff
 
+## Inter typography and payment-method scope — 2026-10-18
+
+- Owner requested matching frankiflow.de typography and explicitly authorized a PR merged into `develop`. Browser inspection confirmed Inter for both body and headings. Replaced Manrope import/body stack in shared `assets/styles.css`, including weights 400–900; public, Admin and payment/status pages inherit the change.
+- Local built-in browser preview confirmed Inter loaded, body/headings used Inter, English/German switching worked and desktop had no horizontal overflow. Required PR checks must pass before merge; no production release authorized.
+- Owner deferred PayPal; its connection dialog was dismissed without proceeding with data sharing or linking. Latest Stripe Dashboard still reports activation required and cards require action. Support email/phone were saved via the browser in the preceding session; business/representative onboarding remains incomplete. Keep all Stripe activity in the built-in browser.
+- Owner approved EUR 0.50 per-room live tests after reviewing Stripe's EUR minimum, but test dates are still unspecified and FrankiHolz Admin is not signed in. No room rates, bookings or charges changed. Guest card entry and final live payment remain owner-operated.
+- Bank-payment choice remains open: bank transfer is guest-initiated and needs receipt/deadline handling; SEPA Direct Debit supports saving a mandate and later debit, without a funds hold, with asynchronous confirmation. The existing card-only saved-method flow needs backend/UI/webhook review before bank methods are enabled.
+
+## Stripe live readiness inspection — 2026-10-18
+
+- User selected the FrankiFlow live account for the FrankiHolz payment setup. Checked out `develop` locally and opened its public site and Admin in the built-in browser.
+- Read-only Stripe inspection confirmed `charges_enabled=false`, `payouts_enabled=false`, `details_submitted=false`, and `card_payments=inactive`; disabled reason is `requirements.past_due`.
+- Outstanding onboarding includes representative name/address/date of birth/email/phone, business support phone, payout bank account, and Stripe terms acceptance. Owner must complete onboarding in Stripe Dashboard; no account details were guessed or submitted.
+- Existing live FrankiHolz webhook is enabled and points to the documented Supabase `frankiholz-stripe-webhook` endpoint with the six documented events. This confirms registration only, not successful delivery or backend signature verification.
+- Opened the selected account's Stripe Dashboard in the built-in browser; it currently requires sign-in. No Stripe, Supabase, payment mode, booking, deployment, or production settings were changed. No live card setup or charge was attempted.
+- Next: owner signs in and completes onboarding; recheck account activation, then inspect deployed payment functions, webhook delivery/signature/idempotency and scheduled charges before claiming readiness. The public construction notice remains appropriate until verified.
+
 ## Payment gateway construction notice before develop → main — 2026-10-13
 
 - Owner explicitly requested a bilingual public message that the online payment gateway is under construction and guests should contact the FrankiHolz host for an alternative payment method, followed by a `develop → main` production release.
