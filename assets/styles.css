@@ -278,6 +278,9 @@ input:focus,select:focus,textarea:focus{
 }
 textarea{resize:vertical}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.promo-code-row{display:flex;align-items:stretch;gap:8px}
+.promo-code-row input{flex:1;min-width:0;width:0}
+.promo-code-row .btn{flex:0 0 auto;white-space:nowrap;margin:0;padding:12px 14px;border-radius:12px}
 
 .monthbar{
   display:flex;align-items:center;justify-content:space-between;gap:10px;

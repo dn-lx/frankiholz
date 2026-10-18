@@ -181,8 +181,8 @@ for(const mode of ['live','test']){
       if(mode==='live')await expect(page.locator('#paymentEnvironmentNotice')).toBeHidden();
       else await expect(page.locator('#paymentEnvironmentNotice')).toContainText('Stripe TEST');
       // Keep the ordinary charge-timing disclosure, not the removed development warning.
-      await expect(page.locator('[data-i18n="pendingNote"]')).toContainText('14');
-      await expect(page.locator('[data-i18n="pendingNote"]')).toContainText(language==='de'?/keine Belastung|nicht belastet/:/not charged/);
+      await expect(page.locator('#paymentSetupNote')).toContainText('14');
+      await expect(page.locator('#paymentSetupNote')).toContainText(language==='de'?/keine Belastung|nicht belastet/:/not charged/);
       await page.locator('#bookingForm button[type="submit"]').click();
       await expect(page).toHaveURL(new RegExp(`/__stripe-checkout-stub__\\?mode=${mode}$`));
       expect(dialogs).toEqual([]);
@@ -190,7 +190,7 @@ for(const mode of ['live','test']){
       expect(checkoutRequests).toHaveLength(1);
       const expectedEndpoint=mode==='live'?'frankiholz-create-authorization-v2':'frankiholz-create-authorization-test';
       expect(new URL(checkoutRequests[0].url).pathname).toBe('/functions/v1/'+expectedEndpoint);
-      expect(checkoutRequests[0].body).toEqual({reference:'FH-UI-ONLY',email:'checkout-ui@example.invalid'});
+      expect(checkoutRequests[0].body).toEqual({reference:'FH-UI-ONLY',email:'checkout-ui@example.invalid',payment_collection_mode:'saved_method'});
     });
   }
 }
@@ -257,7 +257,7 @@ test('invalid codes and below-minimum discounts show errors without retaining a 
   expect(await page.evaluate(()=>window.__rpcCalls.some(c=>c.name.includes('create_booking')))).toBe(false);
 });
 
-test('promo creation sends only the code, one mocked email, and opens the existing TEST setup flow',async({page})=>{
+test('bank-transfer selection and promo send no browser amount and one mocked request email',async({page})=>{
   const requests=[];
   await selectPromoDates(page);
   // Installed last so it overrides the general external-network blocker.
@@ -276,6 +276,9 @@ test('promo creation sends only the code, one mocked email, and opens the existi
   await page.route('**/__promo_checkout_stub__',route=>route.fulfill({status:200,contentType:'text/html',body:'<title>Mock setup</title>'}));
   await page.locator('#promoCode').fill('FrankiHolzGuest75');
   await page.locator('#applyPromo').click();
+  await page.locator('#paymentCollection').selectOption('bank_transfer');
+  await expect(page.locator('#paymentSetupNote')).toContainText('immediately');
+  await expect(page.locator('#paymentSetupNote')).toContainText('host must approve');
   await page.locator('#guestName').fill('Promo UI Test');
   await page.locator('#guestEmail').fill('promo-ui@example.invalid');
   await page.locator('#guestCountry').fill('Germany');
@@ -297,7 +300,29 @@ test('promo creation sends only the code, one mocked email, and opens the existi
   expect(sent).not.toHaveProperty('discount_percent');
   expect(requests.filter(r=>r.path.endsWith('/frankiholz-guest-email'))).toHaveLength(1);
   expect(requests.filter(r=>r.path.endsWith('/frankiholz-create-authorization-test'))).toHaveLength(1);
+  expect(requests.find(r=>r.path.endsWith('/frankiholz-create-authorization-test')).body).toEqual({reference:'FH-PROMO-UI',email:'promo-ui@example.invalid',payment_collection_mode:'bank_transfer'});
 });
+
+for(const width of [360,390,1280]){
+  for(const language of ['en','de']){
+    test(`promo apply button stays beside and aligned with its input at ${width}px in ${language}`,async({page})=>{
+      await page.setViewportSize({width,height:900});
+      await mockPublicBackend(page);
+      await page.goto('/?lang='+language,{waitUntil:'domcontentloaded'});
+      await expect(page.locator('#rooms')).toContainText('Cozy Holz');
+      await page.evaluate(async()=>window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14'));
+      // Measure in one frame: selectRoom starts a smooth scroll, so separate viewport reads can differ.
+      const {input,button}=await page.locator('.promo-code-row').evaluate(row=>({input:row.querySelector('input').getBoundingClientRect().toJSON(),button:row.querySelector('button').getBoundingClientRect().toJSON()}));
+      expect(input.width).toBeGreaterThan(80);
+      expect(Math.abs(input.y-button.y)).toBeLessThan(1);
+      expect(Math.abs(input.height-button.height)).toBeLessThan(1);
+      expect(button.x).toBeGreaterThan(input.x+input.width);
+      expect(button.x+button.width).toBeLessThanOrEqual(width);
+      await page.locator('#paymentCollection').selectOption('bank_transfer');
+      await expect(page.locator('#paymentSetupNote')).toContainText(language==='de'?'sofort':'immediately');
+    });
+  }
+}
 
 
 test('a delayed old promo quote cannot overwrite a newer code or room selection',async({page})=>{

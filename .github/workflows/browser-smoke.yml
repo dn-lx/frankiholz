@@ -29,6 +29,8 @@ jobs:
         run: npx playwright install --with-deps chromium webkit
       - name: Run desktop cross-browser smoke tests
         run: npm run test:e2e
+      - name: Verify payment state transitions without external writes
+        run: node --test supabase/tests/payment-methods.test.mjs
       - name: Upload Playwright report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5
