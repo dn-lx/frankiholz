@@ -196,6 +196,7 @@ button,input,select,textarea{font:inherit}
   overflow:hidden;
 }
 .room-card{
+  display:flex;flex-direction:column;
   transition:transform .24s ease,box-shadow .24s ease,border-color .24s ease;
 }
 .room-card:hover{
@@ -204,6 +205,9 @@ button,input,select,textarea{font:inherit}
   border-color:#c8dfd7;
 }
 .room-card img{width:100%;height:260px;object-fit:cover;display:block}
+.room-cover-placeholder{height:260px;flex-shrink:0}
+.room-body{flex:1;display:flex;flex-direction:column;min-width:0}
+.room-body .price{margin-top:auto}
 .room-body,.panel{padding:24px}
 .room-card h3{font-size:24px;letter-spacing:-.025em;margin:0 0 8px}
 .room-card p{color:var(--muted);line-height:1.65;min-height:52px}

@@ -357,3 +357,13 @@ for(const width of [360,768,1280])for(const language of ['en','de'])test(`homepa
  const metrics=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:innerWidth,unlabelled:['guestName','guestEmail','guestPhone','guestCountry','guestAge','guestSex','guestLanguages','guestHobbies','guestReturning','guestCount','message'].filter(id=>!document.getElementById(id).labels.length)}));
  expect(metrics.scroll).toBeLessThanOrEqual(metrics.width+1);expect(metrics.unlabelled).toEqual([]);
 });
+test('photo and missing-photo room cards keep matching covers and aligned actions',async({page})=>{
+ await mockPublicBackend(page,'live');await page.setViewportSize({width:1280,height:900});
+ await page.route('**/fixture-photo.svg',route=>route.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"><rect width="1" height="1" fill="#dce8e5"/></svg>'}));
+ await page.goto('/?lang=en');await expect(page.locator('#rooms')).toContainText('Cozy Holz');
+ await page.evaluate(()=>{const base=rooms[0];rooms=[{...base,id:'fixture-a',name:'First room',description:'Short description.'},{...base,id:'fixture-b',name:'Second room',description:'A longer description with more useful guest information about this room and the shared apartment.'},{...base,id:'fixture-c',name:'Third room',description:'Another room.'}];images=[{room_id:'fixture-a',storage_path:'fixture-photo.svg'},{room_id:'fixture-c',storage_path:'fixture-photo.svg'}];renderRooms();});
+ await expect(page.locator('#rooms .room-cover-placeholder')).toHaveCount(1);await expect(page.locator('#rooms .room-card img')).toHaveCount(2);
+ const cards=await page.locator('#rooms').evaluate(root=>[...root.querySelectorAll('.room-card')].map(card=>({cover:card.firstElementChild.getBoundingClientRect().height,button:card.querySelector('button').getBoundingClientRect().bottom})));
+ expect(Math.max(...cards.map(c=>c.cover))-Math.min(...cards.map(c=>c.cover))).toBeLessThan(1);
+ expect(Math.max(...cards.map(c=>c.button))-Math.min(...cards.map(c=>c.button))).toBeLessThan(1);
+});

@@ -76,7 +76,8 @@ body{background:#f8faf7}
 .fh-room-showcase{background:#fffefa}
 .fh-room-showcase .rooms{gap:23px}
 .fh-room-showcase .room-card{background:#fff;border:1px solid #e1e8df;border-radius:22px;box-shadow:0 11px 42px rgba(22,57,60,.07);overflow:hidden}
-.fh-room-showcase .room-card img{height:250px;object-fit:cover;transition:transform .45s ease}
+.fh-room-showcase .room-card img,.fh-room-showcase .room-cover-placeholder{height:250px;flex-shrink:0}
+.fh-room-showcase .room-card img{object-fit:cover;transition:transform .45s ease}
 .fh-room-showcase .room-card:hover img{transform:scale(1.025)}
 .fh-room-showcase .room-card .room-body{padding:24px 25px 26px}
 .fh-room-showcase .room-card h3{font-size:23px;line-height:1.25;color:#123b43;margin-bottom:10px}
