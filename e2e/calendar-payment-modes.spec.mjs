@@ -311,7 +311,8 @@ for(const width of [360,390,1280]){
       await page.goto('/?lang='+language,{waitUntil:'domcontentloaded'});
       await expect(page.locator('#rooms')).toContainText('Cozy Holz');
       await page.evaluate(async()=>window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14'));
-      const input=await page.locator('#promoCode').boundingBox(),button=await page.locator('#applyPromo').boundingBox();
+      // Measure in one frame: selectRoom starts a smooth scroll, so separate viewport reads can differ.
+      const {input,button}=await page.locator('.promo-code-row').evaluate(row=>({input:row.querySelector('input').getBoundingClientRect().toJSON(),button:row.querySelector('button').getBoundingClientRect().toJSON()}));
       expect(input.width).toBeGreaterThan(80);
       expect(Math.abs(input.y-button.y)).toBeLessThan(1);
       expect(Math.abs(input.height-button.height)).toBeLessThan(1);
