@@ -1,6 +1,6 @@
 # FrankiHolz Stripe payment model
 
-Last updated: 2026-10-11
+Last updated: 2026-10-18
 
 FrankiHolz uses a **saved-card / scheduled-charge** model for new bookings.
 
@@ -71,3 +71,10 @@ Older 48-hour manual-capture bookings can still be handled by server-side compat
 - Price and charge amount remain server-owned.
 - Host confirmation requires an authenticated FrankiHolz admin.
 - Guest cancellation requires the matching booking reference and guest email and is executed server-side.
+
+
+## Payment page and immediate transfers
+
+The guest form creates the pending request and navigates to /payment.html. Payment choices live there rather than in a booking-form dropdown. The saved-method action opens Stripe’s hosted chooser; eligible cards, wallets and SEPA Direct Debit remain governed by Stripe. Card setup stores payment details and does not hold funds. EUR/SEPA transfers instead open Stripe’s hosted bank instructions immediately, before host approval. Only settled funds mark the request paid; host approval separately confirms the stay.
+
+Payment context uses the existing reference/email authorization through frankiholz_payment_details. The email stays in tab-scoped session storage with an explicit lookup fallback, never in the page URL. The server snapshots the new booking environment; existing initialized test bookings are never converted to live. New-booking mode remains controlled by the authenticated Admin setting. The page rechecks the environment and the server owns amounts, currency and financial state.

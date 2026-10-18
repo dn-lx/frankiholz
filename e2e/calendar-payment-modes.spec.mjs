@@ -34,6 +34,7 @@ async function mockPublicBackend(page, mode='test', stayTotal='0.90'){
       },
       rpc(name,params){
         (window.__rpcCalls??=[]).push({name,params});
+        if(name==='frankiholz_payment_details')return Promise.resolve({data:{reference:params.p_reference,room_name:'Cozy Holz',check_in:'2026-10-13',check_out:'2026-10-14',total_price:params.p_reference==='FH-PROMO-UI'?'2.00':stayTotal,booking_status:'pending',payment_status:'not_started',payment_mode:paymentMode,payment_collection_mode:'saved_method'},error:null});
         if(name==='frankiholz_get_calendar_rates')return Promise.resolve({data:rows,error:null});
         if(name==='frankiholz_get_payment_environment'){
           // Exercise a real asynchronous boundary without contacting the backend.
@@ -155,7 +156,7 @@ for(const mode of ['live','test']){
           return;
         }
         checkoutRequests.push({url:route.request().url(),body:route.request().postDataJSON()});
-        const destination=new URL('/__stripe-checkout-stub__',page.url());
+        const destination=new URL('https://checkout.stripe.com/__stripe-checkout-stub__');
         destination.searchParams.set('mode',mode);
         await route.fulfill({status:200,headers,contentType:'application/json',body:JSON.stringify({checkout_url:destination.href})});
       });
@@ -181,9 +182,13 @@ for(const mode of ['live','test']){
       if(mode==='live')await expect(page.locator('#paymentEnvironmentNotice')).toBeHidden();
       else await expect(page.locator('#paymentEnvironmentNotice')).toContainText('Stripe TEST');
       // Keep the ordinary charge-timing disclosure, not the removed development warning.
-      await expect(page.locator('#paymentSetupNote')).toContainText('14');
-      await expect(page.locator('#paymentSetupNote')).toContainText(language==='de'?/keine Belastung|nicht belastet/:/not charged/);
+      await expect(page.locator('#paymentSetupNote')).toContainText(language==='de'?'nächsten Seite':'next page');
+      await expect(page.locator('#paymentCollection')).toHaveCount(0);
       await page.locator('#bookingForm button[type="submit"]').click();
+      await expect(page).toHaveURL(/payment.html\?reference=FH-UI-ONLY/);
+      expect(checkoutRequests).toHaveLength(0);
+      expect(page.url()).not.toContain('checkout-ui');
+      await page.locator('#savedPayment').click();
       await expect(page).toHaveURL(new RegExp(`/__stripe-checkout-stub__\\?mode=${mode}$`));
       expect(dialogs).toEqual([]);
       expect(errors).toEqual([]);
@@ -271,14 +276,11 @@ test('bank-transfer selection and promo send no browser amount and one mocked re
     const headers={'access-control-allow-origin':'*','access-control-allow-headers':'content-type,apikey'};
     if(route.request().method()==='OPTIONS')return route.fulfill({status:204,headers,body:''});
     requests.push({path:new URL(route.request().url()).pathname,body:route.request().postDataJSON()});
-    return route.fulfill({status:200,headers,contentType:'application/json',body:JSON.stringify({checkout_url:new URL('/__promo_checkout_stub__',page.url()).href})});
+    return route.fulfill({status:200,headers,contentType:'application/json',body:JSON.stringify({checkout_url:'https://payments.stripe.com/__promo_checkout_stub__'})});
   });
   await page.route('**/__promo_checkout_stub__',route=>route.fulfill({status:200,contentType:'text/html',body:'<title>Mock setup</title>'}));
   await page.locator('#promoCode').fill('FrankiHolzGuest75');
   await page.locator('#applyPromo').click();
-  await page.locator('#paymentCollection').selectOption('bank_transfer');
-  await expect(page.locator('#paymentSetupNote')).toContainText('immediately');
-  await expect(page.locator('#paymentSetupNote')).toContainText('host must approve');
   await page.locator('#guestName').fill('Promo UI Test');
   await page.locator('#guestEmail').fill('promo-ui@example.invalid');
   await page.locator('#guestCountry').fill('Germany');
@@ -293,8 +295,12 @@ test('bank-transfer selection and promo send no browser amount and one mocked re
     return true;
   });
   await page.locator('#bookingForm button[type="submit"]').click();
-  await expect(page).toHaveURL(/__promo_checkout_stub__$/);
+  await expect(page).toHaveURL(/payment.html\?reference=FH-PROMO-UI/);
+  await expect(page.locator('#bankPayment')).toBeVisible();
+  await expect(page.locator('#paymentChoices')).toContainText('immediately');
   const sent=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('promoPayload')));
+  await page.locator('#bankPayment').click();
+  await expect(page).toHaveURL(/__promo_checkout_stub__$/);
   expect(sent.p_promo_code).toBe('FrankiHolzGuest75');
   expect(sent).not.toHaveProperty('total_price');
   expect(sent).not.toHaveProperty('discount_percent');
@@ -318,8 +324,7 @@ for(const width of [360,390,1280]){
       expect(Math.abs(input.height-button.height)).toBeLessThan(1);
       expect(button.x).toBeGreaterThan(input.x+input.width);
       expect(button.x+button.width).toBeLessThanOrEqual(width);
-      await page.locator('#paymentCollection').selectOption('bank_transfer');
-      await expect(page.locator('#paymentSetupNote')).toContainText(language==='de'?'sofort':'immediately');
+      await expect(page.locator('#paymentCollection')).toHaveCount(0);
     });
   }
 }

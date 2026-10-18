@@ -1,7 +1,4 @@
-function isBookingDeletable(b){
-  const pay=String(b?.payment_status||'');
-  return b?.status==='cancelled'&&!['paid','refunded','processing'].includes(pay)&&!b?.stripe_payment_method_id&&!b?.payment_operation_token&&!b?.bank_transfer_review_required&&!b?.refund_review_required;
-}
+function isBookingDeletable(b){return Boolean(b?.id)}
 
 function selectedBookingCleanupItems(){
   return [...document.querySelectorAll('.booking-delete-check:checked')].map(input=>({
@@ -44,24 +41,15 @@ async function deleteSelectedBookings(){
   const selected=selectedBookingCleanupItems();
   if(!selected.length)return;
   const references=selected.map(item=>item.reference).join(', ');
-  const liveCount=selected.filter(item=>item.mode==='live').length;
-  const question='Permanently delete '+selected.length+' closed booking'+(selected.length===1?'':'s')+'?\n\n'+references+'\n\nThis removes the booking record and its booking email history from FrankiHolz. This cannot be undone.';
+  const question='Remove '+selected.length+' request'+(selected.length===1?'':'s')+' from this list?\n\n'+references+'\n\nYou can restore them using Show removed requests. Reservations, scheduled charges, payments and financial records remain active and unchanged. To cancel a booking or refund payment, use the booking/payment actions separately.';
   if(!confirm(question))return;
-  if(liveCount&&!confirm(liveCount+' selected booking'+(liveCount===1?' was':'s were')+' originally marked LIVE, although '+(liveCount===1?'it is':'they are')+' now cancelled and unpaid. Permanently delete '+(liveCount===1?'it':'them')+'?'))return;
   const button=$('deleteSelectedBookings'),status=$('bookingDeleteStatus');
   if(button){button.disabled=true;button.textContent='Deleting…'}
-  if(status)status.innerHTML='<div class="notice">Deleting selected closed bookings…</div>';
+  if(status)status.innerHTML='<div class="notice">Removing selected requests from the list…</div>';
   try{
-    const {data:{session}}=await sb.auth.getSession();
-    if(!session)throw new Error('Admin session expired. Please sign in again.');
-    const res=await fetch(CFG.supabaseUrl+'/functions/v1/frankiholz-admin-delete-bookings',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':CFG.supabaseKey},
-      body:JSON.stringify({booking_ids:selected.map(item=>item.id)})
-    });
-    const out=await res.json().catch(()=>({}));
-    if(!res.ok)throw new Error(out.error||'Could not delete selected bookings');
-    if(status)status.innerHTML='<div class="notice success">Deleted '+Number(out.deleted_count||0)+' closed booking'+(Number(out.deleted_count||0)===1?'':'s')+'.</div>';
+    const {data:count,error}=await sb.rpc('frankiholz_admin_remove_requests',{p_booking_ids:selected.map(item=>item.id),p_restore:false});
+    if(error)throw error;
+    if(status)status.textContent=Number(count)+' request(s) removed from the list. Financial records retained.';
     await loadBookings();
     await Promise.all(rooms.map(r=>loadRoomCalendar(r.id)));
   }catch(e){
@@ -74,12 +62,12 @@ async function loadBookings(){
   const {data,error}=await sb.from('frankiholz_bookings').select('*,frankiholz_rooms(name)').order('created_at',{ascending:false});
   if(error){$('bookings').innerHTML=`<div class="notice">${esc(error.message)}</div>`;return}
   const labels={not_started:'payment setup not started',awaiting_payment:'payment details or bank transfer outstanding',payment_method_saved:'payment method saved',processing:'payment processing',scheduled_charge:'payment scheduled',paid:'paid',failed:'payment failed',released:'released',refunded:'refunded',expired:'expired',authorized:'authorized'};
-  $('bookings').innerHTML=(data||[]).map(b=>{
+  $('bookings').innerHTML=(data||[]).filter(b=>$('showRemovedBookings')?.checked?Boolean(b.admin_deleted_at):!b.admin_deleted_at).map(b=>{
     const pay=b.payment_status||'not_started',isV2=b.payment_schedule_version==='v2_14_day',mode=b.payment_mode||'live';
     const payClass=pay==='paid'?'confirmed':(['failed','expired'].includes(pay)?'cancelled':'');
     const modeBadge=`<span class="status" style="${mode==='test'?'background:#fff3cd;color:#7a5a00':'background:#e5f4ff;color:#164f73'}">${mode.toUpperCase()}</span>`;
     const deletable=isBookingDeletable(b);
-    const cleanup=deletable?`<label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;margin-right:8px"><input class="booking-delete-check" type="checkbox" data-booking-id="${attr(b.id)}" data-booking-ref="${attr(b.reference)}" data-booking-mode="${attr(mode)}"> Select for deletion</label>`:'';
+    const cleanup=deletable&&!b.admin_deleted_at?`<label class="booking-check-label"><input class="booking-delete-check" type="checkbox" data-booking-id="${attr(b.id)}" data-booking-ref="${attr(b.reference)}" data-booking-mode="${attr(mode)}"> Select request</label>`:'';
     let actions='';
     if(isV2){
       if(b.status==='pending'&&['payment_method_saved','paid'].includes(pay)){
@@ -106,6 +94,7 @@ async function loadBookings(){
         actions+=`<span class="status">Legacy payment flow</span>`;
       }
     }
+    if(b.admin_deleted_at)actions+=`<button class="btn small secondary" data-restore-booking="${attr(b.id)}">Restore to bookings</button>`;
     if(b.refund_review_required)actions+=`<span class="status cancelled">Refund pending / requires review in Stripe</span>`;
     if(b.bank_transfer_review_required)actions+=`<span class="status cancelled">Bank-transfer funds review required in Stripe (partial, excess or late receipts)</span>`;
     if(b.payment_operation_token)actions+=`<span class="status cancelled">Payment operation locked · reconcile Stripe before retrying</span>`;
@@ -118,6 +107,8 @@ async function loadBookings(){
       <div style="display:flex;gap:7px;flex-wrap:wrap">${actions}</div>
     </div>`;
   }).join('')||'<div class="empty">No bookings yet.</div>';
+  document.querySelectorAll('[data-restore-booking]').forEach(button=>button.onclick=async()=>{button.disabled=true;const {error}=await sb.rpc('frankiholz_admin_remove_requests',{p_booking_ids:[button.dataset.restoreBooking],p_restore:true});if(error){$('bookingDeleteStatus').textContent=error.message;button.disabled=false;return}await loadBookings();});
+  if($('showRemovedBookings'))$('showRemovedBookings').onchange=loadBookings;
   wireBookingCleanupControls();
 }
 
