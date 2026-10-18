@@ -15,7 +15,7 @@ for(const lang of ['en','de'])for(const width of [390,1280])test(`payment choice
  await expect(page.locator('#bankPayment')).toBeVisible();await expect(page.locator('#paymentChoices')).toContainText('SEPA');
  await expect(page.locator('#paymentChoices')).toContainText('14');await expect(page.locator('#modeNotice')).toBeHidden();
  const size=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:innerWidth}));expect(size.scroll).toBeLessThanOrEqual(size.width+1);
- await page.locator('#email').fill('wrong@example.invalid');await expect(page.locator('#paymentContent')).toBeHidden();
+ await page.locator('#paymentLookupPanel summary').click();await page.locator('#email').fill('wrong@example.invalid');await expect(page.locator('#paymentContent')).toBeHidden();
  await page.locator('#lookupButton').click();await expect(page.locator('#paymentMessage')).toContainText(lang==='de'?'Keine passende':'No matching');
 });
 for(const state of ['payment_method_saved','scheduled_charge','processing','paid'])test(`no new payment offered for ${state}`,async({page})=>{
