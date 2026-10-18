@@ -58,16 +58,20 @@ async function deleteSelectedBookings(){
     if(button){button.textContent='Delete selected';syncBookingCleanupControls()}
   }
 }
+let bookingListVersion=0;
 async function loadBookings(){
-  const {data,error}=await sb.from('frankiholz_bookings').select('*,frankiholz_rooms(name)').order('created_at',{ascending:false});
+  const version=++bookingListVersion;if($('refreshBookings')){$('refreshBookings').onclick=loadBookings;$('refreshBookings').disabled=true;}
+  const {data,error}=await sb.from('frankiholz_bookings').select('*,frankiholz_rooms(name)').order('created_at',{ascending:false}).order('id',{ascending:false});
+  if(version!==bookingListVersion)return;
+  if($('refreshBookings'))$('refreshBookings').disabled=false;
   if(error){$('bookings').innerHTML=`<div class="notice">${esc(error.message)}</div>`;return}
-  const labels={not_started:'payment setup not started',awaiting_payment:'payment details or bank transfer outstanding',payment_method_saved:'payment method saved',processing:'payment processing',scheduled_charge:'payment scheduled',paid:'paid',failed:'payment failed',released:'released',refunded:'refunded',expired:'expired',authorized:'authorized'};
-  $('bookings').innerHTML=(data||[]).filter(b=>$('showRemovedBookings')?.checked?Boolean(b.admin_deleted_at):!b.admin_deleted_at).map(b=>{
+  const labels={not_started:'payment setup not started',awaiting_payment:'payment setup outstanding',payment_method_saved:'payment method saved',processing:'payment processing',scheduled_charge:'payment scheduled',paid:'paid',failed:'payment failed',released:'released',refunded:'refunded',expired:'expired',authorized:'authorized'};
+  $('bookings').innerHTML=(data||[]).slice().sort((a,b)=>(Date.parse(b.created_at)||0)-(Date.parse(a.created_at)||0)||String(b.id).localeCompare(String(a.id))).filter(b=>$('showRemovedBookings')?.checked?Boolean(b.admin_deleted_at):!b.admin_deleted_at).map(b=>{
     const pay=b.payment_status||'not_started',isV2=b.payment_schedule_version==='v2_14_day',mode=b.payment_mode||'live';
     const payClass=pay==='paid'?'confirmed':(['failed','expired'].includes(pay)?'cancelled':'');
     const modeBadge=`<span class="status" style="${mode==='test'?'background:#fff3cd;color:#7a5a00':'background:#e5f4ff;color:#164f73'}">${mode.toUpperCase()}</span>`;
     const deletable=isBookingDeletable(b);
-    const cleanup=deletable&&!b.admin_deleted_at?`<label class="booking-check-label"><input class="booking-delete-check" type="checkbox" data-booking-id="${attr(b.id)}" data-booking-ref="${attr(b.reference)}" data-booking-mode="${attr(mode)}"> Select request</label>`:'';
+    const cleanup=deletable&&!b.admin_deleted_at?`<label class="booking-check-label"><input class="booking-delete-check" type="checkbox" aria-label="Select request ${attr(b.reference)}" data-booking-id="${attr(b.id)}" data-booking-ref="${attr(b.reference)}" data-booking-mode="${attr(mode)}"> Select request</label>`:'';
     let actions='';
     if(isV2){
       if(b.status==='pending'&&['payment_method_saved','paid'].includes(pay)){
@@ -98,14 +102,17 @@ async function loadBookings(){
     if(b.refund_review_required)actions+=`<span class="status cancelled">Refund pending / requires review in Stripe</span>`;
     if(b.bank_transfer_review_required)actions+=`<span class="status cancelled">Bank-transfer funds review required in Stripe (partial, excess or late receipts)</span>`;
     if(b.payment_operation_token)actions+=`<span class="status cancelled">Payment operation locked · reconcile Stripe before retrying</span>`;
-    const due=isV2&&b.charge_due_at?` · scheduled charge ${new Date(b.charge_due_at).toLocaleString()}`:(!isV2&&b.payment_due_at?` · decision/payment deadline ${new Date(b.payment_due_at).toLocaleString()}`:'');
-    return `<div class="booking-row">
-      <div>${cleanup}<b>${esc(b.reference)}</b> · ${esc(b.frankiholz_rooms?.name||'')} · ${modeBadge} · <span class="status ${b.status}">${esc(b.status)}</span> · <span class="status ${payClass}">${esc(labels[pay]||pay.replaceAll('_',' '))}</span></div>
-      <div class="muted">${b.check_in} → ${b.check_out} · ${money(b.total_price)} · ${b.guests} guest${b.guests===1?'':'s'}${due}</div>
-      <div style="margin-top:6px"><b>${esc(b.guest_name)}</b> · ${esc(b.guest_email)} ${b.guest_phone?'· '+esc(b.guest_phone):''}</div>
-      ${b.message?`<p>${esc(b.message)}</p>`:''}
-      <div style="display:flex;gap:7px;flex-wrap:wrap">${actions}</div>
-    </div>`;
+    const received=Number.isFinite(Date.parse(b.created_at))?`<time datetime="${attr(b.created_at)}">${esc(new Intl.DateTimeFormat('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',timeZone:'Europe/Berlin',timeZoneName:'short'}).format(new Date(b.created_at)))}</time>`:'Time unavailable';
+    const due=isV2&&['payment_method_saved','scheduled_charge','processing','failed'].includes(pay)&&b.charge_due_at?` · scheduled charge ${new Date(b.charge_due_at).toLocaleString()}`:(!isV2&&b.payment_due_at?` · decision/payment deadline ${new Date(b.payment_due_at).toLocaleString()}`:'');
+    return `<article class="booking-row" aria-label="${attr(b.reference)}">
+      <div class="booking-row-top"><div class="booking-identity"><b>${esc(b.reference)}</b><span>${esc(b.frankiholz_rooms?.name||'')}</span></div>${cleanup}</div>
+      <div class="booking-received">Received ${received}</div>
+      <div class="booking-badges">${modeBadge}<span class="status ${attr(b.status)}">${esc(b.status)}</span><span class="status ${payClass}">${esc(b.payment_collection_mode==='bank_transfer'&&pay==='awaiting_payment'?'existing bank transfer outstanding':labels[pay]||pay.replaceAll('_',' '))}</span></div>
+      <div class="booking-stay muted">${esc(b.check_in)} → ${esc(b.check_out)} · ${money(b.total_price)} · ${b.guests} guest${b.guests===1?'':'s'}${due}</div>
+      <div class="booking-guest"><b>${esc(b.guest_name)}</b><span>${esc(b.guest_email)}</span>${b.guest_phone?`<span>${esc(b.guest_phone)}</span>`:''}</div>
+      ${b.message?`<p class="booking-message">${esc(b.message)}</p>`:''}
+      <div class="booking-actions">${actions}</div>
+    </article>`;
   }).join('')||'<div class="empty">No bookings yet.</div>';
   document.querySelectorAll('[data-restore-booking]').forEach(button=>button.onclick=async()=>{button.disabled=true;const {error}=await sb.rpc('frankiholz_admin_remove_requests',{p_booking_ids:[button.dataset.restoreBooking],p_restore:true});if(error){$('bookingDeleteStatus').textContent=error.message;button.disabled=false;return}await loadBookings();});
   if($('showRemovedBookings'))$('showRemovedBookings').onchange=loadBookings;

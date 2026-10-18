@@ -55,6 +55,23 @@ async function webhook(f,name='frankiholz-stripe-webhook-test'){
   return handler(new Request('https://fixture.invalid/webhook',{method:'POST',headers:{'stripe-signature':'mocked'},body:'{}'}));
 }
 
+for(const mode of ['live','test'])test(`${mode} setup refuses new transfers, preserves existing instructions and keeps saved methods`,async()=>{
+ const name=mode==='live'?'frankiholz-create-authorization-v2':'frankiholz-create-authorization-test';
+ const source=await readFile(new URL('../functions/'+name+'/index.ts',import.meta.url),'utf8');
+ async function run(b,collection){
+  const f=fixture({...booking(),status:'pending',payment_status:'not_started',guest_email:'fixture@example.invalid',payment_mode:mode,...b});
+  const rpc=f.service.rpc.bind(f.service);f.service.rpc=(name,args)=>name==='frankiholz_get_payment_environment'?Promise.resolve({data:mode}):rpc(name,args);
+  let handler,bankCalls=0;class Stripe{constructor(){return f.stripe}}
+  vm.runInNewContext(stripTypeScriptTypes(source.replace(/^import .*;\r?\n/gm,'')),{Deno:{env:{get:()=> 'mock-only'},serve(fn){handler=fn}},Stripe,createClient:()=>f.service,Request,Response,console:{error(){}},openBankTransfer:async()=>{bankCalls++;return {checkout_url:'https://payments.stripe.com/existing',reused:true}}});
+  const response=await handler(new Request('https://fixture.invalid/setup',{method:'POST',headers:{origin:'https://develop--frankiholz.netlify.app','content-type':'application/json'},body:JSON.stringify({reference:f.b.reference,email:f.b.guest_email,payment_collection_mode:collection})}));
+  return {response,json:await response.json(),bankCalls,f};
+ }
+ const denied=await run({},'bank_transfer');assert.equal(denied.response.status,409);assert.match(denied.json.error,/New bank transfers/);assert.equal(denied.bankCalls,0);assert.equal(denied.f.creates.length,0);
+ const unstarted=await run({payment_collection_mode:'bank_transfer'},'bank_transfer');assert.equal(unstarted.response.status,409);assert.equal(unstarted.bankCalls,0);
+ const existing=await run({payment_collection_mode:'bank_transfer',stripe_payment_intent_id:'pi_existing'},'bank_transfer');assert.equal(existing.response.status,200);assert.equal(existing.bankCalls,1);assert.equal(existing.json.reused,true);
+ const saved=await run({payment_status:'awaiting_payment',stripe_checkout_url:'https://checkout.stripe.com/existing',payment_due_at:'2099-01-01T00:00:00Z'},'saved_method');assert.equal(saved.response.status,200);assert.equal(saved.bankCalls,0);assert.equal(saved.json.checkout_url,'https://checkout.stripe.com/existing');
+});
+
 test('SEPA processing is retained; repeated entry points cannot create another charge',async()=>{
   const f=fixture();const pi=await chargeBooking(f.service,f.stripe,f.b);
   assert.equal(pi.status,'processing');assert.equal(f.b.payment_status,'processing');assert.equal(f.b.stripe_payment_intent_id,'pi_fixture');

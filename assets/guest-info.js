@@ -241,7 +241,7 @@
         const col=document.createElement('div'),label=document.createElement('label');
         label.textContent=lang==='en'?'English':'Deutsch';
         const control=document.createElement(f.kind==='input'?'input':'textarea');
-        control.id='fh-edit-'+f.key+'-'+lang;
+        control.id='fh-edit-'+f.key+'-'+lang;label.htmlFor=control.id;
         if(f.kind!=='input')control.rows=f.key==='fhAboutBody'?5:3;
         if(f.key==='fhAirbnbReviewsUrl')control.placeholder='https://www.airbnb.com/rooms/...';
         if(f.key==='fhHeroReviews'){

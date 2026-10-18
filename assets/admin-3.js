@@ -5,21 +5,21 @@ function renderRooms(){
         <div>
           <h3 style="margin-top:0">${esc(r.name)} / ${esc(r.name_de||'')}</h3>
           <div class="bilingual-editor compact">
-            <div><span class="language-heading">English</span><label>Room name</label><input id="rn-${r.id}" value="${attr(r.name)}"><label>Description</label><textarea id="rd-${r.id}" rows="3">${esc(r.description||'')}</textarea></div>
-            <div><span class="language-heading">Deutsch</span><label>Zimmername</label><input id="rnd-${r.id}" value="${attr(r.name_de||'')}"><label>Beschreibung</label><textarea id="rdd-${r.id}" rows="3">${esc(r.description_de||'')}</textarea></div>
+            <div><span class="language-heading">English</span><label for="rn-${r.id}">Room name</label><input id="rn-${r.id}" value="${attr(r.name)}"><label for="rd-${r.id}">Description</label><textarea id="rd-${r.id}" rows="3">${esc(r.description||'')}</textarea></div>
+            <div><span class="language-heading">Deutsch</span><label for="rnd-${r.id}">Zimmername</label><input id="rnd-${r.id}" value="${attr(r.name_de||'')}"><label for="rdd-${r.id}">Beschreibung</label><textarea id="rdd-${r.id}" rows="3">${esc(r.description_de||'')}</textarea></div>
           </div>
           <div class="form-grid">
-            <div><label>Base price / night</label><input id="rp-${r.id}" type="number" min="0" step="0.01" value="${r.base_price}"></div>
+            <div><label for="rp-${r.id}">Base price / night</label><input id="rp-${r.id}" type="number" min="0" step="0.01" value="${r.base_price}"></div>
             <div></div>
           </div>
           <div class="form-grid">
-            <div><label>Max guests</label><input id="rg-${r.id}" type="number" min="1" value="${r.max_guests}"></div>
-            <div><label>Visible to guests</label><select id="ra-${r.id}"><option value="true" ${r.active?'selected':''}>Active</option><option value="false" ${!r.active?'selected':''}>Hidden</option></select></div>
+            <div><label for="rg-${r.id}">Max guests</label><input id="rg-${r.id}" type="number" min="1" value="${r.max_guests}"></div>
+            <div><label for="ra-${r.id}">Visible to guests</label><select id="ra-${r.id}"><option value="true" ${r.active?'selected':''}>Active</option><option value="false" ${!r.active?'selected':''}>Hidden</option></select></div>
           </div>
           <button class="btn secondary" onclick="saveRoom('${r.id}')" style="margin-top:10px">Save room details</button>
         </div>
         <div>
-          <label style="margin-top:0">Upload room photos</label>
+          <label style="margin-top:0" for="rf-${r.id}">Upload room photos</label>
           <input id="rf-${r.id}" type="file" multiple accept="image/jpeg,image/png,image/webp,image/avif">
           <button class="btn" onclick="uploadRoomImages('${r.id}')" style="margin-top:10px">Upload photos</button>
           <div id="ri-${r.id}" class="image-admin-grid" style="margin-top:12px">
@@ -46,8 +46,8 @@ function renderRooms(){
             <span id="rc-range-${r.id}">Select a start date and an end date</span>
           </div>
           <div class="form-grid">
-            <div><label>Price override (optional)</label><input id="rc-price-${r.id}" type="number" min="0" step="0.01" placeholder="Keep existing price"></div>
-            <div><label>Admin note (optional)</label><input id="rc-note-${r.id}" placeholder="Maintenance, owner stay, etc."></div>
+            <div><label for="rc-price-${r.id}">Price override (optional)</label><input id="rc-price-${r.id}" type="number" min="0" step="0.01" placeholder="Keep existing price"></div>
+            <div><label for="rc-note-${r.id}">Admin note (optional)</label><input id="rc-note-${r.id}" placeholder="Maintenance, owner stay, etc."></div>
           </div>
           <div class="range-actions">
             <button class="btn available-action small" onclick="applyRoomRange('${r.id}','available')">✓ Make available</button>
