@@ -3,7 +3,7 @@ async function loadRoomCalendar(id){
   const from=dateKey(new Date(st.cursor.getFullYear(),st.cursor.getMonth(),1));
   const to=dateKey(new Date(st.cursor.getFullYear(),st.cursor.getMonth()+1,0));
   const [{data,error},{data:ib,error:ibError}]=await Promise.all([
-    sb.from('frankiholz_calendar').select('id,date,is_available,availability_status,price_override,note,booking_id').eq('room_id',id).gte('date',from).lte('date',to),
+    sb.from('frankiholz_calendar').select('id,date,is_available,availability_status,price_override,note,booking_id,admin_available_override').eq('room_id',id).gte('date',from).lte('date',to),
     sb.from('frankiholz_ical_blocks').select('date,provider').eq('room_id',id).gte('date',from).lte('date',to)
   ]);
   if(error||ibError){
@@ -20,6 +20,7 @@ function rowFor(id,key){
 function isAirbnbBlocked(id,key){return calState(id).icalBlocks.some(x=>x.date===key)}
 function statusFor(id,key){
   const row=rowFor(id,key);
+  if(row?.admin_available_override&&row.is_available)return 'available';
   if(row?.booking_id)return 'booked';
   if(row && (row.availability_status==='blocked'||row.availability_status==='booked'||row.is_available===false))return row.availability_status||'blocked';
   if(isAirbnbBlocked(id,key))return 'blocked';
@@ -38,7 +39,7 @@ function renderRoomCalendar(id){
     const s=st.start,e=st.end;
     const rangeStart=s===key,rangeEnd=e===key,rangeMid=s&&e&&key>s&&key<e;
     const price=row?.price_override?money(row.price_override):'';
-    html+=`<button type="button" class="day admin-day ${status} ${rangeStart?'range-start':''} ${rangeEnd?'range-end':''} ${rangeMid?'range-mid':''}" onclick="pickRoomDate('${id}','${key}')"><strong>${n}</strong><small>${status==='booked'?'Booked':isAirbnbBlocked(id,key)?'Airbnb':status==='blocked'?'Blocked':price}</small></button>`;
+    html+=`<button type="button" class="day admin-day ${status} ${rangeStart?'range-start':''} ${rangeEnd?'range-end':''} ${rangeMid?'range-mid':''}" onclick="pickRoomDate('${id}','${key}')"><strong>${n}</strong><small>${status==='booked'?'Booked':status==='blocked'&&isAirbnbBlocked(id,key)?'Airbnb':status==='blocked'?'Blocked':price}</small></button>`;
   }
   $(`rc-${id}`).innerHTML=html;
   $(`rc-range-${id}`).textContent=st.start ? `${st.start}${st.end?' → '+st.end:''}` : 'Select a start date and an end date';
@@ -84,7 +85,7 @@ window.applyRoomRange=async(id,status)=>{
     return;
   }
   const label=status==='available'?'available':status==='blocked'?'blocked':'booked';
-  $(`rc-status-${id}`).innerHTML=`<div class="notice success">${data} date${Number(data)===1?'':'s'} updated as <b>${label}</b>. Real guest bookings remain protected.</div>`;
+  $(`rc-status-${id}`).innerHTML=`<div class="notice success">${data} date${Number(data)===1?'':'s'} updated as <b>${label}</b>. Existing reservations and payments are unchanged.</div>`;
   st.start=null;st.end=null;
   await loadRoomCalendar(id);
 };

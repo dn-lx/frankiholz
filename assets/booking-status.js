@@ -15,27 +15,15 @@ async function loadStatus(){
   if(error||!b){out.innerHTML='<div class="notice">'+esc(error?.message||tx[lang].n)+'</div>';return}
   const state=tx[lang].states[b.payment_status]||String(b.payment_status||'not_started').replaceAll('_',' ');
   const test=b.payment_mode==='test'?'<span class="status" style="background:#fff3cd;color:#7a5a00;margin-left:6px">TEST</span>':'';
-  const canRetry=b.booking_status!=='cancelled'&&['not_started','expired','failed'].includes(b.payment_status)||b.booking_status!=='cancelled'&&b.payment_status==='awaiting_payment'&&!b.payment_url;
-  const pay=b.payment_url&&b.payment_status==='awaiting_payment'?'<a class="btn secondary" href="'+esc(b.payment_url)+'" style="display:inline-block;text-decoration:none;margin-top:12px">'+tx[lang].retry+'</a>':canRetry?'<button class="btn secondary" id="retryCardBtn" type="button" style="margin-top:12px">'+tx[lang].retry+'</button>':'';
+  const canRetry=b.booking_status==='pending'&&['not_started','expired','failed','awaiting_payment'].includes(b.payment_status);
+  const pay=canRetry?'<button class="btn secondary" id="retryCardBtn" type="button" style="margin-top:12px">'+tx[lang].retry+'</button>':'';
   const due=b.charge_due_at?'<br>'+tx[lang].charge+': <b>'+new Date(b.charge_due_at).toLocaleString(lang==='de'?'de-DE':'en-GB')+'</b>':'';
   const policy=b.cancel_refund_eligible?tx[lang].full:tx[lang].nonref;
   const cancel=b.booking_status!=='cancelled'?'<button class="btn ghost" id="cancelBookingBtn" type="button" style="margin-top:12px">'+tx[lang].cancel+'</button>':'';
   out.innerHTML='<div class="notice '+(b.payment_status==='paid'?'success':'')+'"><b>'+esc(b.reference)+'</b>'+test+' · '+esc(b.room_name)+'<br>'+b.check_in+' → '+b.check_out+' · '+money(b.total_price)+'<br>'+tx[lang].book+': <b>'+esc(b.booking_status)+'</b> · '+tx[lang].pay+': <b>'+esc(state)+'</b>'+due+'<div class="muted" style="margin-top:8px">'+esc(policy)+'</div>'+pay+cancel+'</div>';
-  $('retryCardBtn')?.addEventListener('click',async()=>{
-    const btn=$('retryCardBtn');btn.disabled=true;btn.textContent=tx[lang].retrying;
-    try{
-      const {data:mode,error:modeError}=await s.rpc('frankiholz_get_payment_environment');
-      if(modeError||!['live','test'].includes(mode))throw new Error(modeError?.message||tx[lang].retryError);
-      if(b.payment_mode&&b.payment_mode!==mode)throw new Error(tx[lang].environmentChanged);
-      const endpoint=mode==='live'?'frankiholz-create-authorization-v2':'frankiholz-create-authorization-test';
-      const r=await fetch(C.supabaseUrl+'/functions/v1/'+endpoint,{method:'POST',headers:{'Content-Type':'application/json','apikey':C.supabaseKey},body:JSON.stringify({reference:ref,email})});
-      const json=await r.json().catch(()=>({}));
-      if(!r.ok||!json.checkout_url)throw new Error(json.error||tx[lang].retryError);
-      window.location.assign(json.checkout_url);
-    }catch(e){
-      const message=document.createElement('div');message.className='notice';message.textContent=e.message||tx[lang].retryError;out.appendChild(message);
-      btn.disabled=false;btn.textContent=tx[lang].retry;
-    }
+  $('retryCardBtn')?.addEventListener('click',()=>{
+    try{sessionStorage.setItem('frankiholz-payment-email:'+b.reference,email)}catch(storageError){}
+    location.assign('/payment.html?reference='+encodeURIComponent(b.reference)+'&lang='+lang);
   });
   $('cancelBookingBtn')?.addEventListener('click',async()=>{
     if(!confirm(tx[lang].confirmCancel))return;
@@ -46,3 +34,5 @@ async function loadStatus(){
   });
 }
 $('go').onclick=loadStatus;apply();
+$('ref').value=new URLSearchParams(location.search).get('reference')||'';
+try{$('email').value=sessionStorage.getItem('frankiholz-payment-email:'+$('ref').value)||''}catch(storageError){}
