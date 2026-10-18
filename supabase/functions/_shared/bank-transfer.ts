@@ -21,7 +21,11 @@ export async function openBankTransfer(service: any, stripe: any, booking: any, 
     await releaseOperation(service,b.id,token);
     throw new Error('Booking total must be at least EUR 0.50');
   }
-  if(b.stripe_checkout_session_id)await stripe.checkout.sessions.expire(b.stripe_checkout_session_id);
+  if(b.stripe_checkout_session_id){
+    const previous=await stripe.checkout.sessions.retrieve(b.stripe_checkout_session_id);
+    if(previous.status==='open')await stripe.checkout.sessions.expire(previous.id);
+    else if(previous.status!=='expired')throw new Error('Previous payment setup needs reconciliation; please contact FrankiHolz');
+  }
   const customer = b.stripe_customer_id || (await stripe.customers.create({
     email:b.guest_email,name:b.guest_name,
     metadata:{booking_id:b.id,reference:b.reference,frankiholz_mode:mode},

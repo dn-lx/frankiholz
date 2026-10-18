@@ -151,3 +151,9 @@ test('admin profile values are escaped before inclusion in HTML email',async()=>
  await context.sendAdminIfNeeded('request_received',{...booking(),guest_age:unsafe,guest_sex:unsafe,guest_country:unsafe,guest_languages:[unsafe],guest_hobbies:unsafe});
  assert.equal(sent.length,1);assert.ok(!sent[0].html.includes(unsafe));assert.match(sent[0].html,/Country: &lt;img/);assert.match(sent[0].html,/Languages: &lt;img/);
 });
+
+test('an expired card setup can switch to bank transfer without attempting to expire it again',async()=>{
+ const f=fixture({...booking(),status:'pending',payment_status:'awaiting_payment',stripe_payment_method_id:null,stripe_checkout_session_id:'cs_expired'});
+ f.state.result='requires_action';f.stripe.checkout={sessions:{retrieve:async()=>({id:'cs_expired',status:'expired'}),expire:async()=>{throw new Error('Expired session cannot expire again')}}};
+ const result=await openBankTransfer(f.service,f.stripe,f.b,'test');assert.equal(result.bank_transfer,true);assert.equal(f.b.payment_operation_token,null);assert.equal(f.creates.length,1);
+});
