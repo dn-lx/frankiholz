@@ -6,8 +6,8 @@ test.beforeEach(async ({ page }) => {
   await page.clock.install({time:new Date('2026-10-11T12:00:00+02:00')});
 });
 
-async function mockPublicBackend(page, mode='test'){
-  await page.addInitScript(({paymentMode})=>{
+async function mockPublicBackend(page, mode='test', stayTotal='0.90'){
+  await page.addInitScript(({paymentMode,stayTotal})=>{
     // selectRoom() starts a smooth-scroll animation. Disable only that animation
     // in this isolated calendar fixture so WebKit/iPhone click coordinates stay
     // stable; Playwright still clicks the actual date buttons.
@@ -33,6 +33,7 @@ async function mockPublicBackend(page, mode='test'){
         return q;
       },
       rpc(name,params){
+        (window.__rpcCalls??=[]).push({name,params});
         if(name==='frankiholz_get_calendar_rates')return Promise.resolve({data:rows,error:null});
         if(name==='frankiholz_get_payment_environment'){
           // Exercise a real asynchronous boundary without contacting the backend.
@@ -40,7 +41,17 @@ async function mockPublicBackend(page, mode='test'){
         }
         if(name==='frankiholz_estimate_total'){
           const available=params.p_check_in==='2026-10-13'&&params.p_check_out==='2026-10-14';
-          return Promise.resolve({data:[{available,total_price:available?'0.90':'0',nights:available?1:2}],error:null});
+          return Promise.resolve({data:[{available,total_price:available?stayTotal:'0',nights:available?1:2}],error:null});
+        }
+        if(name==='frankiholz_quote_with_promo'){
+          const percent=params.p_promo_code.toLowerCase()==='frankiholzguest50'?50:params.p_promo_code.toLowerCase()==='frankiholzguest75'?75:0;
+          const total=Number(stayTotal)*(100-percent)/100;
+          if(!percent)return Promise.resolve({data:null,error:{message:'Promo code is not valid'}});
+          if(total<0.50)return Promise.resolve({data:null,error:{message:'The discounted booking total must be at least EUR 0.50'}});
+          return Promise.resolve({data:[{available:true,total_price:total,original_total_price:Number(stayTotal),discount_percent:percent,nights:1}],error:null});
+        }
+        if(name==='frankiholz_create_booking_with_promo'){
+          return Promise.resolve({data:[{reference:'FH-PROMO-UI',total_price:'2.00'}],error:null});
         }
         if(name==='frankiholz_create_booking_v2'){
           return Promise.resolve({data:[{reference:'FH-UI-ONLY',total_price:'0.90'}],error:null});
@@ -52,7 +63,7 @@ async function mockPublicBackend(page, mode='test'){
         onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})
       }
     })};
-  },{paymentMode:mode});
+  },{paymentMode:mode,stayTotal});
 }
 const button=(page,date)=>page.locator('#calendar button[onclick="pickDate(\''+date+'\')"]');
 
@@ -195,4 +206,118 @@ test('unavailable payment configuration is reported instead of silently defaulti
     try{await resolvePaymentMode();return 'unexpected success';}catch(error){return error.message;}
   });
   expect(result).toBe('Payment environment is not configured correctly.');
+});
+
+
+async function selectPromoDates(page,total='8.00'){
+  await mockPublicBackend(page,'test',total);
+  await page.goto('/?lang=en',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#rooms')).toContainText('Cozy Holz');
+  await page.evaluate(async()=>window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14'));
+  await button(page,'2026-10-13').click();
+  await button(page,'2026-10-14').click();
+}
+
+test('promo quotes use the server total, localize, and reset when dates or codes change',async({page})=>{
+  await selectPromoDates(page);
+  await page.locator('#promoCode').fill('FrankiHolzGuest50');
+  await page.locator('#applyPromo').click();
+  await expect(page.locator('#sumTotal')).toContainText('4.00');
+  await expect(page.locator('#promoStatus')).toContainText('50% off');
+  await page.locator('.lang-btn[data-lang="de"]').click();
+  await expect(page.locator('#promoStatus')).toContainText('50% Rabatt');
+  await expect(page.locator('#promoCode')).toHaveAccessibleName('Gutscheincode (optional)');
+  await page.locator('#promoCode').fill('FrankiHolzGuest75');
+  await expect(page.locator('#sumTotal')).toHaveText('—');
+  await expect(page.locator('#calendarNotice')).not.toContainText('4,00');
+  await page.locator('#applyPromo').click();
+  await expect(page.locator('#sumTotal')).toContainText('2,00');
+  await expect(page.locator('#promoStatus')).toContainText('75% Rabatt');
+  await button(page,'2026-10-14').click();
+  await expect(page.locator('#promoStatus')).toHaveText('');
+  await expect(page.locator('#sumTotal')).toHaveText('—');
+  await button(page,'2026-10-14').click();
+  await expect(page.locator('#promoStatus')).toContainText('75% Rabatt');
+  await page.locator('#promoCode').fill('');
+  await page.locator('#applyPromo').click();
+  await expect(page.locator('#promoStatus')).toHaveText('');
+  await expect(page.locator('#sumTotal')).toContainText('8,00');
+});
+
+test('invalid codes and below-minimum discounts show errors without retaining a quoted total',async({page})=>{
+  await selectPromoDates(page,'0.50');
+  await page.locator('#promoCode').fill('FrankiHolzGuest75');
+  await page.locator('#applyPromo').click();
+  await expect(page.locator('#promoStatus')).toContainText('at least €0.50');
+  await expect(page.locator('#sumTotal')).toHaveText('—');
+  await page.locator('#promoCode').fill('unknown');
+  await page.locator('#applyPromo').click();
+  await expect(page.locator('#promoStatus')).toContainText('not valid');
+  await expect(page.locator('#sumTotal')).toHaveText('—');
+  expect(await page.evaluate(()=>window.__rpcCalls.some(c=>c.name.includes('create_booking')))).toBe(false);
+});
+
+test('promo creation sends only the code, one mocked email, and opens the existing TEST setup flow',async({page})=>{
+  const requests=[];
+  await selectPromoDates(page);
+  // Installed last so it overrides the general external-network blocker.
+  await page.route('**/functions/v1/frankiholz-guest-email',async route=>{
+    const headers={'access-control-allow-origin':'*','access-control-allow-headers':'content-type,apikey,x-frankiholz-source'};
+    if(route.request().method()==='OPTIONS')return route.fulfill({status:204,headers,body:''});
+    requests.push({path:new URL(route.request().url()).pathname,body:route.request().postDataJSON()});
+    return route.fulfill({status:200,headers,contentType:'application/json',body:'{}'});
+  });
+  await page.route('**/functions/v1/frankiholz-create-authorization-test',async route=>{
+    const headers={'access-control-allow-origin':'*','access-control-allow-headers':'content-type,apikey'};
+    if(route.request().method()==='OPTIONS')return route.fulfill({status:204,headers,body:''});
+    requests.push({path:new URL(route.request().url()).pathname,body:route.request().postDataJSON()});
+    return route.fulfill({status:200,headers,contentType:'application/json',body:JSON.stringify({checkout_url:new URL('/__promo_checkout_stub__',page.url()).href})});
+  });
+  await page.route('**/__promo_checkout_stub__',route=>route.fulfill({status:200,contentType:'text/html',body:'<title>Mock setup</title>'}));
+  await page.locator('#promoCode').fill('FrankiHolzGuest75');
+  await page.locator('#applyPromo').click();
+  await page.locator('#guestName').fill('Promo UI Test');
+  await page.locator('#guestEmail').fill('promo-ui@example.invalid');
+  await page.locator('#guestCountry').fill('Germany');
+  await page.locator('#guestAge').fill('30');
+  await page.locator('#guestSex').selectOption('prefer_not_to_say');
+  await page.locator('#guestLanguages').fill('English');
+  await page.locator('#guestReturning').selectOption('no');
+  await page.locator('#message').fill('An isolated promo booking regression test only.');
+  await page.evaluate(()=>{
+    const original=sb.rpc;
+    sb.rpc=async function(name,args,options){if(name==='frankiholz_create_booking_with_promo')sessionStorage.setItem('promoPayload',JSON.stringify(args));return original.call(this,name,args,options)};
+    return true;
+  });
+  await page.locator('#bookingForm button[type="submit"]').click();
+  await expect(page).toHaveURL(/__promo_checkout_stub__$/);
+  const sent=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('promoPayload')));
+  expect(sent.p_promo_code).toBe('FrankiHolzGuest75');
+  expect(sent).not.toHaveProperty('total_price');
+  expect(sent).not.toHaveProperty('discount_percent');
+  expect(requests.filter(r=>r.path.endsWith('/frankiholz-guest-email'))).toHaveLength(1);
+  expect(requests.filter(r=>r.path.endsWith('/frankiholz-create-authorization-test'))).toHaveLength(1);
+});
+
+
+test('a delayed old promo quote cannot overwrite a newer code or room selection',async({page})=>{
+  await selectPromoDates(page);
+  await page.evaluate(()=>{
+    const original=sb.rpc.bind(sb);window.__releaseOldPromo=[];
+    sb.rpc=(name,args,options)=>{
+      if(name==='frankiholz_quote_with_promo'&&args.p_promo_code==='FrankiHolzGuest50')return new Promise(resolve=>window.__releaseOldPromo.push(()=>resolve({data:[{available:true,total_price:4,original_total_price:8,discount_percent:50,nights:1}],error:null})));
+      return original(name,args,options);
+    };
+  });
+  await page.locator('#promoCode').fill('FrankiHolzGuest50');
+  await page.locator('#applyPromo').click();
+  await page.locator('#promoCode').fill('FrankiHolzGuest75');
+  await page.locator('#applyPromo').click();
+  await expect(page.locator('#sumTotal')).toContainText('2.00');
+  await page.evaluate(()=>window.__releaseOldPromo.forEach(resolve=>resolve()));
+  await expect(page.locator('#sumTotal')).toContainText('2.00');
+  await expect(page.locator('#promoStatus')).toContainText('75% off');
+  await page.evaluate(async()=>window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14'));
+  await expect(page.locator('#sumTotal')).toHaveText('—');
+  await expect(page.locator('#promoStatus')).toHaveText('');
 });

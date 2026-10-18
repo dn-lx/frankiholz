@@ -1,6 +1,27 @@
 # Current Handoff
 
+## Server-owned promo implementation and LIVE E2E blocker — 2026-10-18
+
+- New branch `feature/booking-promo-codes-20261018`: additive quote/create RPCs plus optional bilingual booking promo field. Codes `FrankiHolzGuest50` and `FrankiHolzGuest75` apply one 50% or 75% discount per booking; case/outer whitespace normalized, no stacking. No expiry/use limit specified by owner. Original price, canonical code, percentage and discounted total are snapshotted atomically on the newly created pending booking.
+- Minimum discounted total is EUR 0.50; reject lower totals rather than silently overcharge. Deployed `frankiholz-charge-due` reads `total_price` but clamps cents to 50 and treats non-succeeded PaymentIntents as failures; do not enable asynchronous bank methods until that behavior and the webhook lifecycle are updated/tested.
+- Read deployed v2 create/estimate/status SQL and charge worker via browser. Verified booking reference UNIQUE, booking RLS enabled/admin-only SELECT/UPDATE/DELETE policies, no noninternal booking triggers. Existing v2 RPC is retained; promo wrapper reuses its validation and updates only the new booking in the same transaction. Email hook recognizes the new RPC without changing recipient or provider behavior.
+- Migration and SQL tests rehearsed through browser SQL Editor with final ROLLBACK; invalid code, both discounts, stored amount consistency, below-minimum rollback and privileges passed. No persisted test booking, email or Stripe object created. Independent security review found no blocking SQL issue; stale UI messages identified and fixed. Latest local Chromium calendar/payment/promo run: 13 passed. Local WebKit binary missing; require CI WebKit checks before merge.
+- Owner explicitly requested actual FrankiHolz LIVE E2E and confirmation of receipt in Stripe. Rechecked Stripe browser: activation required/cards action required. Opened activation; it is blocked at representative identity form. Prefilled owner-supplied first/last name, email and phone only, no submission; DOB/private address unknown. Asked owner to complete identity/bank/security/final review in Stripe. Live card entry/charge remains owner-operated, then verify Stripe succeeded PaymentIntent and booking reference, amount and webhook booking state. Do not claim payment receipt until observed.
+- No additional payment methods enabled. PayPal remains deferred. All three EUR 0.50 room base rates are currently shared/live; originals/restoration instructions below.
+
+## Authorized temporary test rates and promo names — 2026-10-18
+
+- Owner explicitly repeated changing all three room prices to EUR 0.50 for testing, and named codes `FrankiHolzGuest50` / `FrankiHolzGuest75` (50% / 75% off). Codes not yet implemented.
+- Via signed-in Supabase SQL Editor, verified project `bdeajozhylypiidrldka` and updated ONLY the three known room `base_price` values, guarded by their original prices; RETURNING confirmed 3 rows at 0.50. Calendar overrides and existing bookings unchanged. Shared backend means production also sees these base rates; informed owner.
+- Restore after testing, guarded by current base_price=0.50: room `2facc875-9470-4b12-9b28-cd65b7360b14` to 37.00; `3c2220b3-59df-4447-851d-9719a2a45574` to 40.00; `4474d731-7428-4dea-b03b-768b98d65f18` to 38.00. Do not overwrite subsequent owner edits.
+- A EUR 0.50 total with either discount is below Stripe's minimum; use a larger total for real discounted charge tests or reject under-minimum discounted checkouts clearly.
+- Supabase browser is authenticated. FrankiHolz Admin still shows login even after refresh; no credentials supplied or retrieved. Stripe remains browser-only.
+
 ## Inter typography and payment-method scope — 2026-10-18
+
+- Font PR #54 merged into `develop` as `0bbf5419bf41fcaada990e904ee4d12a9241d64c` after Chromium/WebKit, security, Lighthouse and agent-stack checks passed. Verified deployed develop body/headings now use Inter, the font loaded, and desktop has no horizontal overflow. Production `main` unchanged.
+- Latest owner steering: offer as many eligible payment methods as practical, settling to Stripe, and add promo-code support for 50% and 75% off. PayPal remains deferred unless explicitly reauthorized. Promo names/limits are pending (suggested FRANKI50/FRANKI75, disabled until tested); no discount or additional method has been implemented/enabled.
+- Backend inspection blocker: Supabase project browser tab redirects to sign-in, and FrankiHolz Admin is also signed out. Requested sign-in. Existing local checkout exposes only the live setup function and partial SQL migrations; deployed charge/test/webhook implementations must be read before making payment or promo changes. Setup-only Checkout means Stripe's coupon UI alone cannot discount the eventual stored booking charge.
 
 - Owner requested matching frankiflow.de typography and explicitly authorized a PR merged into `develop`. Browser inspection confirmed Inter for both body and headings. Replaced Manrope import/body stack in shared `assets/styles.css`, including weights 400–900; public, Admin and payment/status pages inherit the change.
 - Local built-in browser preview confirmed Inter loaded, body/headings used Inter, English/German switching worked and desktop had no horizontal overflow. Required PR checks must pass before merge; no production release authorized.
