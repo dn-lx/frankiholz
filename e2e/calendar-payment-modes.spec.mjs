@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { blockExternalNetwork } from './helpers.mjs';
+import AxeBuilder from '@axe-core/playwright';
 
 test.beforeEach(async ({ page }) => {
   await blockExternalNetwork(page);
@@ -106,6 +107,13 @@ for(const height of [430,844])test(`booking dropdown fits the available screen h
  await mockPublicBackend(page);await page.setViewportSize({width:390,height});await page.goto('/?lang=en');await expect(page.locator('#rooms')).toContainText('Cozy Holz');
  await page.evaluate(()=>window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14'));await page.locator('#guestSexChoice').click();
  const box=await page.locator('#guestSexOptions').boundingBox();expect(box.y).toBeGreaterThanOrEqual(0);expect(box.y+box.height).toBeLessThanOrEqual(height);
+});
+
+test('booking dropdown has no serious or critical automated accessibility issues when expanded',async({page})=>{
+ await mockPublicBackend(page);await page.goto('/?lang=en');await expect(page.locator('#rooms')).toContainText('Cozy Holz');
+ await page.evaluate(()=>window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14'));await page.locator('#guestSexChoice').click();
+ const result=await new AxeBuilder({page}).include('.booking-select').analyze();
+ const blocking=result.violations.filter(v=>['serious','critical'].includes(v.impact));expect(blocking,JSON.stringify(blocking,null,2)).toEqual([]);
 });
 
 test('a blocked October 14 is available only as checkout after a free October 13',async ({page})=>{
