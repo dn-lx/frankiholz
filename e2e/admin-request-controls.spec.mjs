@@ -46,6 +46,23 @@ test('refresh recovers from the first request failing',async({page})=>{
  await page.evaluate(async()=>{document.getElementById('dashboard').hidden=false;const original=sb.from.bind(sb);let fail=true;sb.from=table=>{if(table==='frankiholz_bookings'&&fail){fail=false;return {select(){return this},order(){return this},then(resolve){return Promise.resolve({data:null,error:{message:'Temporary fixture failure'}}).then(resolve)}}}return original(table)};await loadBookings()});
  await expect(page.locator('#bookings')).toContainText('Temporary fixture failure');await page.locator('#refreshBookings').click();await expect(page.locator('.booking-row')).toHaveCount(6);
 });
+
+test('complimentary request can be confirmed without a payment schedule prompt',async({page})=>{
+ await page.goto('/admin.html#bookings');
+ await page.evaluate(async()=>{
+   document.getElementById('loginView').hidden=true;document.getElementById('dashboard').hidden=false;
+   window.__requests.push({...window.__requests[0],id:'free-request',reference:'FH-FREE',payment_status:'not_required',payment_collection_mode:'complimentary',total_price:0});
+   sb.auth.getSession=async()=>({data:{session:{access_token:'fixture-admin-token'}}});await loadBookings();
+ });
+ await page.route('**/functions/v1/frankiholz-booking-decision',async route=>{
+   expect(route.request().postDataJSON()).toEqual({booking_id:'free-request',action:'accept'});
+   await page.evaluate(()=>{window.__requests.find(b=>b.id==='free-request').status='confirmed'});
+   await route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify({ok:true,status:'confirmed',payment_status:'not_required'})});
+ });
+ page.on('dialog',dialog=>{if(dialog.type()==='confirm'){expect(dialog.message()).toContain('No payment will be collected');expect(dialog.message()).not.toContain('14 days')}return dialog.accept()});
+ const row=page.locator('.booking-row').filter({hasText:'FH-FREE'});
+ await row.getByRole('button',{name:'Confirm booking',exact:true}).click();await expect(row).toContainText('Confirmed · no payment required');
+});
 for(const width of [360,768,1280])test(`all Admin sections contain long content at ${width}px`,async({page})=>{
  await page.setViewportSize({width,height:900});await page.goto('/admin.html#bookings');
  await page.evaluate(async()=>{document.getElementById('loginView').hidden=true;document.getElementById('dashboard').hidden=false;rooms=[{id:'fixture-room',name:'Room '+ 'longword'.repeat(15),description:'Description '+ 'longword'.repeat(30),active:true,base_price:40,max_guests:2}];renderRooms();renderRoomCalendar('fixture-room');await loadBookings();});

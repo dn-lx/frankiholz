@@ -1,5 +1,20 @@
 # Current Handoff
 
+## Room picker and four guest promos — 2026-10-19 (in progress)
+
+- Branch codex/room-picker-guest-promos from develop96adab9. Owner requests styled room dropdown and exact FrankFlowGuest25/50/75/100 codes. Added4 normalized server-owned codes; retained FrankiHolzGuest50/75. Positive discounted totals still require EUR0.50 minimum; 100% is a distinct complimentary/not_required state with no Stripe IDs/due dates/paid_at, pending host approval. Strong DB invariant prevents fake paid receipts.
+- Reviewed rollout: all9 remote entrypoint/dependency sources matched HEAD baseline. Deployed setupLIVEv12/TESTv26, decisionv22 (verify_jwt=true preserved), cancelv4/emailv33 (verify_jwt=false preserved). Added shared complimentary helper; keyless host approval/rejection and guest cancellation, no Stripe operations or payment emails. Then applied migration guest_discount_codes. Independent promo_security_review found no backend blockers, reran22 mocked tests successfully.
+- Full migration+SQL assertions rehearsed BEGIN/ROLLBACK: four discounts/snapshots, free pending-confirm-cancel, availability conflicts, invalid/minimum rollback, service-only grants and forged paid_at denied. No persistent fixture/booking/email/charge created. Browser tests in progress; room dropdown styled combobox/listbox retainsnative fallback, thumbnails/prices/keyboard and mouse focus fix; finalCI/PR/merge pending. Existing rates/overrides/bookings untouched.
+
+
+## Completed Airbnb sync/UI rollout — 2026-10-19
+
+- PR60 https://github.com/dn-lx/frankiholz/pull/60 merged to develop as 96adab9fcc7a929dab18e209074f295cb545ab51 after all required workflows passed on bb09c9e968592370d65c087a6f142fb334a23863. Browser CI156 passed (78 Chromium +78 WebKit),15 mocked payment checks; security/secrets/dependencies/Lighthouse/agent stack green. Local checkout develop; main unchanged.
+- Independent reviewer cleared final RPC and bidirectional feed-save/sync serialization. New RPC migration applied; anonymous EXECUTE denied, authenticated calls still check private.frankiholz_is_admin. Security advisor's new authenticated-definer notice is expected for this admin-checking RPC; baseline unrelated notices unchanged. SQL rehearsal tested override, import persistence, narrow reset, preservation of other columns/range, confirmed reservation protection, invalid range and nonadmin denial under full rollback. No fixture persisted.
+- Deployed built-in-browser Admin tab24 at08:30CEST performed actual Sync all: all3 succeeded,39/364/340 imported nights (743 total). New labels/summary distinguish overrides; Room1 October8 imported dates all explicitly available here. Existing27 total manual overrides preserved. Did not change real availability, bookings, payments or feed URLs. Remote sync Edge Function remainsv31 unchanged; original sync worked but overrides hid imported blocks.
+- Deployed all3 room editors verified details above photos, equal full widths823.47px, no horizontal overflow. Evidence outside Git in current visualization directory: airbnb-sync-deployed.png, room-details-above-photos.png, airbnb-override-controls.png. Tab24 left on new override controls and marked deliverable. Original user Admin tab10 was not reloaded; its unsaved inputs preserved. Local preview4180 stopped. This completion handoff remains uncommitted.
+
+
 ## Airbnb calendar clarity and room layout — 2026-10-19 (in progress)
 
 - Branch codex/airbnb-calendar-room-layout from develop2844d13. Live read: all3 Airbnb feeds successfully synced; 39/364/340 imported dates and Room1 27 manual overrides explain apparent non-sync. Existing overrides must remain until owner explicitly selects reset. No private feed URLs fetched into source/logs.

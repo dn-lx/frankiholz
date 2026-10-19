@@ -23,6 +23,13 @@ for(const state of ['payment_method_saved','scheduled_charge','processing','paid
  await expect(page.locator('#paymentContent')).toBeVisible();await expect(page.locator('#paymentChoices')).toBeHidden();
  await expect(page.locator('#paymentState')).toContainText('already');
 });
+
+for(const language of ['en','de'])for(const state of ['pending','confirmed','cancelled'])test(`complimentary ${state} payment page has no payment actions in ${language}`,async({page})=>{
+ await fixture(page,{total_price:0,payment_status:'not_required',payment_collection_mode:'complimentary',booking_status:state});await page.goto('/payment.html?reference=FH-PAYMENT&lang='+language);
+ await expect(page.locator('#paymentContent')).toBeVisible();await expect(page.locator('#paymentChoices')).toBeHidden();
+ await expect(page.locator('h1')).toHaveText(language==='de'?'Keine Zahlung erforderlich':'No payment required');
+ await expect(page.locator('[data-copy=lead]')).toContainText(state==='confirmed'?(language==='de'?'bestätigt':'confirmed'):state==='cancelled'?(language==='de'?'geschlossen':'closed'):(language==='de'?'Bestätigung':'approval'));
+});
 test('cancelled request and existing bank instructions cannot offer a new saved method',async({page})=>{
  await fixture(page,{booking_status:'cancelled'});await page.goto('/payment.html?reference=FH-PAYMENT');await expect(page.locator('#paymentChoices')).toBeHidden();await expect(page.locator('#paymentState')).toContainText('closed');
  await fixture(page,{payment_collection_mode:'bank_transfer',payment_status:'awaiting_payment'});await page.reload();
