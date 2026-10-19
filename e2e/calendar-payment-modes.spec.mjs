@@ -70,6 +70,44 @@ async function mockPublicBackend(page, mode='test', stayTotal='0.90'){
 }
 const button=(page,date)=>page.locator('#calendar button[onclick="pickDate(\''+date+'\')"]');
 
+for(const lang of ['en','de'])test(`booking dropdowns preserve keyboard selection in ${lang}`,async({page})=>{
+ await mockPublicBackend(page);await page.goto('/?lang='+lang);await expect(page.locator('#rooms')).toContainText('Cozy Holz');
+ await page.evaluate(()=>window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14'));
+ const sex=page.locator('#guestSexChoice'),returning=page.locator('#guestReturningChoice');
+ await expect(sex).toHaveAttribute('aria-required','true');await sex.click();await expect(page.locator('#guestSexOptions')).toBeVisible();
+ await sex.press('End');await sex.press('Enter');await expect(page.locator('#guestSex')).toHaveValue('prefer_not_to_say');
+ await expect(sex).toContainText(lang==='de'?'Keine Angabe':'Prefer not to say');await expect(sex).toHaveAttribute('aria-expanded','false');
+ await returning.click();await returning.press('Home');await returning.press('Enter');await expect(page.locator('#guestReturning')).toHaveValue('yes');
+ await sex.click();await sex.press('Escape');await expect(sex).toBeFocused();await expect(sex).toHaveAttribute('aria-expanded','false');
+
+});
+
+for(const lang of ['en','de'])test(`booking dropdowns validate, reset and keep the footer contact in ${lang}`,async({page})=>{
+ await mockPublicBackend(page);await page.goto('/?lang='+lang);await expect(page.locator('#rooms')).toContainText('Cozy Holz');
+ await page.evaluate(()=>window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14'));
+ const sex=page.locator('#guestSexChoice');await page.locator('#guestSex').selectOption('male');
+ await page.evaluate(()=>document.getElementById('bookingForm').reset());await expect(page.locator('#guestSex')).toHaveValue('');
+ await page.evaluate(()=>document.getElementById('guestSex').reportValidity());await expect(sex).toHaveAttribute('aria-invalid','true');
+ await sex.click();await page.locator('#guestSexOptions [role=option]').first().click();await expect(sex).not.toHaveAttribute('aria-invalid','true');
+ await expect(page.locator('.footer-website a')).toHaveAttribute('href','mailto:info@frankiflow.de?subject=Website%20enquiry');
+ await expect(page.locator('.footer-website')).toContainText(lang==='de'?'Ihre eigene Website':'Create your own website');
+});
+
+test('booking dropdown labels update on language switch and stay within a mobile viewport',async({page})=>{
+ await mockPublicBackend(page);await page.setViewportSize({width:390,height:844});await page.goto('/?lang=en');await expect(page.locator('#rooms')).toContainText('Cozy Holz');
+ await page.evaluate(()=>window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14'));await page.locator('#guestSex').selectOption('male');
+ await page.locator('.lang-btn[data-lang=de]').click();await expect(page.locator('#guestSexChoice')).toContainText('Männlich');await expect(page.locator('#guestReturningLabel')).toHaveText('Waren Sie schon einmal bei uns?');
+ await page.locator('#guestSexChoice').click();const box=await page.locator('#guestSexOptions').boundingBox();expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(391);
+ await page.locator('#guestSexChoice').press('Tab');await expect(page.locator('#guestSexOptions')).toBeHidden();
+ await page.locator('#guestReturningChoice').click();await expect(page.locator('#guestReturningOptions')).toBeVisible();
+});
+
+for(const height of [430,844])test(`booking dropdown fits the available screen height at ${height}px`,async({page})=>{
+ await mockPublicBackend(page);await page.setViewportSize({width:390,height});await page.goto('/?lang=en');await expect(page.locator('#rooms')).toContainText('Cozy Holz');
+ await page.evaluate(()=>window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14'));await page.locator('#guestSexChoice').click();
+ const box=await page.locator('#guestSexOptions').boundingBox();expect(box.y).toBeGreaterThanOrEqual(0);expect(box.y+box.height).toBeLessThanOrEqual(height);
+});
+
 test('a blocked October 14 is available only as checkout after a free October 13',async ({page})=>{
   await mockPublicBackend(page);
   await page.goto('/?lang=en',{waitUntil:'domcontentloaded'});

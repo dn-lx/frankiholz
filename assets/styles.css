@@ -378,6 +378,13 @@ textarea{resize:vertical}
 }
 
 /* ADMIN */
+.footer-website{display:flex;align-items:center;flex-wrap:wrap;gap:7px 10px;line-height:1.6}.footer-website a{color:#fff;font-weight:700;text-underline-offset:4px;text-decoration-color:#7cbea2}.footer-website a:hover{color:#9fe1bc}
+.booking-select{position:relative;margin-bottom:14px;min-width:0}.booking-select-native{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;clip-path:inset(50%);overflow:hidden;white-space:nowrap}
+.booking-select-trigger{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;min-height:48px;margin:0;padding:12px 15px;border:1px solid #bfd5ce;border-radius:13px;background:linear-gradient(180deg,#fff,#f8fbf9);color:var(--ink);font:inherit;text-align:left;cursor:pointer;box-shadow:0 2px 4px rgba(15,66,49,.03)}
+.booking-select-trigger:hover{border-color:#72ac92;background:#f5fbf7}.booking-select-trigger:focus-visible{outline:3px solid #9dd7bd;outline-offset:3px}.booking-select-trigger[aria-expanded=true]{border-color:#428c6d;box-shadow:0 0 0 3px #e3f2e9}.booking-select-trigger[aria-invalid=true]{border-color:#b84343}.booking-select-trigger.is-placeholder{color:#687f79}.booking-select-trigger:disabled{cursor:default;opacity:.65}
+.booking-select-arrow{width:8px;height:8px;flex:0 0 8px;border-right:2px solid #54816f;border-bottom:2px solid #54816f;transform:rotate(45deg);margin:-4px 3px 0 0}.booking-select-trigger[aria-expanded=true] .booking-select-arrow{transform:rotate(225deg);margin-top:4px}
+.booking-select-options{position:absolute;z-index:35;top:calc(100% + 7px);left:0;right:0;padding:6px;max-height:260px;overflow:auto;overscroll-behavior:contain;background:#fff;border:1px solid #c9ded3;border-radius:15px;box-shadow:0 16px 35px rgba(18,62,46,.17)}.booking-select-options[hidden]{display:none!important}
+.booking-select-option{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:11px 12px;border-radius:9px;color:var(--ink);cursor:pointer;font-size:14px;line-height:1.5}.booking-select-option:hover,.booking-select-option.is-active{background:#edf6f0}.booking-select-option[aria-selected=true]{background:#e1f1e7;color:#176047;font-weight:700}.booking-select-error{margin:7px 0 0!important;font-size:12px;color:#a53232;line-height:1.5}
 .admin-page{
   min-height:100vh;
   background:
