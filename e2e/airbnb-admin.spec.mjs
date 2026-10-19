@@ -85,3 +85,22 @@ test('feed replacement is disabled while sync is running',async({page})=>{
   finish();
   await expect(page.locator('.sync-feed-button')).toBeEnabled();
 });
+
+test('sync cannot overtake a pending feed replacement and the saved link is synced',async({page})=>{
+  await page.evaluate(()=>{
+    sb.auth.getSession=async()=>({data:{session:{access_token:'fixture-admin-token'}}});
+    const original=sb.from.bind(sb);sb.from=table=>{const q=original(table);q.upsert=()=>new Promise(resolve=>{window.__finishFeedSave=()=>resolve({error:null})});return q};
+    renderIcalFeeds();
+  });
+  let syncs=0;
+  await page.route('**/functions/v1/frankiholz-sync-airbnb',async route=>{syncs++;await route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify({ok:true,feeds:[{room_id:'fixture-room',ok:true,blocked_dates:2}]})})});
+  await page.getByRole('tab',{name:'Integrations',exact:true}).click();
+  await page.getByLabel('Airbnb calendar link for Cozy Holz').fill('https://www.airbnb.com/calendar/ical/fixture.ics');
+  await page.getByRole('button',{name:'Connect',exact:true}).click();
+  await expect(page.locator('#syncAirbnbBtn')).toBeDisabled();
+  await expect(page.locator('.sync-feed-button')).toBeDisabled();
+  await page.evaluate(async()=>{await syncAirbnb();window.__finishFeedSave()});
+  await expect(page.locator('#icalStatus')).toContainText('1 feed updated · 2 imported nights');
+  expect(syncs).toBe(1);
+  await expect(page.locator('#syncAirbnbBtn')).toBeEnabled();
+});
