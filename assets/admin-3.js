@@ -2,7 +2,7 @@ function renderRooms(){
   $('roomEditors').innerHTML=rooms.map(r=>`
     <div class="room-editor-shell">
       <div class="room-editor-top">
-        <div>
+        <div class="room-details-editor">
           <h3 style="margin-top:0">${esc(r.name)} / ${esc(r.name_de||'')}</h3>
           <div class="bilingual-editor compact">
             <div><span class="language-heading">English</span><label for="rn-${r.id}">Room name</label><input id="rn-${r.id}" value="${attr(r.name)}"><label for="rd-${r.id}">Description</label><textarea id="rd-${r.id}" rows="3">${esc(r.description||'')}</textarea></div>
@@ -18,7 +18,8 @@ function renderRooms(){
           </div>
           <button class="btn secondary" onclick="saveRoom('${r.id}')" style="margin-top:10px">Save room details</button>
         </div>
-        <div>
+        <div class="room-photos-editor">
+          <h4>Room photos</h4>
           <label style="margin-top:0" for="rf-${r.id}">Upload room photos</label>
           <input id="rf-${r.id}" type="file" multiple accept="image/jpeg,image/png,image/webp,image/avif">
           <button class="btn" onclick="uploadRoomImages('${r.id}')" style="margin-top:10px">Upload photos</button>
@@ -29,6 +30,7 @@ function renderRooms(){
       </div>
 
       <div class="room-admin-calendar">
+        <div class="section-heading room-calendar-heading"><h4>Availability</h4><button class="btn ghost small room-sync-button" onclick="syncAirbnb('${r.id}')">Sync this room’s Airbnb calendar</button></div>
         <div class="calendar-toolbar">
           <button class="btn ghost small" onclick="moveRoomMonth('${r.id}',-1)">‹ Previous</button>
           <strong id="rc-title-${r.id}">Calendar</strong>
@@ -39,7 +41,9 @@ function renderRooms(){
           <span class="legend-chip"><i class="la"></i> Available</span>
           <span class="legend-chip"><i class="lb"></i> Blocked</span>
           <span class="legend-chip"><i class="lc"></i> Booked</span>
+          <span class="legend-chip"><i class="lo"></i> Airbnb blocked · available here</span>
         </div>
+        <p id="rc-sync-${r.id}" class="muted calendar-source-summary" role="status"></p>
         <div class="range-manager">
           <div class="range-summary">
             <span><b>Selected range</b></span>
@@ -53,6 +57,14 @@ function renderRooms(){
             <button class="btn available-action small" onclick="applyRoomRange('${r.id}','available')">✓ Make available</button>
             <button class="btn blocked-action small" onclick="applyRoomRange('${r.id}','blocked')">— Block range</button>
             <button class="btn booked-action small" onclick="applyRoomRange('${r.id}','booked')">● Mark booked</button>
+          </div>
+          <div class="airbnb-range-controls">
+            <strong>Airbnb availability</strong>
+            <p class="muted">Make imported Airbnb-blocked dates available here, preserving confirmed reservations. Overrides survive sync. Follow Airbnb again removes manual availability overrides in the selected range. Airbnb itself is unchanged.</p>
+            <div class="range-actions">
+              <button class="btn available-action small" onclick="applyAirbnbRange('${r.id}',true)">Airbnb blocked · make available here</button>
+              <button class="btn ghost small" onclick="applyAirbnbRange('${r.id}',false)">Follow Airbnb again</button>
+            </div>
           </div>
           <div id="rc-status-${r.id}"></div>
         </div>

@@ -1,5 +1,18 @@
 # Current Handoff
 
+## Airbnb calendar clarity and room layout — 2026-10-19 (in progress)
+
+- Branch codex/airbnb-calendar-room-layout from develop2844d13. Live read: all3 Airbnb feeds successfully synced; 39/364/340 imported dates and Room1 27 manual overrides explain apparent non-sync. Existing overrides must remain until owner explicitly selects reset. No private feed URLs fetched into source/logs.
+- Added Admin-only RPC frankiholz_set_airbnb_availability, applied reviewed migration airbnb_availability_controls successfully. True affects only Airbnb-blocked selected dates, skips confirmed reservations under room lock; false clears only admin_available_override/timestamp in selected range. Existing general Make available contract unchanged. Migration+SQL assertions first passed inside BEGIN/ROLLBACK; no persisted booking/fixture/email/payment. Independent payment_options_review found no SQL/security blockers; sync link-replacement race fixed by disabling/guarding feed replacement during sync.
+- UI changes staged locally: full-width details above photos, explicit override labels/legend/monthly counts, perroom sync, count/error reporting, confirmed-night display even if old broad override cleared booking link. 15 focused Chromium checks passed. Full Chromium and final race test pending, CI/PR/merge pending. New RPC applied but no real availability overrides changed by agent. Existing sync Edge Function v31 unchanged.
+
+
+## Completed UI audit deployment — 2026-10-18
+
+- PR58 https://github.com/dn-lx/frankiholz/pull/58 merged into develop as 2844d1310a5ac71017c9295a973f7f8a8df46311. Local checkout develop. All four required workflows succeeded; final browser CI 138 cases (69 Chromium + 69 WebKit), plus 15 mocked financial checks. Security, Lighthouse and agent stack green. Main unchanged.
+- Deployed Admin verified newest received first with Europe/Berlin timestamps, Refresh requests and wrapped unbroken messages; no horizontal overflow. Existing database has 14 total requests, all already removed by owner/external state (active0). Used Show removed requests to inspect; did not remove, restore, cancel, charge or refund any request.
+- Deployed homepage verified all three photo/placeholder covers250px and aligned card action bottoms. Normal deployed payment lookup verified no new bank-transfer offer; card/wallet/SEPA Direct Debit path retained. Existing bank transfer reconciliation remains supported. Temporary EUR0.45 payment inspection tab closed without creating a setup or charge. LIVE remains configured; setup functions live v11/test v25 ACTIVE.
+- Evidence outside Git: C:/Users/dasha/.codex/visualizations/2026/10/18/01a14ec4-b9ac-7dc0-b23a-78974256ef31/admin-ui-audit-deployed.png. Deployed Admin tab21 and homepage tab20 marked deliverable. Local preview server4180 stopped. This completion handoff update is intentionally uncommitted.
 ## Public/Admin UI audit and bank option removal — 2026-10-18
 
 - Branch codex/booking-ui-audit from develop8bff8ca; owner requested received-time ordering, wrapping, no new bank transfers, broader homepage/Admin alignment audit. Existing source already sortedcreated_atDESC but displayedchargedue; now stablecreated_at/idDESC, visible Received Europe/Berlin timestamps, Refresh requests withfirst-errorrecovery/stale-readguard. Cards separateidentity/time/badges/stay/contact/message/actions. Longunbrokenstringswrap, message newlinepreserved.
