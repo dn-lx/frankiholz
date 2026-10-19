@@ -75,6 +75,7 @@ for(const lang of ['en','de'])test(`booking dropdowns preserve keyboard selectio
  await mockPublicBackend(page);await page.goto('/?lang='+lang);await expect(page.locator('#rooms')).toContainText('Cozy Holz');
  await page.evaluate(()=>window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14'));
  const sex=page.locator('#guestSexChoice'),returning=page.locator('#guestReturningChoice');
+ await page.locator('#guestSexLabel').click();await expect(sex).toBeFocused();
  await expect(sex).toHaveAttribute('aria-required','true');await sex.click();await expect(page.locator('#guestSexOptions')).toBeVisible();
  await sex.press('End');await sex.press('Enter');await expect(page.locator('#guestSex')).toHaveValue('prefer_not_to_say');
  await expect(sex).toContainText(lang==='de'?'Keine Angabe':'Prefer not to say');await expect(sex).toHaveAttribute('aria-expanded','false');

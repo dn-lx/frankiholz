@@ -13,7 +13,10 @@
     const arrow=document.createElement('span');arrow.className='booking-select-arrow';arrow.setAttribute('aria-hidden','true');trigger.append(arrow);
     const list=document.createElement('div');list.id=id+'Options';list.className='booking-select-options';list.setAttribute('role','listbox');list.hidden=true;
     const error=document.createElement('p');error.id=id+'Error';error.className='booking-select-error';error.hidden=true;error.setAttribute('aria-live','polite');
-    label.id=id+'Label';label.htmlFor=trigger.id;trigger.setAttribute('aria-labelledby',label.id+' '+value.id);trigger.setAttribute('aria-controls',list.id);trigger.setAttribute('aria-describedby',error.id);trigger.setAttribute('aria-required',String(native.required));list.setAttribute('aria-labelledby',label.id);
+    label.id=id+'Label';trigger.setAttribute('aria-labelledby',label.id+' '+value.id);trigger.setAttribute('aria-controls',list.id);trigger.setAttribute('aria-describedby',error.id);trigger.setAttribute('aria-required',String(native.required));list.setAttribute('aria-labelledby',label.id);
+    // Retain the native label association; label activation focuses the visible control.
+    label.addEventListener('click',e=>{e.preventDefault();trigger.focus();});
+    native.addEventListener('focus',()=>trigger.focus());
     wrap.append(trigger,list,error);
     let active=0,search='',timer;
     const options=()=>[...native.options].filter(o=>o.value!==''&&!o.disabled);
