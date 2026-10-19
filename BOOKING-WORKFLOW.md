@@ -72,3 +72,9 @@ Make available reopens each selected calendar night even if an existing reservat
 ## Request list
 
 Admin sorts requests newest received first by immutable created_at, with id as a deterministic tie-breaker. Each request displays Received in Europe/Berlin time, separately from payment scheduling. Payment updates do not change received order. Refresh requests reloads current state; removed requests use the same ordering. Long messages preserve line breaks and wrap inside their cards.
+
+## Airbnb availability controls
+
+Airbnb sync replaces imported blocks, preserving explicit Admin availability overrides. Room calendars distinguish imported Airbnb blocks from “Airbnb blocked · available here” dates and report the imported/overridden nights in the visible month. Each room has a sync action; Integrations syncs all enabled feeds and reports counts/errors.
+
+The separate Airbnb-only action affects imported Airbnb-blocked nights in the selected inclusive range, excluding confirmed reservations. “Follow Airbnb again” removes manual availability overrides in that range; imported blocks and confirmed reservations then apply normally. Both actions require server-verified Admin access and serialize on the room lock. Neither changes Airbnb, reservations, payments, prices or notes. General “Make available” retains its broader explicit reopening behavior.
