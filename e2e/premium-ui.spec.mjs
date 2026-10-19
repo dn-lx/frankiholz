@@ -61,6 +61,7 @@ test('desktop hero places location badge and single room CTA on the right', asyn
   expect(Math.abs(badgeBox.x+badgeBox.width-(railBox.x+railBox.width))).toBeLessThanOrEqual(3);
   expect(Math.abs(buttonBox.x+buttonBox.width-(railBox.x+railBox.width))).toBeLessThanOrEqual(3);
   const navBox=await page.locator('.site-nav').boundingBox();
+  expect(badgeBox.y).toBeGreaterThanOrEqual(navBox.y+navBox.height+20);
   const wrapBox=await page.locator('.fh-hero-grid').boundingBox();
   expect(navBox.width).toBeGreaterThan(wrapBox.width);
   expect(navBox.x).toBeLessThan(wrapBox.x);
