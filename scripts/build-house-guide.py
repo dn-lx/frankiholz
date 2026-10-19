@@ -28,11 +28,15 @@ pdfmetrics.registerFontFamily('Guide', normal='Guide', bold='GuideBold', italic=
 body = ParagraphStyle('body', fontName='Guide', fontSize=10.3, leading=15, textColor=INK)
 small = ParagraphStyle('small', parent=body, fontSize=9, leading=13, textColor=MUTED)
 
-logo = Image.open(ROOT / 'assets' / 'frankiholz-logo-for-dark.png').convert('RGBA')
+ui_logo = Image.open(ROOT / 'assets' / 'frankiholz-logo-for-dark.png').convert('RGBA')
+ui_logo = ui_logo.crop(ui_logo.getbbox())
+ui_logo.thumbnail((600, 600), Image.Resampling.LANCZOS)
+lockup = ROOT / 'assets' / 'frankiholz-logo-lockup.png'
+ui_logo.save(lockup, optimize=True)
+# The PDF uses the approved transparent variant for light backgrounds.
+logo = Image.open(ROOT / 'assets' / 'frankiholz-logo-for-light.png').convert('RGBA')
 logo = logo.crop(logo.getbbox())
 logo.thumbnail((600, 600), Image.Resampling.LANCZOS)
-lockup = ROOT / 'assets' / 'frankiholz-logo-lockup.png'
-logo.save(lockup, optimize=True)
 OUT.parent.mkdir(parents=True, exist_ok=True)
 c = canvas.Canvas(str(OUT), pagesize=(W, H), pageCompression=1, invariant=1)
 c.setTitle('Welcome to FrankiHolz | House guide & Hausregeln')
@@ -47,8 +51,7 @@ def para(text, x, y, width=W-2*M, style=body):
 
 def header(lang, page, title, subtitle):
     c.setFillColor(PAPER); c.rect(0, 0, W, H, fill=1, stroke=0)
-    c.setFillColor(INK); c.roundRect(M, H-117, 116, 79, 10, fill=1, stroke=0)
-    c.drawImage(ImageReader(logo), M+13, H-109, width=90, height=61, preserveAspectRatio=True, anchor='c', mask='auto')
+    c.drawImage(ImageReader(logo), M, H-120, width=116, height=82, preserveAspectRatio=True, anchor='c', mask='auto')
     c.setFillColor(GREEN); c.setFont('GuideBold', 9)
     c.drawRightString(W-M, H-58, lang)
     c.setFillColor(MUTED); c.setFont('Guide', 9)

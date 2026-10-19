@@ -52,3 +52,7 @@ The artwork in this kit is based on the approved FrankiHolz cabin logo with the 
 “YOUR STAY IN FRANKFURT”. The teal-background files use the exact requested background
 color #0C3447.
 
+## Source recovery
+
+On 2026-10-19, the incomplete `assets/frankiholz-logo-for-light.png` was replaced with the exact approved [Transparent_ForLight_2048 original](https://drive.google.com/file/d/1O9bCtWgFmC03OXU9UXV6Q9BfgAPCGQcH/view) from the original Primary Logos kit (709,019 bytes). The recovered file is now maintained in GitHub. The house-guide PDF uses this light-background artwork without a dark tile; only transparent padding is cropped and resolution reduced for embedding. No mark is redrawn or recolored.
+
