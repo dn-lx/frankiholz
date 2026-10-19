@@ -201,6 +201,19 @@ test('payment and refund emails distinguish host approval and pending refunds in
   }
 });
 
+test('guest emails greet safely and ask arrival time only after host confirmation',async()=>{
+ const source=await readFile(new URL('../functions/frankiholz-guest-email/index.ts',import.meta.url),'utf8');
+ const context={Deno:{env:{get:()=>''},serve(){}},createClient:()=>({}),console,URL,Date,Intl};
+ vm.runInNewContext(stripTypeScriptTypes(source.replace(/^import .*;\r?\n/gm,'')),context);
+ for(const language of ['en','de'])for(const status of ['pending','confirmed'])for(const event of ['request_received','booking_confirmed','payment_method_saved','payment_confirmed','charge_scheduled','charge_failed','booking_rejected','booking_cancelled','authorization_received','authorization_expired','approved','rejected']){
+  const html=context.guestTemplate(event,{...booking(),status,language,guest_name:'<img src=x onerror=alert(1)>',frankiholz_rooms:{name:'Room 1'}}).html;
+  assert.ok(html.includes('&lt;img'));assert.ok(!html.includes('<img src=x'));
+  assert.match(html,language==='de'?/Mit herzlichen Grüßen/:/With warm wishes/);
+  assert.match(html,/https:\/\/wa.me\/4917662493041\?text=/);assert.doesNotMatch(html,/guest_email=/);
+  assert.equal(html.includes(language==='de'?'Wann dürfen wir Sie begrüßen?':'What time will you be arriving?'),status==='confirmed'&&['booking_confirmed','payment_confirmed','charge_scheduled'].includes(event));
+ }
+});
+
 test('a setup callback racing cancellation cannot resurrect the booking and detaches the obsolete method',async()=>{
   const f=fixture({...booking(),status:'pending',payment_status:'awaiting_payment',stripe_payment_method_id:null,stripe_checkout_session_id:'cs_fixture'});
   let detached=false;
