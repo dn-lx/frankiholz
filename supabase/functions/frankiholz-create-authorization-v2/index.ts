@@ -20,6 +20,7 @@ Deno.serve(async(req:Request)=>{
  try{
   const body=await req.json();const reference=String(body?.reference||"").trim();const email=String(body?.email||"").trim().toLowerCase();if(!reference||!email)return new Response(JSON.stringify({error:"Booking reference and email are required"}),{status:400,headers});
   const {data:booking,error}=await service.from("frankiholz_bookings").select("*,frankiholz_rooms(name,name_de)").eq("reference",reference).eq("guest_email",email).maybeSingle();if(error||!booking)return new Response(JSON.stringify({error:"Booking not found"}),{status:404,headers});
+  if(booking.payment_collection_mode==="complimentary"||booking.payment_status==="not_required"||Number(booking.total_price)<=0)return new Response(JSON.stringify({error:"No payment is required for this complimentary booking. Check your booking status."}),{status:409,headers});
   const {data:environment,error:environmentError}=await service.rpc("frankiholz_get_payment_environment");if(environmentError||environment!=="live")return new Response(JSON.stringify({error:"Payment environment changed; please contact FrankiHolz"}),{status:409,headers});
   if(booking.payment_status!=="not_started"&&booking.payment_mode!=="live")return new Response(JSON.stringify({error:"Booking payment environment mismatch"}),{status:409,headers});
   if(booking.payment_schedule_version!=="v2_14_day")return new Response(JSON.stringify({error:"This booking is not using the 14-day payment flow"}),{status:409,headers});

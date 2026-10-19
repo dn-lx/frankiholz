@@ -6,6 +6,8 @@ import vm from 'node:vm';
 import {chargeBooking} from '../functions/_shared/booking-charge.ts';
 import {openBankTransfer} from '../functions/_shared/bank-transfer.ts';
 import {cancelTransfer} from '../functions/_shared/cancel-transfer.ts';
+import {isComplimentary,closeComplimentary} from '../functions/_shared/complimentary.ts';
+import {claimOperation,releaseOperation} from '../functions/_shared/payment-operation.ts';
 
 const booking=()=>({id:'booking-1',reference:'FH-ISOLATED',status:'confirmed',payment_status:'scheduled_charge',payment_collection_mode:'saved_method',payment_mode:'test',payment_schedule_version:'v2_14_day',total_price:0.50,stripe_customer_id:'cus_fixture',stripe_payment_method_id:'pm_fixture',stripe_setup_intent_id:'seti_fixture',stripe_payment_intent_id:null,check_in:'2026-11-10',check_out:'2026-11-11'});
 function fixture(b=booking()){
@@ -70,6 +72,62 @@ for(const mode of ['live','test'])test(`${mode} setup refuses new transfers, pre
  const unstarted=await run({payment_collection_mode:'bank_transfer'},'bank_transfer');assert.equal(unstarted.response.status,409);assert.equal(unstarted.bankCalls,0);
  const existing=await run({payment_collection_mode:'bank_transfer',stripe_payment_intent_id:'pi_existing'},'bank_transfer');assert.equal(existing.response.status,200);assert.equal(existing.bankCalls,1);assert.equal(existing.json.reused,true);
  const saved=await run({payment_status:'awaiting_payment',stripe_checkout_url:'https://checkout.stripe.com/existing',payment_due_at:'2099-01-01T00:00:00Z'},'saved_method');assert.equal(saved.response.status,200);assert.equal(saved.bankCalls,0);assert.equal(saved.json.checkout_url,'https://checkout.stripe.com/existing');
+ const free=await run({payment_collection_mode:'complimentary',payment_status:'not_required',total_price:0},'saved_method');assert.equal(free.response.status,409);assert.match(free.json.error,/No payment is required/);assert.equal(free.bankCalls,0);assert.equal(free.f.creates.length,0);
+});
+
+const complimentary=()=>({...booking(),status:'pending',payment_status:'not_required',payment_collection_mode:'complimentary',total_price:0,promo_code:'FrankFlowGuest100',promo_discount_percent:100,guest_email:'fixture@example.invalid',stripe_customer_id:null,stripe_payment_method_id:null,stripe_setup_intent_id:null});
+async function freeHandler(name,f){
+ const source=await readFile(new URL('../functions/'+name+'/index.ts',import.meta.url),'utf8');let handler;
+ const original=f.service.rpc.bind(f.service);
+ f.service.rpc=async(name,args)=>{
+   if(name==='frankiholz_admin_access_check')return {data:f.state.admin!==false};
+   if(name==='frankiholz_confirm_payment_booking'){assert.equal(args.p_operation_token,f.b.payment_operation_token);f.b.status='confirmed';return {error:null}}
+   if(name==='frankiholz_close_complimentary_booking'){assert.equal(args.p_operation_token,f.b.payment_operation_token);f.b.status='cancelled';return {error:null}}
+   return original(name,args);
+ };
+ class Stripe{constructor(){throw new Error('Complimentary flow must never construct Stripe')}}
+ vm.runInNewContext(stripTypeScriptTypes(source.replace(/^import .*;\r?\n/gm,'')),{
+   Deno:{env:{get:key=>key.startsWith('STRIPE')?undefined:'mock-only'},serve(fn){handler=fn}},Stripe,createClient:()=>f.service,
+   isComplimentary,closeComplimentary,claimOperation,releaseOperation,chargeBooking,cancelTransfer,
+   Request,Response,console:{error(){},warn(){}},fetch:async(_url,options)=>{f.state.emails.push(JSON.parse(options.body));return new Response('{}')},
+ });
+ return handler;
+}
+for(const action of ['accept','reject'])test(`complimentary host ${action} works without Stripe keys or APIs`,async()=>{
+ const f=fixture(complimentary()),handler=await freeHandler('frankiholz-booking-decision',f);
+ const request=()=>new Request('https://fixture.invalid/decision',{method:'POST',headers:{authorization:'Bearer fixture-admin'},body:JSON.stringify({booking_id:f.b.id,action})});
+ const response=await handler(request());assert.equal(response.status,200,await response.clone().text());
+ assert.equal(f.b.status,action==='accept'?'confirmed':'cancelled');assert.equal(f.b.payment_status,'not_required');assert.equal(f.b.payment_operation_token,null);
+ assert.equal(f.creates.length,0);assert.equal(f.refunds.length,0);assert.equal(f.b.paid_at,undefined);
+ assert.deepEqual(f.state.emails.map(e=>e.event_type),[action==='accept'?'booking_confirmed':'booking_rejected']);
+ assert.equal((await handler(request())).status,200);assert.equal(f.creates.length,0);
+});
+test('unauthorized host cannot confirm a complimentary request',async()=>{
+ const f=fixture(complimentary());f.state.admin=false;const handler=await freeHandler('frankiholz-booking-decision',f);
+ const response=await handler(new Request('https://fixture.invalid/decision',{method:'POST',headers:{authorization:'Bearer fixture-unauthorized'},body:JSON.stringify({booking_id:f.b.id,action:'accept'})}));
+ assert.equal(response.status,403);assert.equal(f.b.status,'pending');assert.equal(f.state.emails.length,0);
+});
+for(const status of ['pending','confirmed'])test(`complimentary ${status} guest cancellation never charges or refunds`,async()=>{
+ const f=fixture({...complimentary(),status}),handler=await freeHandler('frankiholz-cancel-booking-v2',f);
+ const request=email=>new Request('https://fixture.invalid/cancel',{method:'POST',headers:{origin:'https://develop--frankiholz.netlify.app'},body:JSON.stringify({reference:f.b.reference,email})});
+ assert.equal((await handler(request('wrong@example.invalid'))).status,404);assert.equal(f.b.status,status);
+ const response=await handler(request(f.b.guest_email));assert.equal(response.status,200,await response.clone().text());assert.equal((await response.json()).policy,'no_payment');
+ assert.equal(f.b.status,'cancelled');assert.equal(f.b.payment_status,'not_required');assert.equal(f.creates.length,0);assert.equal(f.refunds.length,0);
+ assert.equal((await handler(request(f.b.guest_email))).status,200);assert.equal(f.state.emails.length,1);
+});
+test('complimentary charge and malformed free markers are refused',async()=>{
+ const f=fixture({...complimentary(),status:'confirmed'});await assert.rejects(chargeBooking(f.service,f.stripe,f.b));assert.equal(f.creates.length,0);
+ assert.equal(isComplimentary({...f.b,total_price:1}),false);assert.equal(isComplimentary({...f.b,promo_discount_percent:75}),false);
+});
+test('complimentary messages describe no payment and cannot send receipt events',async()=>{
+ const source=await readFile(new URL('../functions/frankiholz-guest-email/index.ts',import.meta.url),'utf8');let handler;const sent=[];
+ const f=fixture(complimentary());const context={Deno:{env:{get:key=>key==='RESEND_API_KEY'?'fixture':'mock-only'},serve(fn){handler=fn}},createClient:()=>f.service,Request,Response,console:{error(){}},URL,Date,Intl,fetch:async(_url,options)=>{sent.push(options);return new Response('{}')}};
+ vm.runInNewContext(stripTypeScriptTypes(source.replace(/^import .*;\r?\n/gm,'')),context);
+ for(const language of ['en','de'])for(const event of ['request_received','booking_confirmed']){
+   const result=context.guestTemplate(event,{...f.b,language});assert.match(result.html,language==='en'?/No payment is required/:/keine Zahlung erforderlich/);assert.doesNotMatch(result.html,/automatically 14 days|automatisch 14 Tage/);
+ }
+ const response=await handler(new Request('https://fixture.invalid/email',{method:'POST',headers:{authorization:'Bearer mock-only'},body:JSON.stringify({event_type:'payment_confirmed',booking_id:f.b.id})}));
+ assert.equal(response.status,409);assert.equal(sent.length,0);
 });
 
 test('SEPA processing is retained; repeated entry points cannot create another charge',async()=>{

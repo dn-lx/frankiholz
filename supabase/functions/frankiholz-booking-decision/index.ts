@@ -1,3 +1,4 @@
+import { isComplimentary, closeComplimentary } from "../_shared/complimentary.ts";
 import { claimOperation, releaseOperation } from "../_shared/payment-operation.ts";
 import { cancelTransfer } from "../_shared/cancel-transfer.ts";
 import { chargeBooking } from "../_shared/booking-charge.ts";
@@ -10,6 +11,13 @@ async function email(event_type:string,booking_id:string){try{await fetch(`${SUP
 async function markConfirmed(b:any,_paymentStatus:string){const operation=await claimOperation(service,b.id,"accept");const {error}=await service.rpc("frankiholz_confirm_payment_booking",{p_booking_id:b.id,p_operation_token:operation.token});await releaseOperation(service,b.id,operation.token);if(error)throw error}
 const chargeNow=(b:any,stripe:Stripe)=>chargeBooking(service,stripe,b);
 Deno.serve(async(req:Request)=>{const headers=cors(req);if(req.method==="OPTIONS")return new Response("ok",{headers});if(req.method!=="POST")return new Response(JSON.stringify({error:"Method not allowed"}),{status:405,headers});const auth=req.headers.get("authorization");if(!auth)return new Response(JSON.stringify({error:"Missing authorization"}),{status:401,headers});const userClient=createClient(SUPABASE_URL,PUBLIC_KEY,{global:{headers:{Authorization:auth}}});try{const {data:isAdmin,error:adminError}=await userClient.rpc("frankiholz_admin_access_check");if(adminError||!isAdmin)return new Response(JSON.stringify({error:"Not authorized"}),{status:403,headers});const body=await req.json();const bookingId=String(body?.booking_id||""),action=String(body?.action||"");if(!bookingId||!["accept","reject"].includes(action))return new Response(JSON.stringify({error:"booking_id and valid action are required"}),{status:400,headers});const {data:b,error}=await service.from("frankiholz_bookings").select("*").eq("id",bookingId).maybeSingle();if(error||!b)return new Response(JSON.stringify({error:"Booking not found"}),{status:404,headers});
+  if(b.payment_collection_mode==="complimentary"){
+    if(!isComplimentary(b))return new Response(JSON.stringify({error:"Invalid complimentary booking"}),{status:409,headers});
+    if(b.status==="cancelled")return new Response(JSON.stringify({ok:action==="reject",status:"cancelled",payment_status:"not_required"}),{status:action==="reject"?200:409,headers});
+    if(action==="accept")await markConfirmed(b,"not_required");else await closeComplimentary(service,b);
+    await email(action==="accept"?"booking_confirmed":"booking_rejected",b.id);
+    return new Response(JSON.stringify({ok:true,status:action==="accept"?"confirmed":"cancelled",payment_status:"not_required",mode:b.payment_mode}),{headers});
+  }
   if(b.payment_schedule_version==="v2_14_day"){
     const key=b.payment_mode==="test"?TEST_KEY:LIVE_KEY;if(!key)return new Response(JSON.stringify({error:`Stripe ${b.payment_mode} key is not configured`}),{status:503,headers});const stripe=new Stripe(key);
     if(b.payment_status==="processing")return new Response(JSON.stringify({ok:action==="accept",status:b.status,payment_status:"processing",error:action==="reject"?"Payment is processing. Please wait for settlement before rejecting.":undefined}),{status:action==="accept"?200:409,headers});

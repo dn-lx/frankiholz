@@ -1,3 +1,4 @@
+import { isComplimentary, closeComplimentary } from "../_shared/complimentary.ts";
 import { claimOperation, releaseOperation } from "../_shared/payment-operation.ts";
 import { cancelTransfer } from "../_shared/cancel-transfer.ts";
 import { chargeBooking } from "../_shared/booking-charge.ts";
@@ -89,6 +90,11 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ ok: true, already_cancelled: true, payment_mode: booking.payment_mode }), { headers });
     }
 
+    if(booking.payment_collection_mode==="complimentary"){
+      if(!isComplimentary(booking))return new Response(JSON.stringify({error:"Invalid complimentary booking"}),{status:409,headers});
+      await closeComplimentary(service,booking);await sendEmail(booking.id);
+      return new Response(JSON.stringify({ok:true,refundable:false,refunded:false,policy:"no_payment",payment_status:"not_required",payment_mode:booking.payment_mode}),{headers});
+    }
     const key = booking.payment_mode === "test" ? TEST_KEY : LIVE_KEY;
     if (!key) {
       return new Response(JSON.stringify({ error: `Stripe ${booking.payment_mode} key is not configured` }), { status: 503, headers });

@@ -14,11 +14,13 @@ function setBusy(value){busy=value;['reference','email','lookupButton','savedPay
 function paint(){
  el('statusLink').href='/booking-status.html?lang='+language+'&reference='+encodeURIComponent(booking.reference);
  el('paymentSummary').textContent=booking.reference+' · '+booking.room_name+' · '+booking.check_in+' → '+booking.check_out+' · '+new Intl.NumberFormat(language==='de'?'de-DE':'en-DE',{style:'currency',currency:'EUR'}).format(Number(booking.total_price));
- const closed=booking.booking_status==='cancelled';
+ const closed=booking.booking_status==='cancelled',free=booking.payment_status==='not_required';
+ document.querySelector('[data-copy=title]').textContent=free?(language==='de'?'Keine Zahlung erforderlich':'No payment required'):text('title');
+ document.querySelector('[data-copy=lead]').textContent=free&&closed?(language==='de'?'Ihre Anfrage ist geschlossen. Es ist keine Zahlung erforderlich.':'Your request is closed. No payment is required.'):free&&booking.booking_status==='confirmed'?(language==='de'?'Ihr kostenloser Aufenthalt ist bestätigt.':'Your complimentary stay is confirmed.'):free?(language==='de'?'Ihr 100%-Gutschein deckt den gesamten Aufenthalt ab. Die Buchung erfordert weiterhin die Bestätigung des Gastgebers.':'Your 100% promo covers the full stay. Your booking still requires host approval.'):text('lead');
  const payable=booking.booking_status==='pending'&&['not_started','awaiting_payment','expired','failed'].includes(booking.payment_status);
  const bank=booking.payment_collection_mode==='bank_transfer';
  el('paymentChoices').hidden=!payable;el('savedPayment').closest('.payment-option').hidden=bank;el('existingTransfer').hidden=!bank;
- el('paymentState').textContent=closed?text('closed'):!payable?text('ready'):'';
+ el('paymentState').textContent=closed?text('closed'):free?(language==='de'?'Keine Zahlungsdaten oder Belastung erforderlich. Prüfen Sie den Buchungsstatus.':'No payment details or charge required. Check your booking status.'):!payable?text('ready'):'';
  el('modeNotice').hidden=booking.payment_mode!=='test';el('modeNotice').textContent=booking.payment_mode==='test'?text('test'):'';
 }
 async function lookup(event){

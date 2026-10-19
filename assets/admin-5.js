@@ -65,7 +65,7 @@ async function loadBookings(){
   if(version!==bookingListVersion)return;
   if($('refreshBookings'))$('refreshBookings').disabled=false;
   if(error){$('bookings').innerHTML=`<div class="notice">${esc(error.message)}</div>`;return}
-  const labels={not_started:'payment setup not started',awaiting_payment:'payment setup outstanding',payment_method_saved:'payment method saved',processing:'payment processing',scheduled_charge:'payment scheduled',paid:'paid',failed:'payment failed',released:'released',refunded:'refunded',expired:'expired',authorized:'authorized'};
+  const labels={not_required:'no payment required (100% promo)',not_started:'payment setup not started',awaiting_payment:'payment setup outstanding',payment_method_saved:'payment method saved',processing:'payment processing',scheduled_charge:'payment scheduled',paid:'paid',failed:'payment failed',released:'released',refunded:'refunded',expired:'expired',authorized:'authorized'};
   $('bookings').innerHTML=(data||[]).slice().sort((a,b)=>(Date.parse(b.created_at)||0)-(Date.parse(a.created_at)||0)||String(b.id).localeCompare(String(a.id))).filter(b=>$('showRemovedBookings')?.checked?Boolean(b.admin_deleted_at):!b.admin_deleted_at).map(b=>{
     const pay=b.payment_status||'not_started',isV2=b.payment_schedule_version==='v2_14_day',mode=b.payment_mode||'live';
     const payClass=pay==='paid'?'confirmed':(['failed','expired'].includes(pay)?'cancelled':'');
@@ -74,14 +74,14 @@ async function loadBookings(){
     const cleanup=deletable&&!b.admin_deleted_at?`<label class="booking-check-label"><input class="booking-delete-check" type="checkbox" aria-label="Select request ${attr(b.reference)}" data-booking-id="${attr(b.id)}" data-booking-ref="${attr(b.reference)}" data-booking-mode="${attr(mode)}"> Select request</label>`:'';
     let actions='';
     if(isV2){
-      if(b.status==='pending'&&['payment_method_saved','paid'].includes(pay)){
-        actions+=`<button class="btn small secondary" onclick="decideBooking('${b.id}','accept',this,true,'${b.payment_collection_mode==='bank_transfer'?'bank_transfer':'saved_method'}')">Confirm booking</button>`;
-        actions+=`<button class="btn small danger" onclick="decideBooking('${b.id}','reject',this,true,'${b.payment_collection_mode==='bank_transfer'?'bank_transfer':'saved_method'}')">Reject request</button>`;
+      if(b.status==='pending'&&['payment_method_saved','paid','not_required'].includes(pay)){
+        actions+=`<button class="btn small secondary" onclick="decideBooking('${b.id}','accept',this,true,'${b.payment_collection_mode==='complimentary'?'complimentary':b.payment_collection_mode==='bank_transfer'?'bank_transfer':'saved_method'}')">Confirm booking</button>`;
+        actions+=`<button class="btn small danger" onclick="decideBooking('${b.id}','reject',this,true,'${b.payment_collection_mode==='complimentary'?'complimentary':b.payment_collection_mode==='bank_transfer'?'bank_transfer':'saved_method'}')">Reject request</button>`;
       }else if(b.status==='pending'&&['not_started','awaiting_payment'].includes(pay)){
-        actions+=`<span class="status">Waiting for guest payment</span><button class="btn small danger" onclick="decideBooking('${b.id}','reject',this,true,'${b.payment_collection_mode==='bank_transfer'?'bank_transfer':'saved_method'}')">Reject request</button>`;
+        actions+=`<span class="status">Waiting for guest payment</span><button class="btn small danger" onclick="decideBooking('${b.id}','reject',this,true,'${b.payment_collection_mode==='complimentary'?'complimentary':b.payment_collection_mode==='bank_transfer'?'bank_transfer':'saved_method'}')">Reject request</button>`;
       }else if(pay==='processing'){actions+=`<span class="status">Payment processing · awaiting settlement</span>`;}else if(b.status==='confirmed'&&pay==='scheduled_charge'){
         actions+=`<span class="status confirmed">Confirmed · payment scheduled</span>`;
-      }else if(b.status==='confirmed'&&pay==='paid'){
+      }else if(b.status==='confirmed'&&pay==='not_required'){actions+=`<span class="status confirmed">Confirmed · no payment required</span>`;}else if(b.status==='confirmed'&&pay==='paid'){
         actions+=`<span class="status confirmed">Paid & confirmed</span>`;
       }else if(pay==='failed'){
         actions+=`<span class="status cancelled">Payment failed · follow up required</span>`;
@@ -121,7 +121,7 @@ async function loadBookings(){
 
 window.decideBooking=async(id,action,button,isV2,collectionMode)=>{
   const accept=action==='accept';
-  const question=isV2&&collectionMode==='bank_transfer'?(accept?'Confirm this booking? The bank payment has already been received.':'Reject this bank-transfer request? Received payment will be refunded. Review any partial, excess or late funds in Stripe.'):isV2
+  const question=collectionMode==='complimentary'?(accept?'Confirm this complimentary booking? No payment will be collected.':'Reject this complimentary request? No payment or refund is required.'):isV2&&collectionMode==='bank_transfer'?(accept?'Confirm this booking? The bank payment has already been received.':'Reject this bank-transfer request? Received payment will be refunded. Review any partial, excess or late funds in Stripe.'):isV2
     ?(accept?'Confirm this booking? Payment will be scheduled for 14 days before check-in, or charged now if the stay begins within 14 days.':'Reject this booking request? The saved card will not be charged.')
     :(accept?'Accept this legacy booking and capture the existing card authorization?':'Reject this legacy booking and release the card authorization?');
   if(!confirm(question))return;

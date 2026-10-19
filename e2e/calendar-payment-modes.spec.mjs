@@ -34,6 +34,7 @@ async function mockPublicBackend(page, mode='test', stayTotal='0.90'){
       },
       rpc(name,params){
         (window.__rpcCalls??=[]).push({name,params});
+        if(name==='frankiholz_booking_status_v3'&&sessionStorage.getItem('free-promo-fixture'))return Promise.resolve({data:[{reference:params.p_reference,room_name:'Cozy Holz',check_in:'2026-10-13',check_out:'2026-10-14',total_price:0,booking_status:'pending',payment_status:'not_required',payment_collection_mode:'complimentary',payment_mode:paymentMode}],error:null});
         if(name==='frankiholz_payment_details')return Promise.resolve({data:{reference:params.p_reference,room_name:'Cozy Holz',check_in:'2026-10-13',check_out:'2026-10-14',total_price:params.p_reference==='FH-PROMO-UI'?'2.00':stayTotal,booking_status:'pending',payment_status:'not_started',payment_mode:paymentMode,payment_collection_mode:'saved_method'},error:null});
         if(name==='frankiholz_get_calendar_rates')return Promise.resolve({data:rows,error:null});
         if(name==='frankiholz_get_payment_environment'){
@@ -45,14 +46,15 @@ async function mockPublicBackend(page, mode='test', stayTotal='0.90'){
           return Promise.resolve({data:[{available,total_price:available?stayTotal:'0',nights:available?1:2}],error:null});
         }
         if(name==='frankiholz_quote_with_promo'){
-          const percent=params.p_promo_code.toLowerCase()==='frankiholzguest50'?50:params.p_promo_code.toLowerCase()==='frankiholzguest75'?75:0;
+          const match=params.p_promo_code.trim().match(/^(?:FrankFlowGuest(25|50|75|100)|FrankiHolzGuest(50|75))$/i);const percent=match?Number(match[1]||match[2]):0;
           const total=Number(stayTotal)*(100-percent)/100;
           if(!percent)return Promise.resolve({data:null,error:{message:'Promo code is not valid'}});
-          if(total<0.50)return Promise.resolve({data:null,error:{message:'The discounted booking total must be at least EUR 0.50'}});
+          if(percent!==100&&total<0.50)return Promise.resolve({data:null,error:{message:'The discounted booking total must be at least EUR 0.50'}});
           return Promise.resolve({data:[{available:true,total_price:total,original_total_price:Number(stayTotal),discount_percent:percent,nights:1}],error:null});
         }
         if(name==='frankiholz_create_booking_with_promo'){
-          return Promise.resolve({data:[{reference:'FH-PROMO-UI',total_price:'2.00'}],error:null});
+          const free=params.p_promo_code.toLowerCase()==='frankflowguest100';if(free)sessionStorage.setItem('free-promo-fixture','1');
+          return Promise.resolve({data:[{reference:'FH-PROMO-UI',total_price:free?'0.00':'2.00'}],error:null});
         }
         if(name==='frankiholz_create_booking_v2'){
           return Promise.resolve({data:[{reference:'FH-UI-ONLY',total_price:'0.90'}],error:null});
@@ -260,6 +262,49 @@ test('invalid codes and below-minimum discounts show errors without retaining a 
   await expect(page.locator('#promoStatus')).toContainText('not valid');
   await expect(page.locator('#sumTotal')).toHaveText('—');
   expect(await page.evaluate(()=>window.__rpcCalls.some(c=>c.name.includes('create_booking')))).toBe(false);
+});
+
+for(const percent of [25,50,75,100])for(const language of ['en','de'])test(`FrankFlowGuest${percent} displays ${percent}% off in ${language}`,async({page})=>{
+  await selectPromoDates(page,'8.00');
+  if(language==='de')await page.locator('.lang-btn[data-lang="de"]').click();
+  await page.locator('#promoCode').fill('FrankFlowGuest'+percent);await page.locator('#applyPromo').click();
+  await expect(page.locator('#sumTotal')).toContainText(language==='de'?((8*(100-percent)/100).toFixed(2).replace('.',',')):(8*(100-percent)/100).toFixed(2));
+  await expect(page.locator('#promoStatus')).toContainText(percent+(language==='de'?'% Rabatt':'% off'));
+  if(percent===100){await expect(page.locator('#paymentSetupNote')).toContainText(language==='de'?'Keine Zahlung erforderlich':'No payment required');await expect(page.locator('#bookingForm button[type=submit]')).toHaveText(language==='de'?'Buchungsanfrage senden':'Send booking request');}
+});
+
+test('100% booking goes directly to pending status without Stripe or a payment page',async({page})=>{
+  const stripeCalls=[];await selectPromoDates(page,'8.00');
+  await page.route('**/functions/v1/frankiholz-create-authorization-*',route=>{stripeCalls.push(route.request().url());return route.abort()});
+  await page.locator('#promoCode').fill('FrankFlowGuest100');await page.locator('#applyPromo').click();
+  await page.locator('#guestName').fill('Complimentary fixture');await page.locator('#guestEmail').fill('fixture@example.invalid');await page.locator('#guestCountry').fill('Germany');await page.locator('#guestAge').fill('30');await page.locator('#guestSex').selectOption('prefer_not_to_say');await page.locator('#guestLanguages').fill('English');await page.locator('#guestReturning').selectOption('no');await page.locator('#message').fill('An isolated complimentary booking regression fixture.');
+  await page.locator('#bookingForm button[type=submit]').click();
+  await expect(page).toHaveURL(/booking-status.html\?reference=FH-PROMO-UI/);
+  await expect(page.locator('#out')).toContainText('No payment required (100% promo)');await expect(page.locator('#out')).toContainText('pending');await expect(page.locator('#retryCardBtn')).toHaveCount(0);expect(stripeCalls).toEqual([]);
+});
+
+for(const width of [360,1280])test(`styled room picker supports keyboard selection and closes cleanly at ${width}px`,async({page})=>{
+  await page.setViewportSize({width,height:900});await selectPromoDates(page);
+  await page.evaluate(()=>{rooms.push({...rooms[0],id:'room-two',name:'Castle Holz',name_de:'Schloss Holz'},{...rooms[0],id:'room-three',name:'Comfy Holz',name_de:'Gemütliches Holz'});renderRooms()});
+  const picker=page.locator('#roomPickerButton');await expect(picker).toHaveAccessibleName(/Room .*Cozy Holz/);
+  await picker.click();await expect(page.getByRole('listbox')).toBeVisible();await expect(page.getByRole('listbox').getByRole('option')).toHaveCount(3);
+  await picker.press('ArrowDown');await picker.press('Enter');await expect(picker).toContainText('Castle Holz');await expect(page.locator('#selectedRoomName')).toHaveText('Castle Holz');
+  await picker.click();await page.getByRole('listbox').getByRole('option',{name:/Comfy Holz/}).click();await expect(picker).toContainText('Comfy Holz');await expect(page.locator('#selectedRoomName')).toHaveText('Comfy Holz');
+  await picker.click();await picker.press('Escape');await expect(page.getByRole('listbox')).toBeHidden();
+  await picker.click();await page.locator('#guestName').click();await expect(page.getByRole('listbox')).toBeHidden();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+  await page.locator('.lang-btn[data-lang="de"]').click();await expect(page.getByRole('combobox',{name:/Zimmer .*Gemütliches Holz/})).toBeVisible();
+});
+
+test('room choices can be selected with touch',async({browser})=>{
+  const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+  try{
+    const page=await context.newPage();await blockExternalNetwork(page);await page.clock.install({time:new Date('2026-10-11T12:00:00+02:00')});await mockPublicBackend(page);
+    await page.goto('/?lang=en');await expect(page.locator('#rooms')).toContainText('Cozy Holz');
+    await page.evaluate(async()=>{rooms.push({...rooms[0],id:'room-two',name:'Castle Holz'});renderRooms();await window.selectRoom(rooms[0].id)});
+    await page.locator('#roomPickerButton').tap();await page.getByRole('listbox').getByRole('option',{name:/Castle Holz/}).tap();
+    await expect(page.locator('#roomPickerButton')).toContainText('Castle Holz');await expect(page.getByRole('listbox')).toBeHidden();
+  }finally{await context.close();}
 });
 
 test('saved-method selection and promo send no browser amount and one mocked request email',async({page})=>{

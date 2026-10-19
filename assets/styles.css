@@ -245,6 +245,22 @@ button,input,select,textarea{font:inherit}
   box-shadow:var(--shadow-sm);
 }
 .room-select-row>div{min-width:220px;flex:1}
+.room-picker{position:relative;min-width:0}
+.room-picker-trigger{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;min-height:50px;padding:12px 16px;border:1px solid #bcd6ca;border-radius:13px;background:#fff;color:var(--ink);font:inherit;text-align:left;cursor:pointer;box-shadow:0 2px 5px rgba(16,59,80,.04)}
+.room-picker-trigger:hover,.room-picker-trigger[aria-expanded=true]{border-color:var(--brand-green);background:#f8fcfa}
+.room-picker-trigger:focus-visible{outline:3px solid #a4d7bd;outline-offset:3px}
+.room-picker-chevron{width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);flex:0 0 auto;margin-right:3px}
+.room-picker-trigger[aria-expanded=true] .room-picker-chevron{transform:rotate(225deg)}
+.room-picker-list{position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:40;max-height:min(340px,55vh);overflow:auto;padding:7px;border:1px solid #cee2d7;border-radius:16px;background:#fff;box-shadow:0 18px 45px rgba(16,59,80,.18)}
+.room-picker-list[hidden]{display:none}
+.room-picker-option{display:grid;grid-template-columns:46px minmax(0,1fr) 20px;align-items:center;gap:12px;padding:10px;border-radius:10px;color:var(--ink);cursor:pointer}
+.room-picker-option:hover,.room-picker-option.is-active{background:#edf7f1}
+.room-picker-option[aria-selected=true]{background:#e0f1e7}
+.room-picker-option img,.room-picker-number{width:46px;height:46px;object-fit:cover;border-radius:9px;background:#edf4f1}
+.room-picker-number{display:grid;place-items:center;font-weight:800;color:var(--brand-green-dark)}
+.room-picker-option strong{display:block;font-size:14px;line-height:1.4;overflow-wrap:anywhere}
+.room-picker-option small{display:block;color:var(--muted);font-size:12px;line-height:1.5;margin-top:3px}
+.room-picker-check{font-weight:800;color:var(--brand-green-dark)}
 .gallery-main{
   width:100%;aspect-ratio:16/10;object-fit:cover;
   border-radius:20px;
