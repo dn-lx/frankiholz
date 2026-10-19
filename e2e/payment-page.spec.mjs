@@ -8,6 +8,15 @@ async function fixture(page,overrides={}){
   window.__calls=[];window.supabase={createClient:()=>({rpc:async(name,args)=>{window.__calls.push({name,args});return {data:name==='frankiholz_payment_details'?(args.p_email==='fixture@example.invalid'?booking:null):(overrides.environment||'live'),error:null}}})};
  },overrides);
 }
+for(const lang of ['en','de'])for(const state of ['confirmed','cancelled'])test(`stay summary and host contact reflect ${state} in ${lang}`,async({page})=>{
+ await fixture(page,{booking_status:state,payment_status:state==='confirmed'?'paid':'released'});await page.setViewportSize({width:390,height:844});await page.goto('/payment.html?reference=FH-PAYMENT&lang='+lang);
+ await expect(page.locator('#paymentSummary h2')).toHaveText('Room 1');await expect(page.locator('.stay-facts')).toContainText('17:00');await expect(page.locator('.stay-facts')).toContainText('11:00');
+ await expect(page.locator('.stay-reference')).toContainText('FH-PAYMENT');await expect(page.locator('#paymentChoices')).toBeHidden();
+ await expect(page.locator('h1')).toHaveText(state==='confirmed'?(lang==='de'?'Ihr Aufenthalt ist bestätigt':'Your stay is confirmed'):(lang==='de'?'Ihre Anfrage ist geschlossen':'Your request is closed'));
+ await expect(page.locator('#guestWhatsapp')).toHaveAttribute('href',/https:\/\/wa.me\/4917662493041\?text=.*FH-PAYMENT/);await expect(page.locator('#guestRulesText')).toHaveAttribute('href','/assets/documents/frankiholz-house-guide.pdf');
+ if(state==='confirmed')await expect(page.locator('#guestSupportText')).toContainText(lang==='de'?'Wann kommen Sie':'What time');
+ const asset=await page.request.get('/assets/documents/frankiholz-house-guide.pdf');expect(asset.ok()).toBeTruthy();expect((await asset.body()).subarray(0,5).toString()).toBe('%PDF-');
+});
 for(const lang of ['en','de'])for(const width of [390,1280])test(`payment choice is readable and translated in ${lang} at ${width}px`,async({page})=>{
  await fixture(page);await page.setViewportSize({width,height:900});await page.goto('/payment.html?reference=FH-PAYMENT&lang='+lang);
  await expect(page.locator('#paymentContent')).toBeVisible();await expect(page.locator('#paymentSummary')).toContainText(lang==='de'?'0,50':'0.50');

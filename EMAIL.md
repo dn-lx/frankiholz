@@ -36,6 +36,10 @@ The sender identity and Reply-To are defined by `frankiholz-guest-email` as `sta
 
 All templates use `frankiholz_bookings.language`, so a German booking receives German email and an English booking receives English email.
 
+Guest messages include a personal greeting, a warm introduction and closing, the approved FrankiHolz logo, stay details and a direct WhatsApp contact link. Confirmed-booking messages ask for the estimated arrival time (check-in from 17:00; check-out by 11:00). Pending requests never ask guests to treat the stay as confirmed. The WhatsApp message is only prefilled; it is not sent automatically. Guest email addresses are not placed in links.
+
+The WhatsApp email icon is a PNG rasterization of the approved repository SVG, served from the public GitHub `develop` assets so existing production pages need no new asset deployment. The visible contact text remains usable when mail clients block images. House-rule links use the configured public site's existing `#houseRules` section. The new bilingual, selectable-text guide is published at `/assets/documents/frankiholz-house-guide.pdf` on the updated frontend. Rebuild it with `scripts/build-house-guide.py` using Python, Pillow and ReportLab; its source transcribes the owner's printed rules rather than embedding their photo.
+
 ## Duplicate protection
 
 `public.frankiholz_email_events` records successfully sent lifecycle messages. A unique booking/event rule prevents accidental duplicate lifecycle emails when a button is retried or Stripe re-delivers an event.
