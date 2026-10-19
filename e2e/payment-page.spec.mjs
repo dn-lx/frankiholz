@@ -20,6 +20,7 @@ for(const lang of ['en','de'])for(const state of ['confirmed','cancelled'])test(
 for(const lang of ['en','de'])for(const width of [390,1280])test(`payment choice is readable and translated in ${lang} at ${width}px`,async({page})=>{
  await fixture(page);await page.setViewportSize({width,height:900});await page.goto('/payment.html?reference=FH-PAYMENT&lang='+lang);
  await expect(page.locator('#paymentContent')).toBeVisible();await expect(page.locator('#paymentSummary')).toContainText(lang==='de'?'0,50':'0.50');
+ await expect(page.locator('.guest-brand img')).toHaveAttribute('src','/assets/frankiholz-logo-light-lockup.png');
  await expect(page.locator('#savedPayment')).toHaveText(lang==='de'?'Methode bei Stripe wählen':'Choose a method on Stripe');
  await expect(page.locator('#bankPayment')).toBeHidden();await expect(page.locator('#paymentChoices')).toContainText('SEPA');
  await expect(page.locator('#paymentChoices')).toContainText('14');await expect(page.locator('#modeNotice')).toBeHidden();

@@ -121,7 +121,7 @@ test('complimentary charge and malformed free markers are refused',async()=>{
 });
 test('complimentary messages describe no payment and cannot send receipt events',async()=>{
  const source=await readFile(new URL('../functions/frankiholz-guest-email/index.ts',import.meta.url),'utf8');let handler;const sent=[];
- const f=fixture(complimentary());const context={Deno:{env:{get:key=>key==='RESEND_API_KEY'?'fixture':'mock-only'},serve(fn){handler=fn}},createClient:()=>f.service,Request,Response,console:{error(){}},URL,Date,Intl,fetch:async(_url,options)=>{sent.push(options);return new Response('{}')}};
+ const f=fixture(complimentary());const context={Deno:{env:{get:key=>key==='RESEND_API_KEY'?'fixture':'mock-only'},serve(fn){handler=fn}},createClient:()=>f.service,Request,Response,console:{error(){}},URL,Date,Intl,AbortSignal,fetch:async(_url,options)=>{sent.push(options);return new Response('{}')}};
  vm.runInNewContext(stripTypeScriptTypes(source.replace(/^import .*;\r?\n/gm,'')),context);
  for(const language of ['en','de'])for(const event of ['request_received','booking_confirmed']){
    const result=context.guestTemplate(event,{...f.b,language});assert.match(result.html,language==='en'?/No payment is required/:/keine Zahlung erforderlich/);assert.doesNotMatch(result.html,/automatically 14 days|automatisch 14 Tage/);
@@ -189,7 +189,7 @@ test('pending refunds stay paid and require review until a matching succeeded re
 
 test('payment and refund emails distinguish host approval and pending refunds in both languages',async()=>{
   const source=await readFile(new URL('../functions/frankiholz-guest-email/index.ts',import.meta.url),'utf8');
-  const context={Deno:{env:{get:()=>''},serve(){}},createClient:()=>({}),console,URL,Date,Intl};
+  const context={Deno:{env:{get:()=>''},serve(){}},createClient:()=>({}),console,URL,Date,Intl,AbortSignal};
   vm.runInNewContext(stripTypeScriptTypes(source.replace(/^import .*;\r?\n/gm,'')),context);
   for(const language of ['en','de']){
     const b={...booking(),language,status:'pending',frankiholz_rooms:{name:'<script>unsafe</script>'}};
@@ -203,7 +203,7 @@ test('payment and refund emails distinguish host approval and pending refunds in
 
 test('guest emails greet safely and ask arrival time only after host confirmation',async()=>{
  const source=await readFile(new URL('../functions/frankiholz-guest-email/index.ts',import.meta.url),'utf8');
- const context={Deno:{env:{get:()=>''},serve(){}},createClient:()=>({}),console,URL,Date,Intl};
+ const context={Deno:{env:{get:()=>''},serve(){}},createClient:()=>({}),console,URL,Date,Intl,AbortSignal};
  vm.runInNewContext(stripTypeScriptTypes(source.replace(/^import .*;\r?\n/gm,'')),context);
  for(const language of ['en','de'])for(const status of ['pending','confirmed'])for(const event of ['request_received','booking_confirmed','payment_method_saved','payment_confirmed','charge_scheduled','charge_failed','booking_rejected','booking_cancelled','authorization_received','authorization_expired','approved','rejected']){
   const html=context.guestTemplate(event,{...booking(),status,language,guest_name:'<img src=x onerror=alert(1)>',frankiholz_rooms:{name:'Room 1'}}).html;
@@ -233,7 +233,7 @@ test('an expiry callback racing completed setup cannot clear the saved method',a
 
 test('admin profile values are escaped before inclusion in HTML email',async()=>{
  const source=await readFile(new URL('../functions/frankiholz-guest-email/index.ts',import.meta.url),'utf8');
- const sent=[];const context={Deno:{env:{get:(key)=>key==='RESEND_API_KEY'?'fixture':''},serve(){}},createClient:()=>({}),console,URL,Date,Intl,fetch:async(_url,options)=>{sent.push(JSON.parse(options.body));return {ok:true,json:async()=>({id:'email_fixture'})}}};
+ const sent=[];const context={Deno:{env:{get:(key)=>key==='RESEND_API_KEY'?'fixture':''},serve(){}},createClient:()=>({}),console,URL,Date,Intl,AbortSignal,fetch:async(_url,options)=>{sent.push(JSON.parse(options.body));return {ok:true,json:async()=>({id:'email_fixture'})}}};
  vm.runInNewContext(stripTypeScriptTypes(source.replace(/^import .*;\r?\n/gm,'')),context);
  const unsafe='<img src=x onerror=alert(1)>';
  await context.sendAdminIfNeeded('request_received',{...booking(),guest_age:unsafe,guest_sex:unsafe,guest_country:unsafe,guest_languages:[unsafe],guest_hobbies:unsafe});
