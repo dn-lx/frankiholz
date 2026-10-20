@@ -58,6 +58,15 @@ async function deleteSelectedBookings(){
     if(button){button.textContent='Delete selected';syncBookingCleanupControls()}
   }
 }
+function bookingGuestProfile(b){
+  const sex={female:'Female',male:'Male',non_binary:'Non-binary',other:'Other',prefer_not_to_say:'Prefer not to say'};
+  const detail=(label,value)=>`<div><dt>${esc(label)}</dt><dd>${esc(value===null||value===undefined||value===''?'Not provided':value)}</dd></div>`;
+  const languages=Array.isArray(b.guest_languages)?b.guest_languages.join(', '):b.guest_languages;
+  const returning=b.guest_returning===true?'Yes · welcome back':b.guest_returning===false?'No · first stay':'Not provided';
+  return `<div class="booking-profile"><div class="booking-profile-heading"><span class="booking-profile-kicker">Your guest</span><h3>${esc(b.guest_name||'Guest name unavailable')}</h3><div class="booking-contact"><span>${esc(b.guest_email||'Email not provided')}</span><span>${esc(b.guest_phone||'Phone not provided')}</span></div></div>
+    <dl class="booking-profile-facts">${detail('Country',b.guest_country)}${detail('Age',b.guest_age)}${detail('Sex',sex[b.guest_sex]||b.guest_sex)}${detail('Languages',languages)}${detail('Stayed with us before?',returning)}${detail('Booking language',b.language==='de'?'Deutsch':b.language==='en'?'English':b.language)}<div class="booking-profile-wide"><dt>Hobbies & interests</dt><dd>${esc(b.guest_hobbies||'Not provided')}</dd></div></dl>
+    <div class="booking-message-block"><h4>Message & arrival notes</h4><p class="booking-message">${esc(b.message||'No message provided.')}</p></div></div>`;
+}
 let bookingListVersion=0;
 async function loadBookings(){
   const version=++bookingListVersion;if($('refreshBookings')){$('refreshBookings').onclick=loadBookings;$('refreshBookings').disabled=true;}
@@ -109,8 +118,7 @@ async function loadBookings(){
       <div class="booking-received">Received ${received}</div>
       <div class="booking-badges">${modeBadge}<span class="status ${attr(b.status)}">${esc(b.status)}</span><span class="status ${payClass}">${esc(b.payment_collection_mode==='bank_transfer'&&pay==='awaiting_payment'?'existing bank transfer outstanding':labels[pay]||pay.replaceAll('_',' '))}</span></div>
       <div class="booking-stay muted">${esc(b.check_in)} → ${esc(b.check_out)} · ${money(b.total_price)} · ${b.guests} guest${b.guests===1?'':'s'}${due}</div>
-      <div class="booking-guest"><b>${esc(b.guest_name)}</b><span>${esc(b.guest_email)}</span>${b.guest_phone?`<span>${esc(b.guest_phone)}</span>`:''}</div>
-      ${b.message?`<p class="booking-message">${esc(b.message)}</p>`:''}
+      ${bookingGuestProfile(b)}
       <div class="booking-actions">${actions}</div>
     </article>`;
   }).join('')||'<div class="empty">No bookings yet.</div>';
