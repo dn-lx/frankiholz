@@ -7,8 +7,8 @@ as $$
 begin
   case lower(trim(coalesce(p_code,'')))
     when '' then return 0;
-    when 'frankfiholzguest15' then return 15;
-    when 'frankfiholzguest25' then return 25;
+    when 'frankiholzguest15' then return 15;
+    when 'frankiholzguest25' then return 25;
     when 'frankflowguest25' then return 25;
     when 'frankflowguest50' then return 50;
     when 'frankflowguest75' then return 75;
@@ -56,8 +56,8 @@ begin
   update public.frankiholz_bookings b set
     original_total_price=created.total_price,
     promo_code=case lower(trim(p_promo_code))
-      when 'frankfiholzguest15' then 'FrankfiHolzGuest15'
-      when 'frankfiholzguest25' then 'FrankfiHolzGuest25'
+      when 'frankiholzguest15' then 'FrankiHolzGuest15'
+      when 'frankiholzguest25' then 'FrankiHolzGuest25'
       when 'frankiholzguest50' then 'FrankiHolzGuest50'
       when 'frankiholzguest75' then 'FrankiHolzGuest75'
       else 'FrankFlowGuest'||percent::text end,

@@ -10,7 +10,7 @@ begin
   update public.frankiholz_calendar set price_override=null where room_id=rid and date between arrival and arrival+4;
   update public.frankiholz_rooms set base_price=40 where id=rid;
   foreach percent in array array[15,25] loop
-    code:='FrankfiHolzGuest'||percent;
+    code:='FrankiHolzGuest'||percent;
     if private.frankiholz_promo_percent(' '||upper(code)||' ')<>percent then raise exception 'Alias normalization failed';end if;
     select * into q from public.frankiholz_quote_with_promo(rid,arrival,arrival+2,code);
     if not q.available or q.discount_percent<>percent or q.total_price<>round(q.original_total_price*(100-percent)/100,2) then raise exception 'Incorrect alias quote';end if;
@@ -24,11 +24,11 @@ begin
   if private.frankiholz_promo_percent('FrankFlowGuest25')<>25 or private.frankiholz_promo_percent('FrankFlowGuest50')<>50
     or private.frankiholz_promo_percent('FrankFlowGuest75')<>75 or private.frankiholz_promo_percent('FrankFlowGuest100')<>100
     or private.frankiholz_promo_percent('FrankiHolzGuest50')<>50 or private.frankiholz_promo_percent('FrankiHolzGuest75')<>75 then raise exception 'Existing codes changed';end if;
-  begin perform private.frankiholz_promo_percent('FrankfiHolzGuest100');raise exception 'Unknown alias accepted';exception when others then if sqlerrm<>'Promo code is not valid' then raise;end if;end;
+  begin perform private.frankiholz_promo_percent('FrankiHolzGuest100');raise exception 'Unknown alias accepted';exception when others then if sqlerrm<>'Promo code is not valid' then raise;end if;end;
   update public.frankiholz_rooms set base_price=0.50 where id=rid;
   update public.frankiholz_pricing_settings set weekend_markup_pct=0,occupancy_markup_1_pct=0,occupancy_markup_2_pct=0,last_minute_discount_pct=0,long_stay_discount_1_pct=0,long_stay_discount_2_pct=0 where id=1;
   foreach percent in array array[15,25] loop
-    code:='FrankfiHolzGuest'||percent;
+    code:='FrankiHolzGuest'||percent;
     select count(*) into before_count from public.frankiholz_bookings;
     begin perform public.frankiholz_quote_with_promo(rid,arrival+3,arrival+4,code);raise exception 'Under-minimum alias quote accepted';exception when others then if sqlerrm<>'The discounted booking total must be at least EUR 0.50' then raise;end if;end;
     begin perform public.frankiholz_create_booking_with_promo(rid,arrival+3,arrival+4,'Rollback minimum fixture','additional-promo-test@example.invalid',p_message=>'Rollback-only minimum verification',p_guest_age=>30,p_guest_sex=>'prefer_not_to_say',p_guest_languages=>array['English'],p_promo_code=>code);raise exception 'Under-minimum alias booking accepted';exception when others then if sqlerrm<>'The discounted booking total must be at least EUR 0.50' then raise;end if;end;
@@ -38,6 +38,6 @@ begin
     or not has_function_privilege('anon','public.frankiholz_quote_with_promo(uuid,date,date,text)','execute') then raise exception 'Promo grant regression';end if;
 end $$;
 set local role anon;
-select discount_percent,total_price from public.frankiholz_quote_with_promo('2facc875-9470-4b12-9b28-cd65b7360b14',current_date+600,current_date+602,'FrankfiHolzGuest25');
+select discount_percent,total_price from public.frankiholz_quote_with_promo('2facc875-9470-4b12-9b28-cd65b7360b14',current_date+600,current_date+602,'FrankiHolzGuest25');
 reset role;
 select 'Both alias discounts, snapshots, normalization, minimum rollback and grants passed' as verification;
