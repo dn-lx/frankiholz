@@ -58,6 +58,37 @@ function harness(overrides={}){
   drain:(headers={authorization:'Bearer service-fixture'})=>handler(new Request('https://fixture.invalid/email',{method:'POST',headers:{'Content-Type':'application/json',...headers},body:JSON.stringify({action:'drain'})})),
   request:(event,headers={authorization:'Bearer service-fixture'})=>handler(new Request('https://fixture.invalid/email',{method:'POST',headers:{'Content-Type':'application/json',...headers},body:JSON.stringify(event==='request_received'?{event_type:event,reference:b.reference,email:b.guest_email}:{event_type:event,booking_id:b.id})}))};
 }
+for(const language of ['en','de'])test(`every guest template includes both languages in one message for ${language} bookings`,()=>{
+ const f=harness({language,guest_name:'<img src=x onerror=alert(1)>',frankiholz_rooms:{name:'Cozy Holz',name_de:'Gemütliches Holz'}});
+ for(const event of ['request_received','payment_method_saved','booking_confirmed','booking_rejected','booking_cancelled','payment_confirmed','charge_scheduled','charge_failed','authorization_received','authorization_expired','approved','rejected']){
+  const message=f.context.guestTemplate(event,f.b);
+  assert.match(message.html,/<section lang="en"/);assert.match(message.html,/<section lang="de"/);
+  assert.ok(message.html.indexOf('<section lang="en"')<message.html.indexOf('<section lang="de"'));
+  assert.equal((message.html.match(/frankiholz-logo-light-lockup.png/g)||[]).length,1);
+  assert.match(message.html,/With warm wishes/);assert.match(message.html,/Mit herzlichen Grüßen/);
+  assert.match(message.html,/Cozy Holz/);assert.match(message.html,/Gemütliches Holz/);
+  assert.match(message.html,/lang=en/);assert.match(message.html,/lang=de/);
+  assert.match(message.html,/&lt;img src=x onerror=alert\(1\)&gt;/);assert.doesNotMatch(message.html,/<img src=x/);
+  assert.equal((message.subject.match(/FH-FIXTURE/g)||[]).length,1);
+ }
+});
+for(const days of [7,30])test(`host rejection ${days} days before arrival sends one bilingual rejection with no charge`,async()=>{
+ const check_in=new Date(Date.now()+days*86400000).toISOString().slice(0,10);
+ const f=harness({check_in,payment_status:'payment_method_saved',stripe_payment_method_id:'pm_fixture'});
+ await f.send('payment_method_saved');f.b.status='cancelled';f.b.payment_status='released';
+ await f.send('booking_rejected');await f.send('booking_rejected');
+ assert.equal(f.guest().length,2);
+ const rejection=f.guest()[1];assert.match(rejection.subject,/Booking request closed \/ Buchungsanfrage geschlossen/);
+ assert.match(rejection.html,/No payment was collected/);assert.match(rejection.html,/Es wurde keine Zahlung eingezogen/);
+ assert.doesNotMatch(rejection.html,/What time will you be arriving|Wann dürfen wir Sie begrüßen/);
+});
+test('confirmation asks arrival time in both languages and shows matching scheduled payment details',()=>{
+ const f=harness({status:'confirmed',payment_status:'scheduled_charge'});
+ const message=f.context.guestTemplate('booking_confirmed',f.b);
+ assert.match(message.html,/What time will you be arriving/);assert.match(message.html,/Wann dürfen wir Sie begrüßen/);
+ assert.match(message.html,/12\/11\/2026/);assert.match(message.html,/12\.11\.2026/);
+ assert.match(message.html,/Payment scheduled/);assert.match(message.html,/Zahlung geplant/);
+});
 for(const language of ['en','de'])for(const mode of ['live','test'])test(`only two guest messages across setup, approval and later callbacks in ${language}/${mode}`,async()=>{
  const f=harness({language,payment_mode:mode});
  const publicHeaders={origin:'https://develop--frankiholz.netlify.app','x-frankiholz-source':'public-site'};
