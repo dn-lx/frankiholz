@@ -383,6 +383,7 @@
     if(guide){
       $('openHouseGuide').addEventListener('click',()=>{renderGuide(uiLang());guide.showModal();guide.querySelector('.house-guide-scroll').scrollTop=0;});
       $('closeHouseGuide').addEventListener('click',()=>guide.close());
+      guide.addEventListener('close',()=>$('openHouseGuide').focus());
       document.querySelectorAll('[data-guide-lang]').forEach(button=>button.addEventListener('click',()=>{renderGuide(button.dataset.guideLang);guide.querySelector('.house-guide-scroll').scrollTop=0;}));
     }
     const reviewsPanel=$('fhHeroReviews');
