@@ -2,8 +2,8 @@
    Uses existing bilingual frankiholz_copy records; does not change booking flows. */
 (() => {
   const fields = [
-    {key:'fhCheckIn',label:'House rules: check-in',en:'Check-in: From 17:00 on your arrival date.',de:'Check-in: Ab 17:00 Uhr am Anreisetag.',kind:'textarea'},
-    {key:'fhCheckOut',label:'House rules: check-out',en:'Check-out: By 11:00 on your departure date (the following day for a one-night stay).',de:'Check-out: Bis 11:00 Uhr am Abreisetag (bei einer Übernachtung am folgenden Tag).',kind:'textarea'},
+    {key:'fhCheckIn',label:'House rules: check-in',en:'17:00',de:'17:00',kind:'input'},
+    {key:'fhCheckOut',label:'House rules: check-out',en:'11:00',de:'11:00',kind:'input'},
     {key:'fhQuietHours',label:'House rules: quiet hours',en:'Please respect neighbours and keep noise low, especially at night. Exact quiet hours will be confirmed by the host.',de:'Bitte nehmen Sie Rücksicht auf Nachbarn und vermeiden Sie insbesondere nachts Lärm. Die genauen Ruhezeiten bestätigt der Gastgeber.',kind:'textarea'},
     {key:'fhExtraGuests',label:'House rules: additional guests',en:'Only registered guests may stay overnight. Additional guests or visitors require the host’s approval in advance.',de:'Nur angemeldete Gäste dürfen übernachten. Zusätzliche Gäste oder Besucher benötigen die vorherige Zustimmung des Gastgebers.',kind:'textarea'},
     {key:'fhOtherRules',label:'House rules: additional information',en:'Please treat the apartment and shared areas with care.',de:'Bitte behandeln Sie die Wohnung und Gemeinschaftsbereiche sorgfältig.',kind:'textarea'},
@@ -23,7 +23,7 @@
       heroAbout:'Discover our place',heroMinor:'Thoughtful stays in Frankfurt-Sachsenhausen',heroNoteTop:'WELCOME TO FRANKIHOLZ',
       heroNoteTitle:'A comfortable base for your time in Frankfurt.',heroFact1:'Private rooms in a shared apartment',heroFact2:'Shared kitchen and practical amenities',heroFact3:'Direct contact with your host',
       explore:'EXPLORE THE STAY',quickRooms:'Our rooms',quickFacilities:'Amenities',quickRules:'House rules',quickLocation:'Location',
-      guideTitle:'A little guide to feeling at home',guideDescription:'Our house rules, shared spaces and useful arrival details. English & Deutsch · 4 pages.',guideDownload:'Open house guide (PDF)',rulesTitle:'House rules & important information',checkInTitle:'Check-in',checkOutTitle:'Check-out',quietTitle:'Quiet hours',
+      guideTitle:'A little guide to feeling at home',guideDescription:'House rules, shared spaces and useful arrival details.',guideDownload:'Read house rules',guideClose:'Close',rulesTitle:'House rules & important information',checkInTitle:'Check-in',checkOutTitle:'Check-out',quietTitle:'Quiet hours',
       extraGuestsTitle:'Additional guests',otherRulesTitle:'Taking care of the accommodation',
       facilitiesTitle:'Facilities & amenities',facilitiesIntro:'Available facilities and shared spaces. Please ask the host if a specific amenity is essential for your stay.',
       reviewsTitle:'Guest reviews',reviewsIntro:'Read reviews of our accommodation on Airbnb.',reviewsLink:'View Airbnb reviews ↗',
@@ -41,7 +41,7 @@
       heroAbout:'Unsere Unterkunft entdecken',heroMinor:'Angenehm übernachten in Frankfurt-Sachsenhausen',heroNoteTop:'WILLKOMMEN BEI FRANKIHOLZ',
       heroNoteTitle:'Ihr gemütlicher Ausgangspunkt in Frankfurt.',heroFact1:'Private Zimmer in einer Wohngemeinschaft',heroFact2:'Gemeinschaftsküche und praktische Ausstattung',heroFact3:'Direkter Kontakt mit dem Gastgeber',
       explore:'UNTERKUNFT ENTDECKEN',quickRooms:'Unsere Zimmer',quickFacilities:'Ausstattung',quickRules:'Hausregeln',quickLocation:'Standort',
-      guideTitle:'Ein kleiner Wegweiser zum Wohlfühlen',guideDescription:'Hausregeln, gemeinsame Räume und Hinweise zur Anreise. English & Deutsch · 4 Seiten.',guideDownload:'Hausregeln öffnen (PDF)',rulesTitle:'Hausregeln & wichtige Informationen',checkInTitle:'Check-in',checkOutTitle:'Check-out',quietTitle:'Ruhezeiten',
+      guideTitle:'Ein kleiner Wegweiser zum Wohlfühlen',guideDescription:'Hausregeln, gemeinsame Räume und Hinweise zur Anreise.',guideDownload:'Hausregeln lesen',guideClose:'Schließen',rulesTitle:'Hausregeln & wichtige Informationen',checkInTitle:'Check-in',checkOutTitle:'Check-out',quietTitle:'Ruhezeiten',
       extraGuestsTitle:'Zusätzliche Gäste',otherRulesTitle:'Sorgsamer Umgang mit der Unterkunft',
       facilitiesTitle:'Ausstattung & Einrichtungen',facilitiesIntro:'Vorhandene Ausstattung und gemeinsam genutzte Bereiche. Bitte fragen Sie nach, wenn eine Ausstattung für Ihren Aufenthalt unverzichtbar ist.',
       reviewsTitle:'Gästebewertungen',reviewsIntro:'Lesen Sie Bewertungen unserer Unterkunft auf Airbnb.',reviewsLink:'Airbnb-Bewertungen ansehen ↗',
@@ -60,7 +60,9 @@
   const uiLang = () => document.documentElement.lang === 'de' ? 'de' : 'en';
   const fieldValue = (key, lang) => {
     const saved = rows[key]?.['text_'+lang];
-    return typeof saved === 'string' && saved.trim() ? saved.trim() : (byKey[key]?.[lang] ?? '');
+    const value=typeof saved === 'string' && saved.trim() ? saved.trim() : (byKey[key]?.[lang] ?? '');
+    if(['fhCheckIn','fhCheckOut'].includes(key))return value.match(/(?:[01]?\d|2[0-3]):[0-5]\d/)?.[0].padStart(5,'0')||byKey[key][lang];
+    return value;
   };
   let heroReviewItems = [];
   let heroReviewIndex = 0;
@@ -182,6 +184,8 @@
     if($('fhHeroReviews'))$('fhHeroReviews').setAttribute('aria-label',lang==='de'?'Gästebewertungen':'Guest reviews');
     document.querySelectorAll('[data-fh-label]').forEach(node=>{node.textContent=labels[lang][node.dataset.fhLabel]||node.textContent;});
     renderHeroReviews();
+    document.querySelectorAll('[data-fh-time]').forEach(node=>{node.textContent=fieldValue(node.dataset.fhTime,lang);});
+    renderGuide(lang);
     const listing = fieldValue('fhAirbnbReviewsUrl',lang);
     const href = validListingUrl(listing) ? new URL(listing).origin + new URL(listing).pathname
       : 'https://www.airbnb.com/rooms/1621684668409633226';
@@ -230,11 +234,54 @@
       else reviewsLink.removeAttribute('href');
     }
   }
+  function renderGuide(lang) {
+    const content=$('houseGuideContent');
+    if(!content)return;
+    content.lang=lang;content.replaceChildren();
+    const dialog=$('houseGuideDialog');dialog.lang=lang;dialog.querySelectorAll('[data-fh-label]').forEach(node=>{node.textContent=labels[lang][node.dataset.fhLabel];});
+    const checkIn=fieldValue('fhCheckIn',lang),checkOut=fieldValue('fhCheckOut',lang);
+    document.querySelectorAll('[data-guide-lang]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.guideLang===lang)));
+    const appendSection=(title,items)=>{
+      const section=document.createElement('section'),heading=document.createElement('h3'),list=document.createElement('ul');
+      heading.textContent=title;
+      items.forEach(text=>{const li=document.createElement('li');li.textContent=text;list.append(li);});
+      section.append(heading,list);content.append(section);
+    };
+    const intro=document.createElement('p');intro.className='house-guide-welcome';
+    intro.textContent=lang==='de'?'Schön, dass Sie bei uns sind. Mit ein wenig Rücksicht fühlen sich alle in unserem Zuhause wohl.':'We are happy to welcome you. A little care helps everyone feel at home.';
+    content.append(intro);
+    appendSection(lang==='de'?'Ihr Aufenthalt auf einen Blick':'Your stay at a glance',[
+      'Check-in: '+checkIn+' · Check-out: '+checkOut,
+      ...['fhQuietHours','fhExtraGuests','fhOtherRules'].map(key=>fieldValue(key,lang))
+    ]);
+    (window.FH_HOUSE_GUIDE?.[lang]||[]).forEach(section=>appendSection(section.title,section.items.map(text=>text.replace('11:00',checkOut))));
+    const thanks=document.createElement('p');thanks.className='house-guide-welcome';
+    thanks.textContent=lang==='de'?'Vielen Dank für Ihre Rücksicht. Wir wünschen Ihnen einen wunderbaren Aufenthalt!':'Thank you for your thoughtfulness. We wish you a wonderful stay!';content.append(thanks);
+  }
+  function renderAmenitiesEditor(root) {
+    const section=document.createElement('section');section.id='amenitiesEditor';section.className='fh-field amenities-editor';
+    const heading=document.createElement('h3');heading.textContent='Facilities & amenities';
+    const help=document.createElement('p');help.className='field-help';help.textContent='Add an amenity with its English and German name. Keep at least one amenity. Save guest information to publish your changes.';
+    const list=document.createElement('div');list.className='amenity-editor-list';
+    const stores=['en','de'].map(lang=>{const input=document.createElement('textarea');input.id='fh-edit-fhFacilities-'+lang;input.hidden=true;section.append(input);return input;});
+    const sync=()=>{stores.forEach((store,i)=>{store.value=[...list.children].map(row=>row.querySelectorAll('input')[i].value.trim()).join('\n');});list.querySelectorAll('button').forEach(button=>{button.disabled=list.children.length===1;});};
+    function addRow(en='',de=''){
+      const row=document.createElement('div');row.className='amenity-editor-row';
+      [en,de].forEach((text,i)=>{const label=document.createElement('label');label.textContent=i?'Deutsch':'English';const input=document.createElement('input');input.value=text;input.placeholder=i?'z. B. Arbeitsplatz':'e.g. Dedicated workspace';input.addEventListener('input',sync);label.append(input);row.append(label);});
+      const remove=document.createElement('button');remove.type='button';remove.className='btn ghost small';remove.textContent='Remove';remove.setAttribute('aria-label','Remove amenity');
+      remove.onclick=()=>{const next=row.nextElementSibling||row.previousElementSibling;row.remove();sync();(next?.querySelector('input')||add).focus();};row.append(remove);list.append(row);sync();return row;
+    }
+    const add=document.createElement('button');add.type='button';add.className='btn secondary small';add.textContent='+ Add amenity';add.onclick=()=>addRow().querySelector('input').focus();
+    section.prepend(heading,help);section.append(list,add);root.append(section);
+    const en=fieldValue('fhFacilities','en').split(/\r?\n/),de=fieldValue('fhFacilities','de').split(/\r?\n/);
+    for(let i=0;i<Math.max(en.length,de.length);i++)addRow(en[i]||'',de[i]||'');
+  }
   function renderAdmin() {
     const root=$('guestInfoEditor');
     if(!root)return;
     root.replaceChildren();
     fields.forEach(f=>{
+      if(f.key==='fhFacilities'){renderAmenitiesEditor(root);return;}
       const block=document.createElement('div');block.className='fh-field';
       const title=document.createElement('strong');title.textContent=f.label;
       block.appendChild(title);
@@ -281,6 +328,7 @@
     if(!session){status.textContent='Session expired. Please sign in again.';return;}
     const {data:allowed,error:authError}=await sb.rpc('frankiholz_admin_access_check');
     if(authError||!allowed){status.textContent='Not authorized to edit FrankiHolz guest information.';return;}
+    if([...document.querySelectorAll('.amenity-editor-row input')].some(input=>!input.value.trim())){status.textContent='Please add both English and German names for every amenity, or remove the empty row.';return;}
     const updates=fields.map((f,i)=>({
       copy_key:f.key,label:f.label,sort_order:500+i*10,
       text_en:$('fh-edit-'+f.key+'-en').value.trim(),
@@ -290,6 +338,7 @@
     if(updates.some(r=>!byKey[r.copy_key].optional&&(!r.text_en||!r.text_de))){
       status.textContent='Please fill out all guest information in both languages.';return;
     }
+    if(updates.filter(row=>['fhCheckIn','fhCheckOut'].includes(row.copy_key)).some(row=>[row.text_en,row.text_de].some(value=>!/^([01]\d|2[0-3]):[0-5]\d$/.test(value)))){status.textContent='Please enter check-in and check-out as HH:MM (24-hour time) in both languages.';return;}
     const airbnb=updates.find(r=>r.copy_key==='fhAirbnbReviewsUrl');
     if(airbnb && [airbnb.text_en,airbnb.text_de].some(url=>url&&!validListingUrl(url))){
       status.textContent='The reviews link must be a valid HTTPS Airbnb listing URL.';return;
@@ -330,6 +379,12 @@
     status.textContent='Guest information saved and verified.';
   }
   if($('guestInfoPublic')){
+    const guide=$('houseGuideDialog');
+    if(guide){
+      $('openHouseGuide').addEventListener('click',()=>{renderGuide(uiLang());guide.showModal();guide.querySelector('.house-guide-scroll').scrollTop=0;});
+      $('closeHouseGuide').addEventListener('click',()=>guide.close());
+      document.querySelectorAll('[data-guide-lang]').forEach(button=>button.addEventListener('click',()=>{renderGuide(button.dataset.guideLang);guide.querySelector('.house-guide-scroll').scrollTop=0;}));
+    }
     const reviewsPanel=$('fhHeroReviews');
     if(reviewsPanel){
       reviewsPanel.addEventListener('mouseenter',()=>{heroReviewPaused=true;});
