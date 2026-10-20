@@ -81,7 +81,7 @@ Payment context uses the existing reference/email authorization through frankiho
 
 ## Guest discount codes and complimentary stays
 
-Available codes: FrankFlowGuest25 (25%), FrankFlowGuest50 (50%), FrankFlowGuest75 (75%) and FrankFlowGuest100 (100%). Matching ignores case and surrounding whitespace. One code per request; no stacking, expiry or usage limit configured. Existing FrankiHolzGuest50/75 remain compatible. Amounts and the promo snapshot are calculated server-side. Positive discounted totals must be at least EUR0.50; they are never rounded up to that minimum.
+Available codes: FrankfiHolzGuest15 (15%), FrankfiHolzGuest25 (25%), FrankFlowGuest25 (25%), FrankFlowGuest50 (50%), FrankFlowGuest75 (75%) and FrankFlowGuest100 (100%). Matching ignores case and surrounding whitespace. One code per request; no stacking, expiry or usage limit configured. Existing FrankiHolzGuest50/75 remain compatible. Amounts and the promo snapshot are calculated server-side. Positive discounted totals must be at least EUR0.50; they are never rounded up to that minimum.
 
 A 100% discount creates a pending complimentary request with total0 and payment_status=not_required. It goes directly to booking status without Stripe or card setup. Host approval still checks/reserves available dates atomically. Rejection/cancellation preserves not_required; there are no charges, refunds or payment receipts. The scheduler excludes complimentary requests. Database constraints prohibit Stripe IDs, due dates and paid_at for these requests. Host and guest messages explicitly explain that no payment is required.
 
