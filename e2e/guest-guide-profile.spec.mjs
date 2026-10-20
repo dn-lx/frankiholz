@@ -25,7 +25,7 @@ for(const language of ['en','de'])test(`house guide opens inline, scrolls, switc
  const scroll=await page.locator('.house-guide-scroll').evaluate(node=>({scroll:node.scrollHeight,height:node.clientHeight,width:node.scrollWidth,client:node.clientWidth}));
  expect(scroll.scroll).toBeGreaterThan(scroll.height);expect(scroll.width).toBeLessThanOrEqual(scroll.client+1);
  await page.locator('.house-guide-scroll').focus();await page.keyboard.press('End');
- expect(await page.locator('.house-guide-scroll').evaluate(node=>node.scrollTop)).toBeGreaterThan(0);
+ await expect.poll(()=>page.locator('.house-guide-scroll').evaluate(node=>node.scrollTop)).toBeGreaterThan(0);
  await page.locator('[data-guide-lang="en"]').click();await expect(page.locator('#houseGuideContent')).toContainText('22:00 to 07:00');await expect(page.locator('#houseGuideContent')).toContainText('Additional guests or visitors');
  await page.locator('[data-guide-lang="de"]').click();await expect(page.locator('#houseGuideContent')).toContainText('Badezimmer & Toilette');await expect(page.locator('#closeHouseGuide')).toHaveText('Schließen');await expect(dialog).toHaveAttribute('lang','de');
  expect(page.context().pages().length).toBe(tabs);
