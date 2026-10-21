@@ -50,6 +50,7 @@ for(const width of [360,1280])test(`Admin shows complete, escaped guest profile 
 
 test('Admin can add and remove bilingual amenities, validate and verify saved copy',async({page})=>{
  await page.goto('/admin.html#website');const rows=page.locator('.amenity-editor-row');await expect(rows).toHaveCount(2);
+ expect(await page.evaluate(()=>getComputedStyle(document.documentElement).scrollBehavior)).toBe('auto');
  await page.getByRole('button',{name:'+ Add amenity',exact:true}).click();await expect(rows).toHaveCount(3);
  await rows.last().getByRole('textbox',{name:'English',exact:true}).fill('Workspace <b>quiet</b>');
  await page.locator('#saveGuestInfo').click();await expect(page.locator('#guestInfoStatus')).toContainText('both English and German');
