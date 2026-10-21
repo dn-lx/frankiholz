@@ -2,6 +2,7 @@
    Uses existing bilingual frankiholz_copy records; does not change booking flows. */
 (() => {
   const fields = [
+    {key:'fhHostPhoto',label:'Host avatar photo',en:'/assets/host-inura.jpg',de:'/assets/host-inura.jpg',kind:'photo'},
     {key:'fhHostName',label:'Host message: host name',en:'Inura',de:'Inura',kind:'input'},
     {key:'fhHostRole',label:'Host message: short introduction',en:'Your host in Frankfurt',de:'Ihr Gastgeber in Frankfurt',kind:'input'},
     {key:'fhHostTitle',label:'Host message: heading',en:'Message from your host',de:'Eine Nachricht von Ihrem Gastgeber',kind:'input'},
@@ -213,6 +214,11 @@
         const paragraph=document.createElement('p');paragraph.textContent=text.trim();hostBody.append(paragraph);
       });
       $('fhHostInitial').textContent=Array.from(fieldValue('fhHostName',lang))[0]||'';
+      const photo=$('fhHostPhoto'),source=hostPhotoUrl(fieldValue('fhHostPhoto','en'));
+      photo.alt=fieldValue('fhHostName',lang);
+      photo.classList.toggle('fh-host-photo-default',source==='/assets/host-inura.jpg');
+      if(photo.getAttribute('src')!==source){photo.hidden=false;$('fhHostInitial').hidden=true;photo.src=source;}
+      photo.onerror=()=>{photo.hidden=true;$('fhHostInitial').hidden=false;};
     }
     const amenities = $('fhAmenitiesList');
     if (amenities) {
@@ -253,7 +259,7 @@
     content.lang=lang;content.replaceChildren();
     const dialog=$('houseGuideDialog');dialog.lang=lang;dialog.querySelectorAll('[data-fh-label]').forEach(node=>{node.textContent=labels[lang][node.dataset.fhLabel];});
     const checkIn=fieldValue('fhCheckIn',lang),checkOut=fieldValue('fhCheckOut',lang);
-    document.querySelectorAll('[data-guide-lang]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.guideLang===lang)));
+    document.querySelectorAll('[data-guide-lang]').forEach(button=>{button.setAttribute('aria-pressed',String(button.dataset.guideLang===lang));button.classList.toggle('active',button.dataset.guideLang===lang);});
     const appendSection=(title,items)=>{
       const section=document.createElement('section'),heading=document.createElement('h3'),list=document.createElement('ul');
       heading.textContent=title;
@@ -290,11 +296,46 @@
     const en=fieldValue('fhFacilities','en').split(/\r?\n/),de=fieldValue('fhFacilities','de').split(/\r?\n/);
     for(let i=0;i<Math.max(en.length,de.length);i++)addRow(en[i]||'',de[i]||'');
   }
+  function hostPhotoUrl(path){
+    return /^host\/[a-z0-9-]+\.(?:jpg|png|webp)$/.test(path)?`${CFG.supabaseUrl}/storage/v1/object/public/${CFG.mediaBucket}/${path}`:'/assets/host-inura.jpg';
+  }
+  function renderHostPhotoEditor(root){
+    const block=document.createElement('section');block.className='fh-field fh-host-photo-editor';
+    block.innerHTML='<h3>Host avatar photo</h3><div class="fh-host-photo-controls"><div class="fh-host-avatar"><img id="fhHostPhotoPreview" alt="Current host avatar" width="100" height="100"></div><div><label for="fhHostPhotoFile">Choose a new photo</label><input id="fhHostPhotoFile" type="file" accept="image/jpeg,image/png,image/webp"><p class="field-help">JPG, PNG or WebP, up to 5 MB. A square portrait works best. Upload publishes the photo for both languages.</p><button type="button" class="btn secondary" id="fhUploadHostPhoto">Upload host photo</button><div id="fhHostPhotoStatus" role="status" aria-live="polite"></div></div></div>';
+    root.append(block);
+    const preview=$('fhHostPhotoPreview'),source=hostPhotoUrl(fieldValue('fhHostPhoto','en'));
+    preview.src=source;preview.classList.toggle('fh-host-photo-default',source==='/assets/host-inura.jpg');
+    $('fhUploadHostPhoto').onclick=uploadHostPhoto;
+  }
+  async function uploadHostPhoto(){
+    const status=$('fhHostPhotoStatus'),button=$('fhUploadHostPhoto'),file=$('fhHostPhotoFile').files[0];
+    const types={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'};
+    if(!file||!types[file.type]||file.size>5*1024*1024||!file.size){status.textContent='Choose a JPG, PNG or WebP photo up to 5 MB.';return;}
+    button.disabled=true;status.textContent='Uploading…';
+    try{
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session)throw new Error('Session expired. Please sign in again.');
+      const {data:allowed,error:authError}=await sb.rpc('frankiholz_admin_access_check');
+      if(authError||!allowed)throw new Error('Not authorized to change the host photo.');
+      const path=`host/${crypto.randomUUID()}.${types[file.type]}`;
+      const {error:uploadError}=await sb.storage.from(CFG.mediaBucket).upload(path,file,{upsert:false,contentType:file.type,cacheControl:'3600'});
+      if(uploadError)throw uploadError;
+      const update={copy_key:'fhHostPhoto',label:'Host avatar photo',sort_order:490,text_en:path,text_de:path,updated_at:new Date().toISOString()};
+      const {error:saveError}=await sb.from('frankiholz_copy').upsert([update],{onConflict:'copy_key'});
+      if(saveError){await sb.storage.from(CFG.mediaBucket).remove([path]);throw saveError;}
+      const {data:stored,error:readError}=await sb.from('frankiholz_copy').select('copy_key,text_en,text_de').in('copy_key',['fhHostPhoto']);
+      const savedPhoto=stored?.find(row=>row.copy_key==='fhHostPhoto');
+      if(readError||savedPhoto?.text_en!==path||savedPhoto?.text_de!==path)throw new Error('Photo save could not be verified. Reload to check before uploading again.');
+      rows.fhHostPhoto=savedPhoto;const preview=$('fhHostPhotoPreview');preview.classList.remove('fh-host-photo-default');preview.src=hostPhotoUrl(path);
+      $('fhHostPhotoFile').value='';status.textContent='Host photo saved and verified for both languages.';
+    }catch(error){status.textContent=error.message||'Could not upload the host photo.';}finally{button.disabled=false;}
+  }
   function renderAdmin() {
     const root=$('guestInfoEditor');
     if(!root)return;
     root.replaceChildren();
     fields.forEach(f=>{
+      if(f.kind==='photo'){renderHostPhotoEditor(root);return;}
       if(f.key==='fhFacilities'){renderAmenitiesEditor(root);return;}
       const block=document.createElement('div');block.className='fh-field';
       const title=document.createElement('strong');title.textContent=f.label;
@@ -343,7 +384,7 @@
     const {data:allowed,error:authError}=await sb.rpc('frankiholz_admin_access_check');
     if(authError||!allowed){status.textContent='Not authorized to edit FrankiHolz guest information.';return;}
     if([...document.querySelectorAll('.amenity-editor-row input')].some(input=>!input.value.trim())){status.textContent='Please add both English and German names for every amenity, or remove the empty row.';return;}
-    const updates=fields.map((f,i)=>({
+    const updates=fields.filter(f=>f.kind!=='photo').map((f,i)=>({
       copy_key:f.key,label:f.label,sort_order:500+i*10,
       text_en:$('fh-edit-'+f.key+'-en').value.trim(),
       text_de:$('fh-edit-'+f.key+'-de').value.trim(),
@@ -419,7 +460,7 @@
     }
     renderPublic();
     load();
-    document.querySelectorAll('.lang-btn').forEach(btn=>btn.addEventListener('click',()=>{document.documentElement.lang=btn.dataset.lang;renderPublic();}));
+    document.querySelectorAll('.lang-btn[data-lang]').forEach(btn=>btn.addEventListener('click',()=>{document.documentElement.lang=btn.dataset.lang;renderPublic();}));
   }
   if($('guestInfoEditor')){
     const saveBtn=$('saveGuestInfo');

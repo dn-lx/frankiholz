@@ -8,7 +8,8 @@ test.beforeEach(async({page})=>{
   window.__copy=JSON.parse(sessionStorage.getItem('fixture-copy')||'null')||[{copy_key:'fhFacilities',text_en:'Wi-Fi\nKitchen',text_de:'WLAN\nKüche'}];window.__writes=[];window.__allowed=true;
   window.__guest={id:'fixture',reference:'FH-PREVIEW',created_at:'2026-10-20T18:00:00Z',guest_name:'Alex Guest',guest_email:'guest@example.invalid',guest_phone:'+49 170 0000000',guest_country:'Germany',guest_age:32,guest_sex:'prefer_not_to_say',guest_languages:['English','Deutsch'],guest_returning:false,guest_hobbies:'Photography & hiking',message:'Arriving at 18:00. Thank you! '+ '<img src=x onerror="window.__xss=true">',language:'en',check_in:'2026-11-10',check_out:'2026-11-12',guests:1,total_price:90,status:'pending',payment_mode:'live',payment_status:'payment_method_saved',payment_schedule_version:'v2_14_day',frankiholz_rooms:{name:'Cozy Holz'}};
   window.supabase={createClient:()=>({
-   from(table){return {select(){return this},order(){return this},eq(){return this},in(){return this},gte(){return this},lte(){return this},single:async()=>({data:null,error:null}),maybeSingle:async()=>({data:null,error:null}),upsert(rows){window.__writes.push({table,rows});window.__copy=rows;sessionStorage.setItem('fixture-copy',JSON.stringify(rows));return Promise.resolve({error:null})},then(resolve,reject){return Promise.resolve({data:table==='frankiholz_copy'?window.__copy:table==='frankiholz_bookings'?[window.__guest]:[],error:null}).then(resolve,reject)}}},
+   from(table){return {select(){return this},order(){return this},eq(){return this},in(){return this},gte(){return this},lte(){return this},single:async()=>({data:null,error:null}),maybeSingle:async()=>({data:null,error:null}),upsert(rows){window.__writes.push({table,rows});if(window.__saveError)return Promise.resolve({error:{message:'Save failed'}});window.__copy=[...window.__copy.filter(old=>!rows.some(row=>row.copy_key===old.copy_key)),...rows];sessionStorage.setItem('fixture-copy',JSON.stringify(window.__copy));return Promise.resolve({error:null})},then(resolve,reject){return Promise.resolve({data:table==='frankiholz_copy'?window.__copy:table==='frankiholz_bookings'?[window.__guest]:[],error:null}).then(resolve,reject)}}},
+   storage:{from:()=>({upload:async(path,file)=>{(window.__uploads||=[]).push({path,type:file.type});return {error:null}},remove:async paths=>{window.__removed=paths;return {error:null}}})},
    rpc:async name=>({data:name==='frankiholz_admin_access_check'?window.__allowed:[],error:null}),
    auth:{getSession:async()=>({data:{session:{access_token:'fixture-token'}}}),signOut:async()=>({}),onAuthStateChange:()=>({})}
   })};
@@ -118,4 +119,56 @@ for(const width of [360,660,900,1280])test(`hero badge clears navigation and hos
  expect(badge.y).toBeGreaterThanOrEqual(nav.y+nav.height+20);
  await expect(page.locator('#hostMessage')).toContainText('Alle sind willkommen.');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width+1);
+});
+
+for(const width of [360,1280])test(`guide switch and booking stay summary fit at ${width}px`,async({page})=>{
+ await page.setViewportSize({width,height:900});await page.goto('/?lang=en');
+ await expect(page.locator('#fhHostPhoto')).toHaveAttribute('src','/assets/host-inura.jpg');
+ await page.locator('#openHouseGuide').click();
+ const logo=await page.locator('.house-guide-logo').boundingBox(),switcher=await page.locator('.house-guide-languages').boundingBox();
+ expect(switcher.x).toBeGreaterThan(logo.x+logo.width);
+ await expect(page.locator('[data-guide-lang="en"]')).toHaveText('EN');await expect(page.locator('[data-guide-lang="en"]')).toHaveClass(/active/);
+ await page.locator('[data-guide-lang="de"]').click();await expect(page.locator('[data-guide-lang="de"]')).toHaveClass(/active/);
+ expect(await page.evaluate(()=>({language:document.documentElement.lang,saved:localStorage.getItem('frankiholz-lang'),url:new URL(location.href).searchParams.get('lang')}))).toEqual({language:'en',saved:'en',url:'en'});
+ await expect(page.locator('#houseGuideContent')).toContainText('Heizung');
+ await page.goto('/admin.html#bookings');
+ await expect(page.locator('.booking-stay dt')).toHaveText(['Check-in','Check-out','Guests','Stay total']);
+ await expect(page.locator('.booking-stay dd')).toHaveText(['10 Nov 2026','12 Nov 2026','1','€90.00']);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width+1);
+});
+
+test('room cards keep name, price and action without duplicate guest and description text',async({page})=>{
+ await page.goto('/?lang=en');
+ await page.evaluate(()=>{rooms=[{id:'fixture-room',name:'Cozy room',description:'Duplicate description',max_guests:2,base_price:50}];renderRooms();});
+ await expect(page.locator('.room-card')).toContainText('Cozy room');await expect(page.locator('.room-card')).toContainText('€50.00');
+ await expect(page.locator('.room-card')).not.toContainText('Duplicate description');await expect(page.locator('.room-card')).not.toContainText('Up to');
+ await expect(page.locator('.room-card button')).toHaveText('View room & availability');
+});
+
+const avatarFile={name:'portrait.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jVZkAAAAASUVORK5CYII=','base64')};
+test('Admin avatar upload authorizes, publishes only photo, retains unsaved text and survives reload',async({page})=>{
+ await page.goto('/admin.html#website');await expect(page.locator('#fhUploadHostPhoto')).toBeVisible();
+ await page.locator('#fh-edit-fhHostName-en').fill('Unsaved host name');
+ await page.locator('#fhHostPhotoFile').setInputFiles(avatarFile);await page.locator('#fhUploadHostPhoto').click();
+ await expect(page.locator('#fhHostPhotoStatus')).toContainText('saved and verified');
+ await expect(page.locator('#fh-edit-fhHostName-en')).toHaveValue('Unsaved host name');
+ const state=await page.evaluate(()=>({uploads:window.__uploads,writes:window.__writes,photo:window.__copy.find(row=>row.copy_key==='fhHostPhoto')}));
+ expect(state.uploads).toHaveLength(1);expect(state.writes).toHaveLength(1);expect(state.writes[0].rows).toHaveLength(1);
+ expect(state.photo.text_en).toMatch(/^host\/[a-f0-9-]+\.png$/);expect(state.photo.text_de).toBe(state.photo.text_en);
+ await page.reload();await expect(page.locator('#fhHostPhotoPreview')).toHaveAttribute('src',new RegExp(state.photo.text_en+'$'));
+ await page.goto('/?lang=de');await expect(page.locator('#fhHostPhoto')).toHaveAttribute('src',new RegExp(state.photo.text_en+'$'));
+});
+
+test('avatar rejects unsafe files and unauthorized uploads, and cleans failed copy save',async({page})=>{
+ await page.goto('/admin.html#website');await expect(page.locator('#fhUploadHostPhoto')).toBeVisible();
+ await page.locator('#fhHostPhotoFile').setInputFiles({name:'bad.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg/>')});
+ await page.locator('#fhUploadHostPhoto').click();await expect(page.locator('#fhHostPhotoStatus')).toContainText('JPG, PNG or WebP');
+ await page.locator('#fhHostPhotoFile').setInputFiles({...avatarFile,buffer:Buffer.alloc(5*1024*1024+1)});
+ await page.locator('#fhUploadHostPhoto').click();await expect(page.locator('#fhHostPhotoStatus')).toContainText('up to 5 MB');
+ await page.locator('#fhHostPhotoFile').setInputFiles(avatarFile);await page.evaluate(()=>window.__allowed=false);
+ await page.locator('#fhUploadHostPhoto').click();await expect(page.locator('#fhHostPhotoStatus')).toContainText('Not authorized');
+ expect(await page.evaluate(()=>window.__uploads||[])).toHaveLength(0);
+ await page.evaluate(()=>{window.__allowed=true;window.__saveError=true;});
+ await page.locator('#fhUploadHostPhoto').click();await expect(page.locator('#fhHostPhotoStatus')).toContainText('Save failed');
+ expect(await page.evaluate(()=>window.__removed)).toHaveLength(1);await expect(page.locator('#fhHostPhotoPreview')).toHaveAttribute('src','/assets/host-inura.jpg');
 });
