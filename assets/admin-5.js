@@ -58,6 +58,10 @@ async function deleteSelectedBookings(){
     if(button){button.textContent='Delete selected';syncBookingCleanupControls()}
   }
 }
+function bookingStaySummary(b,due){
+  const date=value=>/^\d{4}-\d{2}-\d{2}$/.test(value||'')&&Number.isFinite(Date.parse(value+'T12:00:00Z'))?`<time datetime="${attr(value)}">${esc(new Intl.DateTimeFormat('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}).format(new Date(value+'T12:00:00Z')))}</time>`:esc(value||'Not provided');
+  return `<dl class="booking-stay"><div><dt>Check-in</dt><dd>${date(b.check_in)}</dd></div><div><dt>Check-out</dt><dd>${date(b.check_out)}</dd></div><div><dt>Guests</dt><dd>${esc(b.guests??'—')}</dd></div><div class="booking-stay-total"><dt>Stay total</dt><dd>${money(b.total_price)}</dd></div></dl>${due?`<p class="booking-payment-timing">${esc(due.replace(/^ · /,''))}</p>`:''}`;
+}
 function bookingGuestProfile(b){
   const sex={female:'Female',male:'Male',non_binary:'Non-binary',other:'Other',prefer_not_to_say:'Prefer not to say'};
   const detail=(label,value)=>`<div><dt>${esc(label)}</dt><dd>${esc(value===null||value===undefined||value===''?'Not provided':value)}</dd></div>`;
@@ -117,7 +121,7 @@ async function loadBookings(){
       <div class="booking-row-top"><div class="booking-identity"><b>${esc(b.reference)}</b><span>${esc(b.frankiholz_rooms?.name||'')}</span></div>${cleanup}</div>
       <div class="booking-received">Received ${received}</div>
       <div class="booking-badges">${modeBadge}<span class="status ${attr(b.status)}">${esc(b.status)}</span><span class="status ${payClass}">${esc(b.payment_collection_mode==='bank_transfer'&&pay==='awaiting_payment'?'existing bank transfer outstanding':labels[pay]||pay.replaceAll('_',' '))}</span></div>
-      <div class="booking-stay muted">${esc(b.check_in)} → ${esc(b.check_out)} · ${money(b.total_price)} · ${b.guests} guest${b.guests===1?'':'s'}${due}</div>
+      ${bookingStaySummary(b,due)}
       ${bookingGuestProfile(b)}
       <div class="booking-actions">${actions}</div>
     </article>`;
