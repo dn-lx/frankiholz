@@ -2,6 +2,11 @@
    Uses existing bilingual frankiholz_copy records; does not change booking flows. */
 (() => {
   const fields = [
+    {key:'fhHostName',label:'Host message: host name',en:'Inura',de:'Inura',kind:'input'},
+    {key:'fhHostRole',label:'Host message: short introduction',en:'Your host in Frankfurt',de:'Ihr Gastgeber in Frankfurt',kind:'input'},
+    {key:'fhHostTitle',label:'Host message: heading',en:'Message from your host',de:'Eine Nachricht von Ihrem Gastgeber',kind:'input'},
+    {key:'fhHostBody',label:'Host message (separate paragraphs with a blank line)',en:"We value our guests' privacy and personal space, while always being happy to help with recommendations for restaurants, nightlife, sightseeing or transportation.\n\nYour room is designed to be comfortable during the day, while warm ambient lighting and red mood lighting can create a more intimate atmosphere in the evening. Whether you're visiting Frankfurt alone, for work, nightlife, or enjoying a romantic stay together, you can make the space feel the way you like.\n\nEveryone is welcome. Come as you are, enjoy your privacy, and make yourself at home.",de:'Wir schätzen die Privatsphäre und den persönlichen Freiraum unserer Gäste und helfen Ihnen zugleich gerne mit Empfehlungen für Restaurants, das Nachtleben, Sehenswürdigkeiten oder Verkehrsmittel.\n\nIhr Zimmer ist tagsüber ein gemütlicher Rückzugsort. Am Abend sorgen warmes, stimmungsvolles Licht und rote Akzentbeleuchtung auf Wunsch für eine intimere Atmosphäre. Ob Sie Frankfurt allein, beruflich, wegen des Nachtlebens oder für einen romantischen Aufenthalt zu zweit besuchen – gestalten Sie die Atmosphäre so, wie Sie sich wohlfühlen.\n\nAlle sind willkommen. Kommen Sie, wie Sie sind, genießen Sie Ihre Privatsphäre und fühlen Sie sich wie zu Hause.',kind:'textarea'},
+    {key:'fhHeatingRule',label:'House rules: heating controls',en:'Please keep the radiator thermostat on, at a setting no higher than 3. Do not turn it off. If your room feels too cold, please let us know.',de:'Bitte lassen Sie das Heizkörperthermostat eingeschaltet und stellen Sie es höchstens auf Stufe 3. Schalten Sie die Heizung nicht aus. Wenn es Ihnen zu kalt ist, sagen Sie uns bitte Bescheid.',kind:'textarea'},
     {key:'fhCheckIn',label:'House rules: check-in',en:'17:00',de:'17:00',kind:'input'},
     {key:'fhCheckOut',label:'House rules: check-out',en:'11:00',de:'11:00',kind:'input'},
     {key:'fhQuietHours',label:'House rules: quiet hours',en:'Please respect neighbours and keep noise low, especially at night. Exact quiet hours will be confirmed by the host.',de:'Bitte nehmen Sie Rücksicht auf Nachbarn und vermeiden Sie insbesondere nachts Lärm. Die genauen Ruhezeiten bestätigt der Gastgeber.',kind:'textarea'},
@@ -201,6 +206,14 @@
     document.querySelectorAll('[data-fh-info]').forEach(node=>{
       node.textContent = fieldValue(node.dataset.fhInfo,lang);
     });
+    const hostBody=$('fhHostBody');
+    if(hostBody){
+      hostBody.replaceChildren();
+      fieldValue('fhHostBody',lang).split(/\n\s*\n/).filter(text=>text.trim()).forEach(text=>{
+        const paragraph=document.createElement('p');paragraph.textContent=text.trim();hostBody.append(paragraph);
+      });
+      $('fhHostInitial').textContent=Array.from(fieldValue('fhHostName',lang))[0]||'';
+    }
     const amenities = $('fhAmenitiesList');
     if (amenities) {
       amenities.replaceChildren();
@@ -254,6 +267,7 @@
       'Check-in: '+checkIn+' · Check-out: '+checkOut,
       ...['fhQuietHours','fhExtraGuests','fhOtherRules'].map(key=>fieldValue(key,lang))
     ]);
+    appendSection(lang==='de'?'Heizung & Raumtemperatur':'Heating & room temperature',[fieldValue('fhHeatingRule',lang)]);
     (window.FH_HOUSE_GUIDE?.[lang]||[]).forEach(section=>appendSection(section.title,section.items.map(text=>text.replace('11:00',checkOut))));
     const thanks=document.createElement('p');thanks.className='house-guide-welcome';
     thanks.textContent=lang==='de'?'Vielen Dank für Ihre Rücksicht. Wir wünschen Ihnen einen wunderbaren Aufenthalt!':'Thank you for your thoughtfulness. We wish you a wonderful stay!';content.append(thanks);
@@ -291,7 +305,7 @@
         label.textContent=lang==='en'?'English':'Deutsch';
         const control=document.createElement(f.kind==='input'?'input':'textarea');
         control.id='fh-edit-'+f.key+'-'+lang;label.htmlFor=control.id;
-        if(f.kind!=='input')control.rows=f.key==='fhAboutBody'?5:3;
+        if(f.kind!=='input')control.rows=f.key==='fhHostBody'?10:f.key==='fhAboutBody'?5:3;
         if(f.key==='fhAirbnbReviewsUrl')control.placeholder='https://www.airbnb.com/rooms/...';
         if(f.key==='fhHeroReviews'){
           control.placeholder='Guest name | Review text | https://www.airbnb.com/rooms/123456789 | 5';

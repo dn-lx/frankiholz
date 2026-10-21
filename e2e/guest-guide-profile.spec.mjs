@@ -50,6 +50,7 @@ for(const width of [360,1280])test(`Admin shows complete, escaped guest profile 
 
 test('Admin can add and remove bilingual amenities, validate and verify saved copy',async({page})=>{
  await page.goto('/admin.html#website');const rows=page.locator('.amenity-editor-row');await expect(rows).toHaveCount(2);
+ expect(await page.evaluate(()=>getComputedStyle(document.documentElement).scrollBehavior)).toBe('auto');
  await page.getByRole('button',{name:'+ Add amenity',exact:true}).click();await expect(rows).toHaveCount(3);
  await rows.last().getByRole('textbox',{name:'English',exact:true}).fill('Workspace <b>quiet</b>');
  await page.locator('#saveGuestInfo').click();await expect(page.locator('#guestInfoStatus')).toContainText('both English and German');
@@ -70,4 +71,51 @@ for(const width of [360,768,1280])test(`larger logo stays separate from navigati
  await page.setViewportSize({width,height:900});await page.goto('/');
  const bounds=await page.evaluate(()=>{const logo=document.querySelector('.brand-logo-drive').getBoundingClientRect(),actions=document.querySelector('.nav-actions').getBoundingClientRect();return {height:logo.height,right:logo.right,left:actions.left,scroll:document.documentElement.scrollWidth}});
  expect(bounds.height).toBeCloseTo(width<=600?117:162,0);expect(bounds.right).toBeLessThanOrEqual(bounds.left);expect(bounds.scroll).toBeLessThanOrEqual(width+1);
+});
+
+for(const language of ['en','de'])test(`host welcome and editable heating rule render safely in ${language}`,async({page})=>{
+ await page.addInitScript(()=>window.__copy.push({copy_key:'fhHeatingRule',text_en:'Keep heating on, no higher than 3. If too cold, contact us.',text_de:'Heizung eingeschaltet lassen, höchstens Stufe 3. Bei Kälte bitte melden.'}));
+ await page.goto('/?lang='+language);
+ await expect(page.locator('#roomsSection [data-i18n="roomsLead"]')).toHaveCount(0);
+ await expect(page.locator('#fhHostName')).toHaveText('Inura');
+ await expect(page.locator('#fhHostBody p')).toHaveCount(3);
+ await expect(page.locator('#fhHostBody')).toContainText(language==='en'?"Everyone is welcome.":'Alle sind willkommen.');
+ await expect(page.locator('#fhHostBody')).toContainText(language==='en'?"We value our guests' privacy":'Wir schätzen die Privatsphäre');
+ await page.locator('#openHouseGuide').click();
+ await expect(page.locator('#houseGuideContent')).toContainText(language==='en'?'Keep heating on, no higher than 3.':'höchstens Stufe 3');
+ await page.keyboard.press('Escape');
+ await page.locator('.lang-btn[data-lang="'+(language==='en'?'de':'en')+'"]').click();
+ await expect(page.locator('#fhHostBody')).toContainText(language==='en'?'Alle sind willkommen.':'Everyone is welcome.');
+});
+
+test('Admin saves homepage and host text in both languages; public rendering treats it as text',async({page})=>{
+ await page.goto('/admin.html#website');
+ await expect(page.locator('#homeCopyEditors .copy-editor-row')).toHaveCount(10);
+ await page.locator('#copy-en-heroMinor').fill('A personal welcome <b>to Frankfurt</b>');
+ await page.locator('#copy-de-heroMinor').fill('');
+ await page.locator('#saveHomeCopy').click();await expect(page.locator('#homeCopyStatus')).toContainText('both English and German');
+ expect(await page.evaluate(()=>window.__writes.length)).toBe(0);
+ await page.locator('#copy-de-heroMinor').fill('Persönlich willkommen');
+ await page.locator('#saveHomeCopy').click();await expect(page.locator('#homeCopyStatus')).toContainText('saved and verified');
+ await page.reload();await expect(page.locator('#copy-en-heroMinor')).toHaveValue('A personal welcome <b>to Frankfurt</b>');
+ await page.goto('/?lang=en');await expect(page.locator('[data-i18n="heroMinor"]')).toHaveText('A personal welcome <b>to Frankfurt</b>');
+ await expect(page.locator('[data-i18n="heroMinor"] b')).toHaveCount(0);
+ await page.goto('/admin.html#website');
+ await page.locator('#fh-edit-fhHostBody-en').fill('A warm hello.\n\nEveryone is welcome.');
+ await page.locator('#fh-edit-fhHostBody-de').fill('Herzlich willkommen.\n\nAlle sind willkommen.');
+ await page.locator('#saveGuestInfo').click();await expect(page.locator('#guestInfoStatus')).toContainText('saved and verified');
+ await page.goto('/?lang=de');await expect(page.locator('#fhHostBody p')).toHaveText(['Herzlich willkommen.','Alle sind willkommen.']);
+ await page.goto('/admin.html#website');await page.evaluate(()=>window.__allowed=false);
+ await page.locator('#saveHomeCopy').click();await expect(page.locator('#homeCopyStatus')).toContainText('Not authorized');
+ expect(await page.evaluate(()=>window.__writes.length)).toBe(0);
+});
+
+for(const width of [360,660,900,1280])test(`hero badge clears navigation and host message fits at ${width}px`,async({page})=>{
+ await page.setViewportSize({width,height:900});
+ await page.addInitScript(()=>window.__copy.push({copy_key:'eyebrow',text_en:'A comfortable and welcoming stay in Frankfurt am Main',text_de:'Ein gemütlicher und herzlicher Aufenthalt in Frankfurt am Main'}));
+ await page.goto('/?lang=de');
+ const nav=await page.locator('.site-nav').boundingBox(),badge=await page.locator('.fh-hero-rail .eyebrow').boundingBox();
+ expect(badge.y).toBeGreaterThanOrEqual(nav.y+nav.height+20);
+ await expect(page.locator('#hostMessage')).toContainText('Alle sind willkommen.');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width+1);
 });
