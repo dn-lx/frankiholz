@@ -63,3 +63,17 @@ html:has(.house-guide-dialog[open]){overflow:hidden}
 .amenity-editor-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:12px;align-items:end;padding:14px;background:#f4f8f5;border:1px solid var(--line);border-radius:14px}
 .amenity-editor-row label{margin:0}.amenity-editor-row input{margin-top:6px}.amenity-editor-row .btn{min-height:46px}
 @media(max-width:600px){.house-guide-header{padding:18px;gap:10px}.house-guide-header h2{font-size:18px}.house-guide-scroll{padding:22px}.amenity-editor-row{grid-template-columns:1fr}.amenity-editor-row .btn{justify-self:start}}
+
+/* A personal host welcome, with a compact profile and a calm reading column. */
+.fh-host-message{background:#f5f6f0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.fh-host-layout{display:grid;grid-template-columns:minmax(180px,.65fr) minmax(0,2fr);gap:64px;align-items:start}
+.fh-host-profile{text-align:center;padding:26px 16px;border:1px solid #dce5dd;border-radius:24px;background:#fff;box-shadow:0 12px 30px #17343d08}
+.fh-host-avatar{display:grid;place-items:center;margin:0 auto 18px;width:100px;height:100px;border-radius:50%;background:#153f4b;color:#f2d8b5;font-size:44px;font-weight:700}
+.fh-host-profile h3{margin:0;font-size:28px;letter-spacing:-.03em;overflow-wrap:anywhere}
+.fh-host-profile p{margin:8px 0 0;color:var(--muted);font-size:14px;line-height:1.6;overflow-wrap:anywhere}
+.fh-host-copy h2{margin:0 0 22px;font-size:clamp(26px,3vw,36px);letter-spacing:-.04em;line-height:1.2}
+.fh-host-copy p{margin:0 0 20px;line-height:1.85;color:#36545b;white-space:pre-line;overflow-wrap:anywhere;max-width:70ch}
+.fh-host-copy p:last-child{margin-bottom:0;color:var(--ink);font-weight:600}
+#homeCopySettings h2{margin-top:0}
+#homeCopyStatus{margin-top:12px;overflow-wrap:anywhere}
+@media(max-width:700px){.fh-host-layout{grid-template-columns:1fr;gap:28px}.fh-host-profile{display:grid;grid-template-columns:76px minmax(0,1fr);column-gap:18px;text-align:left;align-items:center;padding:20px}.fh-host-avatar{grid-row:1/3;width:76px;height:76px;margin:0;font-size:34px}.fh-host-profile h3{align-self:end;font-size:25px}.fh-host-profile p{align-self:start;margin-top:5px}.fh-host-copy p{line-height:1.75}}

@@ -3,7 +3,7 @@
 @media (min-width:901px){
   .hero{min-height:clamp(580px,66vh,665px)}
   .fh-hero-grid.fh-hero-split{
-    padding-block:clamp(138px,15vh,155px) clamp(65px,8vh,82px);
+    padding-block:32px clamp(65px,8vh,82px);
   }
 }
 .fh-section-nav-inner{min-height:56px}
@@ -45,7 +45,7 @@
 #bookingStatusSection{padding-block:clamp(43px,4.5vw,61px)}
 .footer{padding-block:33px}
 @media(max-width:900px){
-  .fh-hero-grid.fh-hero-split{padding-block:139px 59px;gap:14px}
+  .fh-hero-grid.fh-hero-split{padding-block:32px 59px;gap:14px}
   .fh-hero-split .fh-hero-minor{margin-top:17px}
   .section{padding-block:clamp(38px,5.5vw,52px)}
   #guestInfoPublic .fh-guest-editorial{gap:15px}
@@ -54,7 +54,7 @@
   #location .fh-map-embed,#location .fh-map-embed iframe{min-height:290px}
 }
 @media(max-width:600px){
-  .fh-hero-grid.fh-hero-split{padding-block:134px 55px;gap:13px}
+  .fh-hero-grid.fh-hero-split{padding-block:24px 55px;gap:13px}
   .fh-hero-split .hero-content h1{margin-block:9px 15px}
   .fh-section-nav-inner{min-height:52px}
   .section{padding-block:39px}
