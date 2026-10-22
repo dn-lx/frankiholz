@@ -32,9 +32,9 @@ for(const language of ['en','de'])test(`saved homepage order applies in ${langua
  const state=await page.evaluate(order=>{
   const input=document.getElementById('guestName');let clicked=0;document.getElementById('jumpToCalendar').addEventListener('click',()=>clicked++);
   window.FrankiHolzLayout.applyOrder(JSON.stringify(order));document.getElementById('jumpToCalendar').click();
-  return {sameNode:input===document.getElementById('guestName'),value:input.value,clicked,hidden:document.getElementById('bookingSection').hidden};
+  return {sameNode:input===document.getElementById('guestName'),value:input.value,focused:document.activeElement===input,clicked,hidden:document.getElementById('bookingSection').hidden};
  },defaults);
- expect(state).toEqual({sameNode:true,value:'Guest draft',clicked:1,hidden:false});
+ expect(state).toEqual({sameNode:true,value:'Guest draft',focused:true,clicked:1,hidden:false});
  await page.locator('#openHouseGuide').click();await expect(page.getByRole('dialog')).toBeVisible();
 });
 

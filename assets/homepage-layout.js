@@ -22,7 +22,10 @@
       const main = document.querySelector('main');
       if (!document.getElementById('roomsSection') || !main) return;
       const nodes = (parseOrder(raw) || defaults).map(id => document.getElementById(id));
-      if (nodes.every(node => node?.parentElement === main)) main.append(...nodes);
+      if (!nodes.every(node => node?.parentElement === main) || nodes.every((node,index) => main.children[index] === node)) return;
+      const focused = main.contains(document.activeElement) ? document.activeElement : null;
+      main.append(...nodes);
+      focused?.focus({preventScroll:true});
     }
   };
 
