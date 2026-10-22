@@ -26,7 +26,10 @@ jobs:
       - name: Install test dependency
         run: npm install --ignore-scripts --no-audit --no-fund
       - name: Install Chromium and WebKit
-        run: npx playwright install --with-deps chromium webkit
+        run: |
+          # The Azure mirror can consume the job limit before browser tests start.
+          sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' /etc/apt/apt-mirrors.txt
+          npx playwright install --with-deps chromium webkit
       - name: Run desktop cross-browser smoke tests
         run: npm run test:e2e
       - name: Verify payment state transitions without external writes
