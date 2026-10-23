@@ -25,6 +25,11 @@ jobs:
           node-version: "22"
       - name: Install test dependency
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify pinned runtime and public build
+        run: |
+          npm run vendor:check
+          npm run test:unit
+          npm run build
       - name: Install Chromium and WebKit
         run: |
           # The Azure mirror can consume the job limit before browser tests start.

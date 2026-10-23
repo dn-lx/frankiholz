@@ -6,12 +6,12 @@ export function isComplimentary(b: any) {
     && b.promo_discount_percent === 100 && b.promo_code === 'FrankFlowGuest100';
 }
 
-export async function closeComplimentary(service: any, booking: any) {
+export async function closeComplimentary(service: any, booking: any, eventType = 'booking_cancelled') {
   if (!isComplimentary(booking)) throw new Error('Invalid complimentary booking');
   const operation = await claimOperation(service, booking.id, 'cancel');
   try {
     const { error } = await service.rpc('frankiholz_close_complimentary_booking', {
-      p_booking_id: booking.id, p_operation_token: operation.token,
+      p_booking_id: booking.id, p_operation_token: operation.token, p_event_type: eventType,
     });
     if (error) throw error;
   } finally {

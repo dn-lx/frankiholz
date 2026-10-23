@@ -23,7 +23,7 @@
 ## Verification
 
 - Run `git diff --check` and inspect the final diff. Validate changed skill frontmatter and links for documentation/tooling work.
-- For JavaScript changes, syntax-check affected files and verify the affected page and its script sequence. There is no package manifest or existing automated test suite in this checkout; do not claim an npm build or end-to-end payment test passed.
+- For JavaScript changes, syntax-check affected files and verify the affected page and its script sequence. Use the pinned package manifest for unit/build/browser checks and the mocked backend suite under `supabase/tests`. Report actual results and distinguish isolated checks from deployed database or end-to-end provider verification.
 - Use mocked/offline checks where possible. Only exercise shared backend writes, real booking actions, payment decisions, or email delivery when the task explicitly authorizes them.
 - Report exact files, checks performed, and pre-existing blockers. Keep generated analysis and local environments out of version control.
 

@@ -66,8 +66,8 @@ body{background-color:#f6faf8}
 .admin-page .stripe-environment-panel .stripe-mode-control{background:linear-gradient(130deg,#f7faf9,#eef5f1);border-radius:16px}
 .admin-page .stripe-environment-panel .section-heading h2{font-size:23px!important}
 .admin-page .login-card:before{
-  content:"";width:176px;height:72px;display:block;margin-bottom:14px;
-  background:transparent url('/assets/frankiholz-logo-for-light.png?v=20260918b') left center/contain no-repeat;
+  content:"";width:176px;height:106px;display:block;margin-bottom:22px;
+  background:transparent url('/assets/images/frankiholz-logo-light-384.webp') left center/contain no-repeat;
   border-radius:0;box-shadow:none;
 }
 .admin-page .login-card{padding:clamp(24px,3vw,38px);box-shadow:0 26px 70px rgba(16,59,80,.11)}

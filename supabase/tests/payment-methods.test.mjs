@@ -8,6 +8,7 @@ import {openBankTransfer} from '../functions/_shared/bank-transfer.ts';
 import {cancelTransfer} from '../functions/_shared/cancel-transfer.ts';
 import {isComplimentary,closeComplimentary} from '../functions/_shared/complimentary.ts';
 import {claimOperation,releaseOperation} from '../functions/_shared/payment-operation.ts';
+import {notifyClosedBooking} from '../functions/_shared/closure-notification.ts';
 
 const booking=()=>({id:'booking-1',reference:'FH-ISOLATED',status:'confirmed',payment_status:'scheduled_charge',payment_collection_mode:'saved_method',payment_mode:'test',payment_schedule_version:'v2_14_day',total_price:0.50,stripe_customer_id:'cus_fixture',stripe_payment_method_id:'pm_fixture',stripe_setup_intent_id:'seti_fixture',stripe_payment_intent_id:null,check_in:'2026-11-10',check_out:'2026-11-11'});
 function fixture(b=booking()){
@@ -82,13 +83,13 @@ async function freeHandler(name,f){
  f.service.rpc=async(name,args)=>{
    if(name==='frankiholz_admin_access_check')return {data:f.state.admin!==false};
    if(name==='frankiholz_confirm_payment_booking'){assert.equal(args.p_operation_token,f.b.payment_operation_token);f.b.status='confirmed';return {error:null}}
-   if(name==='frankiholz_close_complimentary_booking'){assert.equal(args.p_operation_token,f.b.payment_operation_token);f.b.status='cancelled';return {error:null}}
+   if(name==='frankiholz_close_complimentary_booking'){assert.equal(args.p_operation_token,f.b.payment_operation_token);f.b.status='cancelled';f.b.closure_notification_event=args.p_event_type;return {error:null}}
    return original(name,args);
  };
  class Stripe{constructor(){throw new Error('Complimentary flow must never construct Stripe')}}
  vm.runInNewContext(stripTypeScriptTypes(source.replace(/^import .*;\r?\n/gm,'')),{
    Deno:{env:{get:key=>key.startsWith('STRIPE')?undefined:'mock-only'},serve(fn){handler=fn}},Stripe,createClient:()=>f.service,
-   isComplimentary,closeComplimentary,claimOperation,releaseOperation,chargeBooking,cancelTransfer,
+   isComplimentary,closeComplimentary,claimOperation,releaseOperation,chargeBooking,cancelTransfer,notifyClosedBooking,
    Request,Response,console:{error(){},warn(){}},fetch:async(_url,options)=>{f.state.emails.push(JSON.parse(options.body));return new Response('{}')},
  });
  return handler;
@@ -113,7 +114,7 @@ for(const status of ['pending','confirmed'])test(`complimentary ${status} guest 
  assert.equal((await handler(request('wrong@example.invalid'))).status,404);assert.equal(f.b.status,status);
  const response=await handler(request(f.b.guest_email));assert.equal(response.status,200,await response.clone().text());assert.equal((await response.json()).policy,'no_payment');
  assert.equal(f.b.status,'cancelled');assert.equal(f.b.payment_status,'not_required');assert.equal(f.creates.length,0);assert.equal(f.refunds.length,0);
- assert.equal((await handler(request(f.b.guest_email))).status,200);assert.equal(f.state.emails.length,1);
+ assert.equal((await handler(request(f.b.guest_email))).status,200);assert.equal(f.state.emails.length,2,'Closed retries repeat the idempotent notification handoff without money operations');
 });
 test('complimentary charge and malformed free markers are refused',async()=>{
  const f=fixture({...complimentary(),status:'confirmed'});await assert.rejects(chargeBooking(f.service,f.stripe,f.b));assert.equal(f.creates.length,0);

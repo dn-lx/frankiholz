@@ -17,6 +17,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  payment-function-types:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: "2.9.6"
+      - name: Check payment and closure function types
+        run: npm run check:functions
+
   semgrep:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -89,4 +103,5 @@ jobs:
             exit 0
           fi
           npm ci --ignore-scripts --no-audit --no-fund
+          npm run vendor:check
           npm audit --audit-level=high

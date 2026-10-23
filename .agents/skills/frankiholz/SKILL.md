@@ -7,7 +7,7 @@ description: Maintain the FrankiHolz static accommodation website, bilingual con
 
 ## Read the executing path
 
-This repository is a static site: root HTML pages, `assets/*.js`, and CSS; Supabase JS v2 is loaded from a CDN. `netlify.toml` publishes the repository root. There is no package manifest or local Edge Function implementation here. Do not introduce a frontend framework or assume this checkout contains the full backend.
+This repository is a static site: root HTML pages, `assets/*.js`, and CSS. The package manifest pins the locally served Supabase JS v2 runtime and test tools. `npm run build` copies an explicit public allowlist into `dist`; `netlify.toml` publishes that directory. Reviewed Edge Function sources, migrations and mocked tests live under `supabase/`, but the checkout does not establish the complete deployed backend schema or function versions. Do not introduce a frontend framework unless the user requests a migration.
 
 - `index.html` loads `assets/config.js`, then `assets/site.js` and overlay scripts. The page shares globals such as `sb`, `CFG`, `T`, and `currentLang`.
 - `assets/site.js` provides rooms, calendar, prices, translations, and initial event handlers. It calls `frankiholz-sync-airbnb` before loading settings and rooms; keep private iCal URLs on the server.

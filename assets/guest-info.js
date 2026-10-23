@@ -24,6 +24,7 @@
   ];
   const labels = {
     en: {
+      bookingContactTitle:'Your contact details',bookingProfileTitle:'A little about you',bookingMessageTitle:'Your arrival and message',
       websitePrompt:'Create your own website:',websiteContact:'Contact us',
       welcome:'Before your stay',guestInfoTitle:'Your stay at FrankiHolz',guestInfoIntro:'House rules, shared facilities and ways to reach the host.',
       heroAbout:'Discover our place',heroMinor:'Thoughtful stays in Frankfurt-Sachsenhausen',heroNoteTop:'WELCOME TO FRANKIHOLZ',
@@ -42,6 +43,7 @@
       directions:'Open directions ↗'
     },
     de: {
+      bookingContactTitle:'Ihre Kontaktdaten',bookingProfileTitle:'Ein wenig über Sie',bookingMessageTitle:'Ihre Ankunft und Nachricht',
       websitePrompt:'Ihre eigene Website erstellen:',websiteContact:'Kontaktieren Sie uns',
       welcome:'Vor Ihrem Aufenthalt',guestInfoTitle:'Ihr Aufenthalt bei FrankiHolz',guestInfoIntro:'Hausregeln, Gemeinschaftsbereiche und Kontaktmöglichkeiten.',
       heroAbout:'Unsere Unterkunft entdecken',heroMinor:'Angenehm übernachten in Frankfurt-Sachsenhausen',heroNoteTop:'WILLKOMMEN BEI FRANKIHOLZ',
@@ -67,7 +69,7 @@
   const fieldValue = (key, lang) => {
     const saved = rows[key]?.['text_'+lang];
     const value=typeof saved === 'string' && saved.trim() ? saved.trim() : (byKey[key]?.[lang] ?? '');
-    if(['fhCheckIn','fhCheckOut'].includes(key))return value.match(/(?:[01]?\d|2[0-3]):[0-5]\d/)?.[0].padStart(5,'0')||byKey[key][lang];
+    if(['fhCheckIn','fhCheckOut'].includes(key))return window.FrankiHolzGuest.parseTime(value,byKey[key][lang]);
     return value;
   };
   let heroReviewItems = [];
