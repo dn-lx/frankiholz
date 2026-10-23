@@ -1,5 +1,30 @@
 # Current Handoff
 
+## Automatic map and concise guest copy — 2026-10-23
+
+- Owner requests automatic Google Maps, removal of the repeated selected-room description and less redundant wording throughout the guest website. Work branch `fix/automatic-map-concise-copy-20261023` starts from develop b02b7a6. Automatically merge the reviewed PR into develop after required checks pass; keep main/v2 untouched.
+- Map is now a static titled/referrer-protected lazy iframe: it loads when visible without interaction, even before guest-info JS runs. Removed its consent placeholder/duplicate map heading and updated both privacy translations to describe automatic loading. Selected room now shows photo/name/price without its generic description. Removed repeated section introductions/kickers; shortened default host/about and guest payment/status introductions. Exact previous default host/about values compact on display; custom Admin copy is preserved. Booking terms, policy, fields, payment behavior and Admin data remain intact.
+- Focused Chromium/WebKit checks138/138, unit10/10, build/vendor/agent-stack and dependency audit pass. Local real public content at390/820/1440 has no horizontal overflow or broken visible images; screenshot confirms an actual Google map automatically rendered. Mobile page height6255px vs7592px before. Accessibility/privacy checks34/34 also passed; final CI is pending at this note, so consult the PR for final results. Evidence `/workspace/concise-copy-20261023`.
+- Supabase deployment remains authorized and pending separately. Owner reports adding the token in Codex cloud environment settings, but latest observed runtime4 has no secret; current metadata says SUPABASE_ACCESS_TOKEN has_saved_binding=false and a fresh authenticated-path GET returns401 with variable absent. Asked to save/apply existing secret value. No database or function deployment occurred; prepared packet remains `/workspace/supabase-deploy-20261023` from b02b7a6 (backend code unchanged in this UI patch).
+
+
+## Supabase deployment authorized; access blocked — 2026-10-23
+
+- Owner explicitly requested Supabase backend deployment after PR73 merged. No further deployment approval is needed within the reviewed develop recovery scope. Preserve payment mode, secrets/JWT settings and paused v2 branch/runtime; inspect current remote project/sources/schema before applying changes.
+- Current runtime has no Supabase management connector, bound secret or Supabase credential variable/cache; the existing personal SUPABASE_ACCESS_TOKEN requirement in environment settings has_saved_binding=false. A harmless Management API GET /v1/projects returned401. GitHub repository secret metadata is403 for this integration; no alternate deployment credential is available through it. Identity manifest has no connections. Never paste/extract secret values or assume access from the public browser key.
+- Prepared `/workspace/supabase-deploy-20261023/deployment-manifest.json`, `reviewed-source.tar.gz` and `preflight-readonly.sql`. All15 packaged files exactly match develop `b02b7a634cef7f01c727bbc9497ead8f59f81b94`; candidates are the4 PR73 closure/setup handlers plus2 previously reviewed PR72 webhook fixes, subject to remote comparison. Both webhook handlers additionally passed real Deno2.9.6 checks; prior4-handler checks,165 mocks and isolated SQL evidence remain valid. No code/test/dependency/branch changes occurred.
+- No migration, function deployment, booking, charge, refund or email action was performed. Once the existing token requirement is connected securely, recheck runtime readiness and actual API access; verify project bdeajozhylypiidrldka, current versions/JWT flags and deployed legacy release/schema/outbox/status contracts. Use current remote baseline in isolation for final SQL verification, apply migration before4 changed callers, then deploy only verified reviewed differences with shared helpers. Preserve remote snapshots and verify source/versions/grants without real financial or guest-message tests. V2 remains unchanged.
+
+
+## PR73 merged into develop — 2026-10-23
+
+- Owner explicitly authorized PR73 merge and set the standing instruction: automatically merge completed work into develop after checks pass; keep v2 unchanged. Main retains its separately approved release path. This preference is recorded in the remote merge commit body and local Project Memory.
+- PR73 https://github.com/dn-lx/frankiholz/pull/73 merged at12:54:23UTC as `b02b7a634cef7f01c727bbc9497ead8f59f81b94` from tested head `df503325311b1f01a1907107e98505caa21653eb`. All pre-merge CI jobs succeeded, including400 browser cases and165 backend mocks. Local checkout is develop at this merge; its tree matches the tested PR head.
+- Verified remote main remains `d55df7448d31507fe2339ba9346ef4d57b7a6375`; v2 remains `54197163e08d5b24f15ee53de75164d8fb770864`. Paused v2 stash `61a0c091a0532f231ee6a0386b02c5d2bf992811` and runtime backup remain intact. No merge/push into main or v2 occurred.
+- Supabase migration/functions remain source only pending secure access and deployed baseline/JWT/legacy RPC verification. No provider actions were performed. Develop Netlify deploy is confirmed serving the new local SDK/media helper. An actual image-edge request returned HTTP200 image/webp,101424 bytes for a720px derivative of the1220948-byte original; source artifact/logs are under `/workspace/develop-fixes-20261023/post-merge-*`. Full deployed Lighthouse remains unmeasured; Room2 still needs an actual photo.
+- This post-merge handoff and Project Memory update are local continuity notes. The standing preference is durably recorded in the remote merge commit body; do not bundle unrelated application changes when later committing these notes.
+
+
 ## Develop audit fixes — 2026-10-23
 
 - Owner requested fixes and visual improvements after the fresh audit. Implementation branch: `fix/develop-reliability-and-mobile-20261023`, based on develop `d5ac9945b1e6ecfc652114346c5a7d6d48b2030b`. V2 is paused and its stash/runtime below remain preserved. No merge or production provider action is authorized by this implementation handoff.

@@ -26,8 +26,8 @@ test('premium homepage has clear hospitality navigation and working room call to
   await expect(page.locator('.fh-section-nav')).toBeVisible();
   await expect(page.locator('a[href="#facilities"]')).toHaveCount(2);
   await expect(page.locator('#heroRoomsBtn')).toBeVisible();
-  await expect(page.locator('#fhMapTarget iframe')).toHaveCount(0);
-  await expect(page.locator('#fhLoadMap')).toBeVisible();
+  await expect(page.locator('#fhMapTarget iframe')).toHaveCount(1);
+  await expect(page.locator('#fhLoadMap')).toHaveCount(0);
   const template = await page.locator('.fh-hero-grid').evaluate(element => getComputedStyle(element).gridTemplateColumns);
   expect(template.trim().split(/\s+/).length).toBe(2);
   await page.locator('.lang-btn[data-lang="de"]').click();

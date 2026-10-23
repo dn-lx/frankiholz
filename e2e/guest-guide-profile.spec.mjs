@@ -79,7 +79,7 @@ for(const language of ['en','de'])test(`host welcome and editable heating rule r
  await page.goto('/?lang='+language);
  await expect(page.locator('#roomsSection [data-i18n="roomsLead"]')).toHaveCount(0);
  await expect(page.locator('#fhHostName')).toHaveText('Inura');
- await expect(page.locator('#fhHostBody p')).toHaveCount(3);
+ await expect(page.locator('#fhHostBody p')).toHaveCount(1);
  await expect(page.locator('#fhHostBody')).toContainText(language==='en'?"Everyone is welcome.":'Alle sind willkommen.');
  await expect(page.locator('#fhHostBody')).toContainText(language==='en'?"We value our guests' privacy":'Wir schätzen die Privatsphäre');
  await page.locator('#openHouseGuide').click();

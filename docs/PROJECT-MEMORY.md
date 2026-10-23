@@ -9,6 +9,7 @@ FrankiHolz is the accommodation/booking product in the FrankiFlow Projects famil
 - GitHub is the engineering source of truth.
 - `develop` is the development integration branch; `main` is production.
 - Feature/fix/chore branches merge into `develop`, never directly into `main`.
+- Owner standing instruction (2026-10-23, PR73 merge): automatically merge completed changes into `develop` after required checks pass, without another confirmation. Keep `v2` and its paused work unchanged unless explicitly requested; production `main` still needs separate release approval.
 - Keep the current static HTML/CSS/browser JavaScript architecture unless a migration is explicitly requested.
 - Branch isolation does not isolate shared Supabase data, payments or email. Treat external writes as potentially live/shared unless verified otherwise.
 - Preserve admin authorization, server-owned payment decisions, guest-data handling, escaping/translation behavior and security checks.

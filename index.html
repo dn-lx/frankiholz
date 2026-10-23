@@ -41,7 +41,7 @@
 </div></section>
 <nav class="fh-section-nav" aria-label="Explore FrankiHolz">
   <div class="wrap fh-section-nav-inner">
-    <span class="fh-section-nav-label" data-fh-label="explore">EXPLORE THE STAY</span>
+
     <a href="#roomsSection" data-fh-label="quickRooms">Our rooms <span aria-hidden="true">↗</span></a>
     <a href="#facilities" data-fh-label="quickFacilities">Amenities <span aria-hidden="true">↗</span></a>
     <a href="#houseRules" data-fh-label="quickRules">House rules <span aria-hidden="true">↗</span></a>
@@ -53,7 +53,7 @@
   <div class="wrap">
     <div class="fh-reviews-intro">
       <div>
-        <span class="fh-review-kicker" data-fh-label="reviewBandKicker">AIRBNB GUEST FEEDBACK</span>
+
         <h2 id="fhReviewsTitle" data-fh-label="reviewBandTitle">Guest reviews</h2>
       </div>
       <div class="fh-review-source-summary">
@@ -66,10 +66,10 @@
     </div>
     <div id="fhHeroReviews" class="fh-hero-reviews fh-review-carousel" aria-label="Guest reviews" hidden>
       <div class="fh-review-top">
-        <span class="fh-review-eyebrow" data-fh-label="heroReviewsEyebrow">GUEST REVIEWS · AIRBNB</span>
+
         <span class="fh-review-quote-mark" aria-hidden="true">“</span>
       </div>
-      <h3 class="fh-review-heading" data-fh-label="heroReviewsHeading">Words from our guests</h3>
+
       <div class="fh-review-slide" id="fhReviewSlide" aria-live="off">
         <div class="fh-review-ratings-row">
           <div class="fh-review-star-rating" id="fhReviewStarRating" role="img" aria-label="5 out of 5 stars" hidden>
@@ -96,7 +96,7 @@
 </section>
 <section id="roomsSection" class="section fh-room-showcase"><div class="wrap">
   <div class="fh-section-intro">
-    <div><span class="section-kicker" data-i18n="stayYourWay">Stay your way</span><h2 data-i18n="chooseRoom">Choose your room</h2></div>
+    <div><h2 data-i18n="chooseRoom">Choose your room</h2></div>
   </div>
   <div id="rooms" class="grid rooms"></div>
 </div></section>
@@ -115,9 +115,9 @@
 </section>
 <section id="guestInfoPublic" class="section">
   <div class="wrap">
-    <span class="section-kicker" data-fh-label="welcome">Before your stay</span>
+
     <h2 data-fh-label="guestInfoTitle">Your stay at FrankiHolz</h2>
-    <p class="lead" data-fh-label="guestInfoIntro">House rules, shared facilities and ways to reach the host.</p>
+
     <div class="fh-guest-grid fh-guest-editorial">
       <section class="panel fh-info-card fh-rules-card" id="houseRules">
         <h3 data-fh-label="rulesTitle">House rules & important information</h3>
@@ -125,11 +125,11 @@
           <div><strong data-fh-label="checkInTitle">Check-in</strong><p data-fh-time="fhCheckIn">17:00</p></div>
           <div><strong data-fh-label="checkOutTitle">Check-out</strong><p data-fh-time="fhCheckOut">11:00</p></div>
         </div>
-        <div class="house-guide-link"><div><strong data-fh-label="guideTitle">A little guide to feeling at home</strong><p data-fh-label="guideDescription">House rules, shared spaces and useful arrival details.</p></div><button class="btn secondary" type="button" id="openHouseGuide" aria-haspopup="dialog" data-fh-label="guideDownload">Read house rules</button></div>
+        <div class="house-guide-link"><button class="btn secondary" type="button" id="openHouseGuide" aria-haspopup="dialog" data-fh-label="guideDownload">Read house rules</button></div>
       </section>
       <section class="panel fh-info-card fh-facilities-card" id="facilities">
         <h3 data-fh-label="facilitiesTitle">Facilities & amenities</h3>
-        <p class="muted" data-fh-label="facilitiesIntro">Available facilities and shared spaces. Please ask the host if a specific amenity is essential for your stay.</p>
+
         <ul class="fh-amenities" id="fhAmenitiesList">
           <li>Wi-Fi</li><li>Shared kitchen access</li><li>Laundry (additional charge)</li><li>Garden access</li><li>Heating</li><li>TV</li>
         </ul>
@@ -141,44 +141,36 @@
       </section>
       <section class="panel fh-info-card fh-contact-card" id="contact">
         <h3 data-fh-label="contactTitle">Contact your host</h3>
-        <p data-fh-label="contactIntro">Questions about arrival, facilities or your booking? Contact us directly.</p>
+
         <div class="fh-contact-methods"><a class="fh-contact-number" id="fhContactPhoneLink" href="tel:+4917662493041">+49 176 62493 041</a><a class="fh-whatsapp-link" id="fhWhatsappLink" href="https://wa.me/4917662493041" target="_blank" rel="noopener noreferrer" aria-label="Message FrankiHolz on WhatsApp" title="Chat on WhatsApp"><img src="/assets/whatsapp.svg?v=20261011b" alt="" aria-hidden="true" width="23" height="23"></a></div>
       </section>
     </div>
   </div>
 </section>
-<section id="bookingSection" class="section" hidden><div class="wrap"><span class="section-kicker" data-i18n="liveBooking">Live booking</span><h2 style="margin-bottom:8px" data-i18n="detailsAvailability">Room details & availability</h2><p class="lead" data-i18n="bookingLead">Choose a room, browse the photos and select only the dates that are available.</p><div class="room-select-row"><div><label for="roomSelect" data-i18n="room">Room</label><select id="roomSelect"></select></div><button class="btn secondary" id="jumpToCalendar" type="button" data-i18n="goCalendar">Go to calendar</button></div><div class="booking-shell" style="margin-top:22px"><div><div class="panel"><img id="galleryMain" class="gallery-main" alt="Selected room"><div id="thumbs" class="thumbs"></div><h2 id="selectedRoomName" style="margin-top:20px"></h2><p id="selectedRoomDescription" class="lead"></p><div id="selectedRoomPrice" class="price"></div></div><div class="panel" id="calendarPanel" style="margin-top:22px"><div class="monthbar"><button class="btn ghost small" id="prevMonth" type="button"><span data-i18n="previous">‹ Previous</span></button><strong id="monthTitle"></strong><button class="btn ghost small" id="nextMonth" type="button"><span data-i18n="next">Next ›</span></button></div><div id="calendar" class="calendar"></div><div class="legend"><span><i class="dot"></i><span data-i18n="available">Available</span></span><span><i class="dot blocked"></i><span data-i18n="unavailableBooked">Unavailable / booked</span></span></div><div id="calendarNotice" class="notice"></div></div></div><div class="panel"><h2 data-i18n="bookRoom">Book this room</h2><p id="paymentEnvironmentNotice" class="payment-environment-notice" role="status" aria-live="polite" hidden></p><div class="selected-summary"><div><b data-i18n="checkIn">Check-in</b><span id="sumIn">—</span></div><div><b data-i18n="checkOut">Check-out</b><span id="sumOut">—</span></div><div><b data-i18n="estimatedTotal">Estimated total</b><span id="sumTotal">—</span></div></div><form id="bookingForm"><label for="promoCode" data-i18n="promoCodeLabel">Promo code (optional)</label><div class="promo-code-row"><input id="promoCode" maxlength="64" autocomplete="off" spellcheck="false" aria-describedby="promoStatus"><button class="btn secondary small" id="applyPromo" type="button" data-i18n="applyPromoLabel">Apply code</button></div><p id="promoStatus" class="field-help" role="status" aria-live="polite"></p><input type="hidden" name="form-name" value="frankiholz-booking"><p class="hidden-honeypot"><label>Leave empty <input name="bot-field"></label></p><fieldset class="booking-fieldset"><legend data-fh-label="bookingContactTitle">Your contact details</legend><label data-i18n="name" for="guestName">Name</label><input id="guestName" required autocomplete="name"><label data-i18n="email" for="guestEmail">Email</label><input id="guestEmail" type="email" required autocomplete="email"><div class="form-grid"><div><label data-i18n="phone" for="guestPhone">Phone</label><input id="guestPhone" autocomplete="tel"></div><div><label data-i18n="country" for="guestCountry">Country</label><input id="guestCountry" autocomplete="country-name" required></div></div></fieldset><fieldset class="booking-fieldset"><legend data-fh-label="bookingProfileTitle">A little about you</legend><div class="form-grid guest-profile-grid"><div><label for="guestAge">Age</label><input id="guestAge" type="number" min="18" max="120" required></div><div><label for="guestSex">Sex</label><select id="guestSex" required><option value="">Select</option><option value="female">Female</option><option value="male">Male</option><option value="non_binary">Non-binary</option><option value="other">Other</option><option value="prefer_not_to_say">Prefer not to say</option></select></div></div><label for="guestLanguages">Languages</label><input id="guestLanguages" required placeholder="English, German"><label for="guestHobbies">Hobbies</label><input id="guestHobbies" placeholder="Travel, photography, cooking …"><label for="guestReturning">Have you stayed with us before?</label><select id="guestReturning" required><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select><label data-i18n="guests" for="guestCount">Guests</label><select id="guestCount"></select></fieldset><fieldset class="booking-fieldset"><legend data-fh-label="bookingMessageTitle">Your arrival and message</legend><label for="message" data-i18n="message">Message / introduction</label><p class="field-help" id="introHelp">We would love to know a little about you: tell us what brings you to Frankfurt and anything that will help us make your stay comfortable.</p><textarea id="message" rows="6" minlength="20" required></textarea></fieldset><button class="btn" type="submit" style="width:100%;margin-top:16px" data-i18n="paymentPageAction">Continue to payment</button></form><div id="bookingResult"></div><p class="muted" style="font-size:12px" id="paymentSetupNote">Your request remains pending until the host confirms it. Your card is saved securely now and is charged automatically 14 days before check-in. Cancellations more than 14 days before check-in receive a full refund; cancellations within 14 days are non-refundable.</p></div></div></div></section>
+<section id="bookingSection" class="section" hidden><div class="wrap"><h2 style="margin-bottom:8px" data-i18n="detailsAvailability">Room details & availability</h2><div class="room-select-row"><div><label for="roomSelect" data-i18n="room">Room</label><select id="roomSelect"></select></div><button class="btn secondary" id="jumpToCalendar" type="button" data-i18n="goCalendar">Go to calendar</button></div><div class="booking-shell" style="margin-top:22px"><div><div class="panel"><img id="galleryMain" class="gallery-main" alt="Selected room"><div id="thumbs" class="thumbs"></div><h2 id="selectedRoomName" style="margin-top:20px"></h2><div id="selectedRoomPrice" class="price"></div></div><div class="panel" id="calendarPanel" style="margin-top:22px"><div class="monthbar"><button class="btn ghost small" id="prevMonth" type="button"><span data-i18n="previous">‹ Previous</span></button><strong id="monthTitle"></strong><button class="btn ghost small" id="nextMonth" type="button"><span data-i18n="next">Next ›</span></button></div><div id="calendar" class="calendar"></div><div class="legend"><span><i class="dot"></i><span data-i18n="available">Available</span></span><span><i class="dot blocked"></i><span data-i18n="unavailableBooked">Unavailable / booked</span></span></div><div id="calendarNotice" class="notice"></div></div></div><div class="panel"><h2 data-i18n="bookRoom">Book this room</h2><p id="paymentEnvironmentNotice" class="payment-environment-notice" role="status" aria-live="polite" hidden></p><div class="selected-summary"><div><b data-i18n="checkIn">Check-in</b><span id="sumIn">—</span></div><div><b data-i18n="checkOut">Check-out</b><span id="sumOut">—</span></div><div><b data-i18n="estimatedTotal">Estimated total</b><span id="sumTotal">—</span></div></div><form id="bookingForm"><label for="promoCode" data-i18n="promoCodeLabel">Promo code (optional)</label><div class="promo-code-row"><input id="promoCode" maxlength="64" autocomplete="off" spellcheck="false" aria-describedby="promoStatus"><button class="btn secondary small" id="applyPromo" type="button" data-i18n="applyPromoLabel">Apply code</button></div><p id="promoStatus" class="field-help" role="status" aria-live="polite"></p><input type="hidden" name="form-name" value="frankiholz-booking"><p class="hidden-honeypot"><label>Leave empty <input name="bot-field"></label></p><fieldset class="booking-fieldset"><legend data-fh-label="bookingContactTitle">Your contact details</legend><label data-i18n="name" for="guestName">Name</label><input id="guestName" required autocomplete="name"><label data-i18n="email" for="guestEmail">Email</label><input id="guestEmail" type="email" required autocomplete="email"><div class="form-grid"><div><label data-i18n="phone" for="guestPhone">Phone</label><input id="guestPhone" autocomplete="tel"></div><div><label data-i18n="country" for="guestCountry">Country</label><input id="guestCountry" autocomplete="country-name" required></div></div></fieldset><fieldset class="booking-fieldset"><legend data-fh-label="bookingProfileTitle">A little about you</legend><div class="form-grid guest-profile-grid"><div><label for="guestAge">Age</label><input id="guestAge" type="number" min="18" max="120" required></div><div><label for="guestSex">Sex</label><select id="guestSex" required><option value="">Select</option><option value="female">Female</option><option value="male">Male</option><option value="non_binary">Non-binary</option><option value="other">Other</option><option value="prefer_not_to_say">Prefer not to say</option></select></div></div><label for="guestLanguages">Languages</label><input id="guestLanguages" required placeholder="English, German"><label for="guestHobbies">Hobbies</label><input id="guestHobbies" placeholder="Travel, photography, cooking …"><label for="guestReturning">Have you stayed with us before?</label><select id="guestReturning" required><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select><label data-i18n="guests" for="guestCount">Guests</label><select id="guestCount"></select></fieldset><fieldset class="booking-fieldset"><legend data-fh-label="bookingMessageTitle">Your arrival and message</legend><label for="message" data-i18n="message">Message / introduction</label><p class="field-help" id="introHelp">Tell us about your visit and arrival time.</p><textarea id="message" rows="6" minlength="20" required></textarea></fieldset><button class="btn" type="submit" style="width:100%;margin-top:16px" data-i18n="paymentPageAction">Continue to payment</button></form><div id="bookingResult"></div><p class="muted" style="font-size:12px" id="paymentSetupNote">Your request remains pending until the host confirms it. Your card is saved securely now and is charged automatically 14 days before check-in. Cancellations more than 14 days before check-in receive a full refund; cancellations within 14 days are non-refundable.</p></div></div></div></section>
 <section class="section location-section" id="location">
   <div class="wrap">
     <div class="panel location-card fh-location-layout">
       <div class="fh-location-description">
-        <span class="section-kicker">Frankfurt am Main</span>
-        <h2 data-i18n="stayFrankfurt">Stay at FrankiHolz in Frankfurt</h2>
-        <p class="lead" data-i18n="locationLead">FrankiHolz offers private rooms in Frankfurt-Sachsenhausen with direct online availability and booking requests.</p>
+
+        <h2 data-fh-label="mapKicker">Location</h2>
+
         <address><strong>FrankiHolz</strong><br>Seehofstraße 20<br>60594 Frankfurt am Main<br><span data-i18n="germany">Germany</span></address>
         <a class="btn secondary fh-directions-link" href="https://www.google.com/maps/search/?api=1&amp;query=Seehofstra%C3%9Fe%2020%2C%2060594%20Frankfurt%20am%20Main" target="_blank" rel="noopener noreferrer" data-fh-label="directions">Open directions ↗</a>
       </div>
       <div class="fh-location-visual">
-        <div class="fh-location-map-heading">
-          <span class="section-kicker" data-fh-label="mapKicker">Location</span>
-          <h3 data-fh-label="mapTitle">Find us on the map</h3>
-        </div>
         <div class="fh-map-embed" id="fhMapTarget">
-          <div class="fh-map-placeholder">
-            <p data-fh-label="mapChoice">Load the map to connect to Google. Your IP address and browser information may be shared with Google.</p>
-            <button class="btn secondary" type="button" id="fhLoadMap" data-fh-label="loadMap">Load Google Maps</button>
-          </div>
+          <iframe title="FrankiHolz — Seehofstraße 20, Frankfurt am Main" src="https://www.google.com/maps?q=Seehofstra%C3%9Fe%2020%2C%2060594%20Frankfurt%20am%20Main%2C%20Germany&amp;output=embed" loading="lazy" referrerpolicy="no-referrer" allowfullscreen></iframe>
         </div>
-        <p class="fh-map-disclosure" data-fh-label="mapPrivacy">Google Maps stays unloaded until you choose to load it.</p>
       </div>
     </div>
   </div>
 </section>
 <section class="section cancellation-policy" id="cancellationPolicy"><div class="wrap"><div class="panel policy-card"><span class="section-kicker" data-i18n="policyKicker">Cancellation & payment</span><h2 data-i18n="policyTitle">Clear 14-day cancellation policy</h2><div class="policy-grid"><div><strong data-i18n="policyBeforeTitle">More than 14 days before check-in</strong><p data-i18n="policyBeforeText">Cancel for a full refund. If your card has not been charged yet, no charge is made.</p></div><div><strong data-i18n="policyWithinTitle">Within 14 days of check-in</strong><p data-i18n="policyWithinText">The booking is non-refundable. Confirmed bookings are charged automatically 14 days before check-in, or after confirmation when check-in is already within 14 days.</p></div></div><p class="muted" data-i18n="policyCardPrivacy">Your card is saved securely with Stripe. FrankiHolz does not store your card number.</p></div></div></section>
-<section class="section" id="bookingStatusSection"><div class="wrap"><div class="panel status-check-panel"><span class="section-kicker" data-i18n="afterRequest">After your request</span><h2 data-i18n="checkBookingPayment">Check booking & payment status</h2><p class="lead" data-i18n="statusLead">Check your booking, scheduled payment date and cancellation eligibility here.</p><div class="form-grid"><div><label data-i18n="bookingReference" for="statusReference">Booking reference</label><input id="statusReference" placeholder="FH-XXXXXXXX"></div><div><label data-i18n="bookingEmail" for="statusEmail">Email used for booking</label><input id="statusEmail" type="email" placeholder="you@example.com"></div></div><button class="btn secondary" id="checkStatusBtn" type="button" style="margin-top:12px" data-i18n="checkStatus">Check status</button><div id="statusResult"></div></div></div></section>
+<section class="section" id="bookingStatusSection"><div class="wrap"><div class="panel status-check-panel"><h2 data-i18n="checkBookingPayment">Check booking & payment status</h2><div class="form-grid"><div><label data-i18n="bookingReference" for="statusReference">Booking reference</label><input id="statusReference" placeholder="FH-XXXXXXXX"></div><div><label data-i18n="bookingEmail" for="statusEmail">Email used for booking</label><input id="statusEmail" type="email" placeholder="you@example.com"></div></div><button class="btn secondary" id="checkStatusBtn" type="button" style="margin-top:12px" data-i18n="checkStatus">Check status</button><div id="statusResult"></div></div></div></section>
 </main>
 <dialog id="houseGuideDialog" class="house-guide-dialog" aria-labelledby="houseGuideTitle">
-  <div class="house-guide-header"><div><span class="section-kicker" data-fh-label="welcome">Before your stay</span><h2 id="houseGuideTitle" data-fh-label="rulesTitle">House rules & important information</h2></div><button class="btn ghost small" type="button" id="closeHouseGuide" data-fh-label="guideClose" autofocus>Close</button></div>
+  <div class="house-guide-header"><div><h2 id="houseGuideTitle" data-fh-label="rulesTitle">House rules & important information</h2></div><button class="btn ghost small" type="button" id="closeHouseGuide" data-fh-label="guideClose" autofocus>Close</button></div>
   <div class="house-guide-scroll" tabindex="0" role="region" aria-labelledby="houseGuideTitle">
     <div class="house-guide-brand"><img class="house-guide-logo" src="/assets/frankiholz-logo-light-lockup.png" alt="FrankiHolz" width="150" height="106">
     <div class="house-guide-languages lang-switch" aria-label="Guide language"><button type="button" class="lang-btn" data-guide-lang="en" aria-label="English" aria-pressed="true">EN</button><button type="button" class="lang-btn" data-guide-lang="de" aria-label="Deutsch" aria-pressed="false">DE</button></div></div>
@@ -186,5 +178,5 @@
   </div>
 </dialog>
 <footer class="footer"><div class="wrap footer-inner"><strong class="footer-brand-name">FrankiHolz</strong><span>Seehofstraße 20 · 60594 Frankfurt am Main</span><div class="footer-website"><span data-fh-label="websitePrompt">Create your own website:</span> <a href="mailto:info@frankiflow.de?subject=Website%20enquiry" data-fh-label="websiteContact">Contact us</a></div></div></footer>
-<script src="/assets/media.js?v=20261023-reliability"></script><script src="/assets/site.js?v=20261023-reliability"></script><script src="/assets/room-picker.js?v=20261019-welcome"></script><script src="/assets/hero-title-size.js?v=20260912b"></script><script src="/assets/email-hook.js?v=20261018-promo"></script><script src="/assets/lang-fix.js"></script><script src="/assets/homepage-layout.js?v=20261023-section-order"></script><script src="/assets/copy-overlay.js?v=20261023-section-order"></script><script src="/assets/house-guide-content.js?v=20261020-guest-guide"></script><script src="/assets/guest-info.js?v=20261023-reliability"></script>
+<script src="/assets/media.js?v=20261023-reliability"></script><script src="/assets/site.js?v=20261023-concise"></script><script src="/assets/room-picker.js?v=20261019-welcome"></script><script src="/assets/hero-title-size.js?v=20260912b"></script><script src="/assets/email-hook.js?v=20261018-promo"></script><script src="/assets/lang-fix.js"></script><script src="/assets/homepage-layout.js?v=20261023-section-order"></script><script src="/assets/copy-overlay.js?v=20261023-section-order"></script><script src="/assets/house-guide-content.js?v=20261020-guest-guide"></script><script src="/assets/guest-info.js?v=20261023-concise"></script>
 <script src="/assets/booking-selects.js?v=20261023-reliability"></script><nav class="legal-links" aria-label="Legal information"><a href="/imprint.html">Impressum / Legal notice</a><a href="/privacy.html">Datenschutz / Privacy</a></nav></body></html>
