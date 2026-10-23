@@ -11,7 +11,7 @@
 <div class="status-brand"><a class="guest-brand" href="/" aria-label="FrankiHolz home"><img src="/assets/frankiholz-logo-light-lockup.png" width="150" height="106" alt="FrankiHolz · Your stay in Frankfurt"></a><div class="lang-switch"><button type="button" class="lang-btn" data-lang="en">EN</button><button type="button" class="lang-btn" data-lang="de">DE</button></div></div>
 <span class="section-kicker" id="kicker">Checking your booking</span>
 <h1 id="title" style="font-size:clamp(30px,4vw,42px);letter-spacing:-.035em;margin:0 0 12px;color:var(--ink)">Check your booking status</h1>
-<p class="lead" id="lead">Returning from Stripe does not confirm a saved payment method, payment collection or host approval. We will check your latest booking status.</p>
+<p class="lead" id="lead">Check your latest booking and payment status.</p>
 <p id="returnMessage" class="notice" role="status" aria-live="polite" hidden></p>
 <p id="returnMode" class="notice" role="status" hidden></p>
 <details id="successLookupPanel" open><summary id="lookupSummary">Booking details</summary><form id="successLookup"><div class="form-grid"><div><label for="returnReference" id="referenceLabel">Booking reference</label><input id="returnReference" required autocomplete="off" placeholder="FH-XXXXXXXX"></div><div><label for="returnEmail" id="emailLabel">Booking email</label><input id="returnEmail" required type="email" autocomplete="email"></div></div><button id="checkReturn" class="btn secondary" type="submit" style="margin-top:12px">Check latest status</button></form></details>
@@ -19,6 +19,6 @@
 <button id="refreshReturn" class="btn secondary" type="button" style="margin:16px 0" hidden>Refresh status</button>
 <p><a class="btn secondary" id="statusLink" href="/booking-status.html" style="display:inline-block;text-decoration:none">Check booking status</a></p><p style="margin-top:22px"><a id="homeLink" href="/">← Back to FrankiHolz</a></p>
 </div></div></main>
-<script src="/assets/guest-session.js?v=20261023-reliability"></script><script src="/assets/payment-success.js?v=20261023-reliability"></script>
+<script src="/assets/guest-session.js?v=20261023-reliability"></script><script src="/assets/payment-success.js?v=20261023-concise"></script>
 <nav class="legal-links" aria-label="Legal information"><a href="/imprint.html">Impressum / Legal notice</a><a href="/privacy.html">Datenschutz / Privacy</a></nav>
 </body></html>

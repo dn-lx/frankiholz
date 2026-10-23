@@ -39,7 +39,7 @@
       reviewBandSnapshot:'Airbnb listing snapshot · not live',reviewBandTopics:'Topics guests mention',
       reviewTopicHost:'Hospitality',reviewTopicLocation:'Location',reviewTopicClean:'Cleanliness',reviewBandLink:'Read reviews on Airbnb ↗',
       contactTitle:'Contact your host',contactIntro:'Questions about arrival, facilities or your booking? Contact us directly.',
-      mapKicker:'Location',mapTitle:'Find us on the map',mapPrivacy:'Google Maps stays unloaded until you choose to load it.',loadMap:'Load Google Maps',mapChoice:'Load the map to connect to Google. Your IP address and browser information may be shared with Google.',
+      mapKicker:'Location',
       directions:'Open directions ↗'
     },
     de: {
@@ -58,17 +58,22 @@
       reviewBandSnapshot:'Airbnb-Momentaufnahme · nicht live',reviewBandTopics:'Häufig erwähnte Themen',
       reviewTopicHost:'Gastfreundschaft',reviewTopicLocation:'Lage',reviewTopicClean:'Sauberkeit',reviewBandLink:'Bewertungen auf Airbnb ansehen ↗',
       contactTitle:'Kontakt zum Gastgeber',contactIntro:'Fragen zur Anreise, Ausstattung oder Buchung? Kontaktieren Sie uns direkt.',
-      mapKicker:'Standort',mapTitle:'Unser Standort auf der Karte',mapPrivacy:'Google Maps bleibt deaktiviert, bis Sie die Karte laden.',loadMap:'Google Maps laden',mapChoice:'Beim Laden wird eine Verbindung zu Google hergestellt. Ihre IP-Adresse und Browserinformationen können an Google übertragen werden.',
+      mapKicker:'Standort',
       directions:'Route öffnen ↗'
     }
   };
+  const conciseDefaults = {
+    fhHostBody:{en:"We value our guests' privacy. Ask us for local tips or help with your stay. Everyone is welcome.",de:'Wir schätzen die Privatsphäre unserer Gäste. Bei Fragen zum Aufenthalt oder für Tipps sind wir gerne für Sie da. Alle sind willkommen.'},
+    fhAboutBody:{en:'Private rooms in a shared three-bedroom apartment in Frankfurt am Main.',de:'Private Zimmer in einer Dreizimmer-Wohngemeinschaft in Frankfurt am Main.'}
+  };
+  fields.forEach(field=>{if(conciseDefaults[field.key]){field.previousDefault={en:field.en,de:field.de};Object.assign(field,conciseDefaults[field.key]);}});
   const byKey = Object.fromEntries(fields.map(f=>[f.key,f]));
   let rows = {};
   const $ = id => document.getElementById(id);
   const uiLang = () => document.documentElement.lang === 'de' ? 'de' : 'en';
   const fieldValue = (key, lang) => {
     const saved = rows[key]?.['text_'+lang];
-    const value=typeof saved === 'string' && saved.trim() ? saved.trim() : (byKey[key]?.[lang] ?? '');
+    const value=typeof saved === 'string' && saved.trim() && saved.trim() !== byKey[key]?.previousDefault?.[lang] ? saved.trim() : (byKey[key]?.[lang] ?? '');
     if(['fhCheckIn','fhCheckOut'].includes(key))return window.FrankiHolzGuest.parseTime(value,byKey[key][lang]);
     return value;
   };
@@ -481,12 +486,5 @@
     });
     setTimeout(onAuthenticated,0);
   }
-  const loadMap=$('fhLoadMap');
-  if(loadMap)loadMap.addEventListener('click',()=>{
-    const frame=document.createElement('iframe');
-    frame.title='FrankiHolz — Seehofstraße 20, Frankfurt am Main';
-    frame.src='https://www.google.com/maps?q=Seehofstra%C3%9Fe%2020%2C%2060594%20Frankfurt%20am%20Main%2C%20Germany&output=embed';
-    frame.loading='lazy';frame.referrerPolicy='no-referrer';frame.allowFullscreen=true;
-    $('fhMapTarget').replaceChildren(frame);
-  },{once:true});
+
 })();
