@@ -210,4 +210,3 @@ $$;
 revoke all on function public.frankiholz_payment_details(text,text) from public;
 grant execute on function public.frankiholz_payment_details(text,text) to anon,authenticated;
 commit;
-

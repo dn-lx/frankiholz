@@ -9,7 +9,7 @@
 body{background-color:#f6faf8}
 .section{padding-block:clamp(48px,6vw,78px)}
 .section h2{line-height:1.14;max-width:22ch;text-wrap:balance}
-.lead{max-width:70ch;color:#5c767d}
+.lead{max-width:70ch;color:#536b70}
 .section-kicker{font-size:10px;letter-spacing:.1em}
 .room-card{border-color:var(--fh-border);box-shadow:var(--fh-soft-shadow)}
 .room-card .room-body{padding:clamp(19px,2.3vw,26px)}
@@ -55,7 +55,7 @@ body{background-color:#f6faf8}
   border:1px solid #cadfd8;box-shadow:0 12px 32px rgba(16,59,80,.09);
 }
 .fh-map-embed iframe{width:100%;height:100%;min-height:360px;display:block;border:0}
-.fh-map-disclosure{margin:10px 0 0;color:#67818a;font-size:11px;line-height:1.5}
+.fh-map-disclosure{margin:10px 0 0;color:#536b70;font-size:11px;line-height:1.5}
 .admin-page .admin-header{padding:clamp(21px,3vw,32px);border-radius:25px}
 .admin-page .admin-header h1{font-size:clamp(27px,3vw,34px)}
 .admin-page .admin-tabs{border-color:#d8e8e1;box-shadow:0 10px 24px rgba(16,59,80,.07)}

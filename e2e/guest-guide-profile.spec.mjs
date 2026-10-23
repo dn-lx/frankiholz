@@ -157,6 +157,7 @@ test('Admin avatar upload authorizes, publishes only photo, retains unsaved text
  expect(state.photo.text_en).toMatch(/^host\/[a-f0-9-]+\.png$/);expect(state.photo.text_de).toBe(state.photo.text_en);
  await page.reload();await expect(page.locator('#fhHostPhotoPreview')).toHaveAttribute('src',new RegExp(state.photo.text_en+'$'));
  await page.goto('/?lang=de');await expect(page.locator('#fhHostPhoto')).toHaveAttribute('src',new RegExp(state.photo.text_en+'$'));
+ await expect(page.locator('#fhHostPhoto')).not.toHaveAttribute('srcset',/.+/);
 });
 
 test('avatar rejects unsafe files and unauthorized uploads, and cleans failed copy save',async({page})=>{

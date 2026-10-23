@@ -1,5 +1,6 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+/* Inter variable font, self-hosted under the SIL Open Font License. */
+@font-face{font-family:'Inter';font-style:normal;font-weight:100 900;font-display:swap;src:url('/assets/fonts/inter-latin-wght-normal.woff2') format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
 
 :root{
   --brand-blue:#15566d;
@@ -10,7 +11,7 @@
   --brand-ice:#eaf4f7;
   --ink:#17343d;
   --ink-2:#2e4b53;
-  --muted:#71848a;
+  --muted:#536b70;
   --bg:#f5f9f8;
   --card:#ffffff;
   --line:#dce8e5;
@@ -414,7 +415,7 @@ textarea{resize:vertical}
   margin-bottom:22px;
   box-shadow:0 12px 26px rgba(21,86,109,.2);
 }
-.login-card h2{font-size:28px;letter-spacing:-.035em;margin:0 0 6px!important;color:var(--ink)!important}
+.login-card h1{font-size:28px;letter-spacing:-.035em;margin:0 0 6px!important;color:var(--ink)!important}
 .login-card p{line-height:1.6}
 
 .admin-header{
@@ -721,3 +722,12 @@ input,select,textarea{max-width:100%}
 .booking-message-block h4{font-size:12px;margin:0;color:#536b70}.booking-message-block .booking-message{margin:7px 0 0}
 @media(max-width:650px){.booking-profile-facts{grid-template-columns:1fr 1fr;gap:16px;padding:14px}.booking-profile-heading h3{font-size:19px}}
 @media(max-width:380px){.booking-profile-facts{grid-template-columns:1fr}}
+
+.whatsapp-contact[hidden]{display:none!important}
+.legal-page{max-width:850px;margin:auto;line-height:1.75}
+.legal-page section{margin-top:36px;scroll-margin-top:24px}
+.legal-page h3{margin-top:28px}
+.legal-page address{font-style:normal}
+.legal-links{display:flex;flex-wrap:wrap;justify-content:center;gap:12px 24px;padding:20px;font-size:13px}
+.fh-map-embed .fh-map-placeholder{display:grid;place-items:center;align-content:center;gap:14px;min-height:300px;padding:24px;text-align:center;color:var(--ink)}
+.fh-map-placeholder p{max-width:36ch;margin:0}

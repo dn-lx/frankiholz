@@ -11,6 +11,8 @@
     const applyFallback=()=>{
       if(img.dataset.logoFallbackApplied==='1')return;
       img.dataset.logoFallbackApplied='1';
+      img.removeAttribute('srcset');
+      img.removeAttribute('sizes');
       img.src=fallback;
     };
     img.addEventListener('error',applyFallback,{once:true});

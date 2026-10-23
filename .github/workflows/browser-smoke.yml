@@ -24,7 +24,7 @@ jobs:
         with:
           node-version: "22"
       - name: Install test dependency
-        run: npm install --ignore-scripts --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Install Chromium and WebKit
         run: |
           # The Azure mirror can consume the job limit before browser tests start.
@@ -33,7 +33,7 @@ jobs:
       - name: Run desktop cross-browser smoke tests
         run: npm run test:e2e
       - name: Verify payment state transitions without external writes
-        run: node --test supabase/tests/payment-methods.test.mjs supabase/tests/guest-email-delivery.test.mjs
+        run: node --test supabase/tests/*.test.mjs
       - name: Upload Playwright report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5
