@@ -45,6 +45,13 @@ for (const width of [390,1280]) for (const [name,path] of pages) {
     }
     if (name === 'booking status') await expect(page.locator('#out .notice')).toBeVisible();
     if (name === 'payment') await expect(page.locator('#paymentContent')).toBeVisible();
+    // Audit the completed render, rather than sampling text halfway through a fade.
+    // Infinite decorative animations must not hold this readiness check open.
+    await page.evaluate(async()=>{
+      await document.fonts.ready;
+      const animations=document.getAnimations().filter(animation=>Number.isFinite(animation.effect?.getComputedTiming().endTime));
+      await Promise.all(animations.map(animation=>animation.finished.catch(()=>{})));
+    });
     const result = await new AxeBuilder({ page }).analyze();
     const blocking = result.violations.filter(({impact}) => impact === 'critical' || impact === 'serious');
     expect(blocking, JSON.stringify(blocking, null, 2)).toEqual([]);
