@@ -2,15 +2,16 @@ async function loadRoomCalendar(id){
   const st=calState(id);
   const from=dateKey(new Date(st.cursor.getFullYear(),st.cursor.getMonth(),1));
   const to=dateKey(new Date(st.cursor.getFullYear(),st.cursor.getMonth()+1,0));
-  const [{data,error},{data:ib,error:ibError}]=await Promise.all([
-    sb.from('frankiholz_calendar').select('id,date,is_available,availability_status,price_override,note,booking_id').eq('room_id',id).gte('date',from).lte('date',to),
-    sb.from('frankiholz_ical_blocks').select('date,provider').eq('room_id',id).gte('date',from).lte('date',to)
+  const [{data,error},{data:ib,error:ibError},{data:reservations,error:bookingError}]=await Promise.all([
+    sb.from('frankiholz_calendar').select('id,date,is_available,availability_status,price_override,note,booking_id,admin_available_override').eq('room_id',id).gte('date',from).lte('date',to),
+    sb.from('frankiholz_ical_blocks').select('date,provider').eq('room_id',id).gte('date',from).lte('date',to),
+    sb.from('frankiholz_bookings').select('check_in,check_out').eq('room_id',id).eq('status','confirmed').gte('check_out',from).lte('check_in',to)
   ]);
-  if(error||ibError){
-    $(`rc-status-${id}`).innerHTML=`<div class="notice">${esc((error||ibError).message)}</div>`;
+  if(error||ibError||bookingError){
+    $(`rc-status-${id}`).innerHTML=`<div class="notice">${esc((error||ibError||bookingError).message)}</div>`;
     return;
   }
-  st.rows=data||[];st.icalBlocks=ib||[];
+  st.rows=data||[];st.icalBlocks=ib||[];st.reservations=reservations||[];
   renderRoomCalendar(id);
 }
 
@@ -20,6 +21,8 @@ function rowFor(id,key){
 function isAirbnbBlocked(id,key){return calState(id).icalBlocks.some(x=>x.date===key)}
 function statusFor(id,key){
   const row=rowFor(id,key);
+  if(row?.admin_available_override&&row.is_available)return 'available';
+  if(calState(id).reservations?.some(b=>key>=b.check_in&&key<b.check_out))return 'booked';
   if(row?.booking_id)return 'booked';
   if(row && (row.availability_status==='blocked'||row.availability_status==='booked'||row.is_available===false))return row.availability_status||'blocked';
   if(isAirbnbBlocked(id,key))return 'blocked';
@@ -38,11 +41,33 @@ function renderRoomCalendar(id){
     const s=st.start,e=st.end;
     const rangeStart=s===key,rangeEnd=e===key,rangeMid=s&&e&&key>s&&key<e;
     const price=row?.price_override?money(row.price_override):'';
-    html+=`<button type="button" class="day admin-day ${status} ${rangeStart?'range-start':''} ${rangeEnd?'range-end':''} ${rangeMid?'range-mid':''}" onclick="pickRoomDate('${id}','${key}')"><strong>${n}</strong><small>${status==='booked'?'Booked':isAirbnbBlocked(id,key)?'Airbnb':status==='blocked'?'Blocked':price}</small></button>`;
+    const airbnbOverride=status==='available'&&row?.admin_available_override&&isAirbnbBlocked(id,key);
+    const label=airbnbOverride?'Available here':status==='booked'?'Booked':status==='blocked'&&isAirbnbBlocked(id,key)?'Airbnb':status==='blocked'?'Blocked':price;
+    html+=`<button type="button" aria-label="${key}: ${airbnbOverride?'Airbnb blocked, available here':label||'Available'}" class="day admin-day ${status} ${airbnbOverride?'airbnb-override':''} ${rangeStart?'range-start':''} ${rangeEnd?'range-end':''} ${rangeMid?'range-mid':''}" onclick="pickRoomDate('${id}','${key}')"><strong>${n}</strong><small>${label}</small></button>`;
   }
   $(`rc-${id}`).innerHTML=html;
   $(`rc-range-${id}`).textContent=st.start ? `${st.start}${st.end?' → '+st.end:''}` : 'Select a start date and an end date';
+  const overrides=st.icalBlocks.filter(b=>rowFor(id,b.date)?.admin_available_override&&rowFor(id,b.date)?.is_available).length;
+  $(`rc-sync-${id}`).textContent=`This month: ${st.icalBlocks.length} Airbnb-blocked night${st.icalBlocks.length===1?'':'s'} · ${overrides} available here by admin override. Sync preserves these overrides.`;
 }
+
+window.applyAirbnbRange=async(id,availableHere)=>{
+  const st=calState(id),out=$(`rc-status-${id}`);
+  if(!st.start){out.innerHTML='<div class="notice">Select at least one date first.</div>';return;}
+  if(st.saving)return;
+  st.saving=true;
+  out.innerHTML='<div class="notice">Updating Airbnb availability…</div>';
+  try{
+    const {data,error}=await sb.rpc('frankiholz_set_airbnb_availability',{
+      p_room_id:id,p_start_date:st.start,p_end_date:st.end||st.start,p_available_here:availableHere
+    });
+    if(error)throw error;
+    out.innerHTML=`<div class="notice success">${Number(data)} date${Number(data)===1?'':'s'} ${availableHere?'made available here (Airbnb-blocked dates only; confirmed reservations skipped)':'returned to normal availability rules'}. Reservations, payments and Airbnb are unchanged.</div>`;
+    st.start=null;st.end=null;
+    await loadRoomCalendar(id);
+  }catch(error){out.innerHTML=`<div class="notice">${esc(error.message||String(error))}</div>`;}
+  finally{st.saving=false;}
+};
 
 window.pickRoomDate=(id,key)=>{
   const st=calState(id);
@@ -84,7 +109,7 @@ window.applyRoomRange=async(id,status)=>{
     return;
   }
   const label=status==='available'?'available':status==='blocked'?'blocked':'booked';
-  $(`rc-status-${id}`).innerHTML=`<div class="notice success">${data} date${Number(data)===1?'':'s'} updated as <b>${label}</b>. Real guest bookings remain protected.</div>`;
+  $(`rc-status-${id}`).innerHTML=`<div class="notice success">${data} date${Number(data)===1?'':'s'} updated as <b>${label}</b>. Existing reservations and payments are unchanged.</div>`;
   st.start=null;st.end=null;
   await loadRoomCalendar(id);
 };

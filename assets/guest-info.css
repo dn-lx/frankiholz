@@ -36,3 +36,50 @@
   .fh-amenities{grid-template-columns:1fr 1fr}
 }
 @media(max-width:420px){.fh-amenities{grid-template-columns:1fr}}
+
+/* Readable, native modal: background stays inert and Escape restores the trigger. */
+#houseRules .fh-rules{grid-template-columns:1fr 1fr;gap:16px}
+#houseRules .fh-rules>div{border:0;padding:0}
+#houseRules .fh-rules p{font-size:24px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.house-guide-dialog{width:min(760px,calc(100% - 28px));max-width:none;max-height:86vh;max-height:86dvh;padding:0;border:1px solid #d6e4dc;border-radius:22px;color:var(--ink);background:#fff;box-shadow:0 24px 90px #071f3866;overflow:hidden}
+.house-guide-dialog[open]{display:flex;flex-direction:column}
+.house-guide-dialog::backdrop{background:#092c3bc4}
+html:has(.house-guide-dialog[open]){overflow:hidden}
+.house-guide-header{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:22px 26px;border-bottom:1px solid var(--line);flex-shrink:0}
+.house-guide-header h2{margin:5px 0 0;font-size:22px;line-height:1.3}
+.house-guide-header .btn{min-height:44px;flex-shrink:0}
+.house-guide-scroll{overflow-y:auto;overscroll-behavior:contain;padding:26px 36px 36px;min-height:0;line-height:1.8;overflow-wrap:anywhere}
+.house-guide-brand{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:18px}
+.house-guide-logo{display:block;object-fit:contain;width:150px;max-width:48%;height:auto}
+.house-guide-languages.lang-switch{flex-shrink:0;color:var(--ink);background:#edf5f2;border-color:var(--line)}
+.house-guide-languages .lang-btn{min-width:44px;min-height:44px;padding:6px 9px}
+.house-guide-welcome{color:#536b70;margin:22px 0}
+#houseGuideContent section{padding:20px 0;border-top:1px solid var(--line)}
+#houseGuideContent h3{margin:0 0 12px;font-size:19px}
+#houseGuideContent ul{margin:0;padding-left:22px}
+#houseGuideContent li+li{margin-top:9px}
+.amenities-editor h3{margin:0;font-size:20px}
+.amenity-editor-list{display:grid;gap:12px;margin:16px 0}
+.amenity-editor-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:12px;align-items:end;padding:14px;background:#f4f8f5;border:1px solid var(--line);border-radius:14px}
+.amenity-editor-row label{margin:0}.amenity-editor-row input{margin-top:6px}.amenity-editor-row .btn{min-height:46px}
+@media(max-width:600px){.house-guide-header{padding:18px;gap:10px}.house-guide-header h2{font-size:18px}.house-guide-scroll{padding:22px}.amenity-editor-row{grid-template-columns:1fr}.amenity-editor-row .btn{justify-self:start}}
+
+/* A personal host welcome, with a compact profile and a calm reading column. */
+html:has(body.admin-page){scroll-behavior:auto}
+.fh-host-message{background:#f5f6f0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.fh-host-layout{display:grid;grid-template-columns:minmax(180px,.65fr) minmax(0,2fr);gap:64px;align-items:start}
+.fh-host-profile{text-align:center;padding:26px 16px;border:1px solid #dce5dd;border-radius:24px;background:#fff;box-shadow:0 12px 30px #17343d08}
+.fh-host-avatar{display:grid;place-items:center;position:relative;overflow:hidden;margin:0 auto 18px;width:100px;height:100px;border-radius:50%;background:#153f4b;color:#f2d8b5;font-size:44px;font-weight:700}
+.fh-host-avatar img{width:100%;height:100%;object-fit:cover}
+.fh-host-avatar img.fh-host-photo-default{position:absolute;max-width:none;width:300%;height:400%;left:-145%;top:-140%}
+.fh-host-photo-controls{display:grid;grid-template-columns:100px minmax(0,1fr);gap:24px;align-items:start}
+.fh-host-photo-controls .fh-host-avatar{margin:0}.fh-host-photo-controls input{max-width:100%}.fh-host-photo-controls [role=status]{margin-top:12px;font-size:14px;line-height:1.6}
+@media(max-width:500px){.fh-host-photo-controls{grid-template-columns:1fr;gap:16px}}
+.fh-host-profile h3{margin:0;font-size:28px;letter-spacing:-.03em;overflow-wrap:anywhere}
+.fh-host-profile p{margin:8px 0 0;color:var(--muted);font-size:14px;line-height:1.6;overflow-wrap:anywhere}
+.fh-host-copy h2{margin:0 0 22px;font-size:clamp(26px,3vw,36px);letter-spacing:-.04em;line-height:1.2}
+.fh-host-copy p{margin:0 0 20px;line-height:1.85;color:#36545b;white-space:pre-line;overflow-wrap:anywhere;max-width:70ch}
+.fh-host-copy p:last-child{margin-bottom:0;color:var(--ink);font-weight:600}
+#homeCopySettings h2{margin-top:0}
+#homeCopyStatus{margin-top:12px;overflow-wrap:anywhere}
+@media(max-width:700px){.fh-host-layout{grid-template-columns:1fr;gap:28px}.fh-host-profile{display:grid;grid-template-columns:76px minmax(0,1fr);column-gap:18px;text-align:left;align-items:center;padding:20px}.fh-host-avatar{grid-row:1/3;width:76px;height:76px;margin:0;font-size:34px}.fh-host-profile h3{align-self:end;font-size:25px}.fh-host-profile p{align-self:start;margin-top:5px}.fh-host-copy p{line-height:1.75}}

@@ -1,0 +1,2 @@
+'use client';
+export default function ErrorPage({reset}:{reset:()=>void}){return <main id="main" className="centered-route"><div className="status-card"><h1>Let’s try that again.</h1><p>This page could not finish loading. Your booking records have not been changed by this error.</p><button className="btn btn-dark" onClick={reset}>Try again</button><a className="back-link" href="/">Return to FrankiHolz</a></div></main>}

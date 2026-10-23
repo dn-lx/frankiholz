@@ -1,39 +1,47 @@
-name: FrankiHolz V2 / Next build and visual QA
+name: FrankiHolz V2 / Next build and browser QA
 on:
   push:
     branches: [v2]
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: v2-next-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   next-build:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     defaults:
       run:
         working-directory: v2
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
-          node-version: 22
-      - name: Install dependencies
-        run: npm install --no-audit --no-fund
-      - name: Static contract check
-        run: npm test
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: v2/package-lock.json
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
       - name: Build Next.js
         run: npm run build
-      - name: TypeScript check
-        run: npm run typecheck
-      - name: Install Playwright browser
-        run: npx playwright install --with-deps chromium
-      - name: Run responsive smoke and capture screenshots
-        run: mkdir -p artifacts && npx playwright test
-      - name: Upload visual evidence
-        if: always()
-        uses: actions/upload-artifact@v4
+      - name: TypeScript and unit checks
+        run: npm run check
+      - name: Install Chromium and WebKit
+        run: npx playwright install --with-deps chromium webkit
+      - name: Cross-browser guest and Admin regression checks
+        run: npm run test:e2e
+      - name: Upload browser evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
         with:
-          name: frankiholz-v2-visual-qa
+          name: frankiholz-v2-browser-report
           path: |
-            v2/artifacts
+            v2/playwright-report
             v2/test-results
+            v2/artifacts
           if-no-files-found: ignore
+          retention-days: 14

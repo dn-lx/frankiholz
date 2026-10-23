@@ -1,0 +1,1 @@
+Inter variable Latin font from `@fontsource-variable/inter@5.2.8` (npm), distributed under the included SIL Open Font License. Served locally so displaying the website typography does not contact Google Fonts.

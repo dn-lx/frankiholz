@@ -9,9 +9,16 @@ playwright-report/
 test-results/
 lighthouse-report/
 .netlify/
+supabase/.temp/
 
 # Local Graphify tooling and derived code maps
 .venv-graphify/
 .graphify/
 graphify-out/
 .lighthouseci/
+
+# Next.js v2 local outputs
+v2/.next/
+v2/out/
+v2/tsconfig.tsbuildinfo
+v2/artifacts/

@@ -24,11 +24,12 @@ jobs:
         with:
           node-version: "22"
       - name: Install test dependency
-        run: npm install --ignore-scripts --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Run repository checks when defined
         run: |
           npm run check --if-present
           npm run test --if-present
+          node --test supabase/tests/*.test.mjs
       - name: Install Chromium and WebKit
         run: npx playwright install --with-deps chromium webkit
       - name: Run release browser matrix

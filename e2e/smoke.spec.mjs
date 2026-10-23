@@ -44,6 +44,8 @@ test('guest rules, amenities, contact and visible location map are available', a
   await expect(page.locator('#guestLanguages')).toHaveAttribute('placeholder','English, German');
   await expect(page.locator('#fhAmenitiesList')).toContainText('Wi-Fi');
   await expect(page.locator('#fhAmenitiesList')).toContainText('Laundry (additional charge)');
+  await expect(page.locator('#fhMapTarget iframe')).toHaveCount(0);
+  await page.locator('#fhLoadMap').click();
   await expect(page.locator('#fhMapTarget iframe')).toHaveCount(1);
   await expect(page.locator('#fhMapTarget iframe')).toHaveAttribute('loading', 'lazy');
   await expect(page.locator('#fhMapTarget iframe')).toHaveAttribute('src', /google\.com\/maps/);
@@ -108,7 +110,7 @@ test('WhatsApp contact uses the Admin-managed international number', async ({ pa
 });
 
 
-test('online payment gateway notice is bilingual and directs guests to the host', async ({ page }) => {
+test('removed payment-gateway notice stays absent across pages and languages', async ({ page }) => {
   // The global external-network blocker also blocks the Supabase CDN. Mock it
   // so site.js initializes and its DE/EN switch can run without backend writes.
   await page.addInitScript(() => {
@@ -123,17 +125,11 @@ test('online payment gateway notice is bilingual and directs guests to the host'
     })};
   });
   await page.goto('/?lang=en', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#cancellationPolicy [data-i18n="gatewayNoticeTitle"]')).toHaveText('Online payment gateway temporarily unavailable');
-  await expect(page.locator('#bookingStatusSection [data-i18n="gatewayNoticeText"]')).toContainText('alternative payment method');
-  await expect(page.locator('#cancellationPolicy a[data-i18n="contactHost"]')).toHaveAttribute('href', '#contact');
+  await expect(page.locator('[data-i18n="gatewayNoticeTitle"], #gatewayNoticeTitle')).toHaveCount(0);
   await page.locator('.lang-btn[data-lang="de"]').click();
-  await expect(page.locator('#cancellationPolicy [data-i18n="gatewayNoticeTitle"]')).toHaveText('Online-Zahlung vorübergehend nicht verfügbar');
-  await expect(page.locator('#bookingStatusSection [data-i18n="gatewayNoticeText"]')).toContainText('alternative Zahlungsmethode');
+  await expect(page.locator('[data-i18n="gatewayNoticeTitle"], #gatewayNoticeTitle')).toHaveCount(0);
 
   await page.goto('/booking-status.html?lang=en', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#gatewayNoticeText')).toContainText('alternative payment method');
-  await expect(page.locator('#gatewayContactLink')).toHaveAttribute('href', '/?lang=en#contact');
+  await expect(page.locator('#gatewayNoticeTitle, #gatewayNoticeText, #gatewayContactLink')).toHaveCount(0);
   await page.locator('.lang-btn[data-lang="de"]').click();
-  await expect(page.locator('#gatewayNoticeTitle')).toHaveText('Online-Zahlung vorübergehend nicht verfügbar');
-  await expect(page.locator('#gatewayContactLink')).toHaveAttribute('href', '/?lang=de#contact');
 });

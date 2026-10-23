@@ -1,7 +1,7 @@
 export type Lang='en'|'de';
 export type Room={id:string;slug:string;name:string;name_de?:string|null;description?:string|null;description_de?:string|null;base_price:number;max_guests:number;active:boolean;sort_order:number};
 export type RoomImage={id:string;room_id:string;storage_path:string;sort_order:number};
-export type SiteSettings={hero_title?:string|null;hero_title_de?:string|null;hero_subtitle?:string|null;hero_subtitle_de?:string|null;hero_storage_path?:string|null};
+export type SiteSettings={seo_title_en?:string|null;seo_title_de?:string|null;seo_description_en?:string|null;seo_description_de?:string|null;hero_title?:string|null;hero_title_de?:string|null;hero_subtitle?:string|null;hero_subtitle_de?:string|null;hero_storage_path?:string|null};
 export type CalendarDay={date:string;is_available:boolean;availability_status:string;nightly_price:number|null};
 export type Review={name:string;en:string;de:string;rating:number};
 export type CopyRow={copy_key:string;text_en:string;text_de:string};

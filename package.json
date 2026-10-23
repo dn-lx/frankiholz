@@ -5,11 +5,15 @@
   "type": "module",
   "scripts": {
     "test:e2e": "playwright test --project=chromium --project=webkit",
-    "test:e2e:release": "playwright test --project=chromium --project=webkit --project=iphone-webkit --project=ipad-webkit"
+    "test:e2e:release": "playwright test --project=chromium --project=webkit --project=iphone-webkit --project=ipad-webkit",
+    "test:lighthouse": "node scripts/lighthouse-report.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
-    "@lhci/cli": "0.15.1",
-    "@playwright/test": "1.63.0"
+    "@playwright/test": "1.63.0",
+    "lighthouse": "13.5.0"
+  },
+  "engines": {
+    "node": ">=22.19"
   }
 }
