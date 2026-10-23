@@ -17,3 +17,8 @@
   for = "/admin/*"
   [headers.values]
     X-Robots-Tag = "noindex, nofollow"
+
+# This existing Netlify site began as a static site. Explicitly activate the
+# supported Next.js adapter so .next is packaged with its route handlers.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

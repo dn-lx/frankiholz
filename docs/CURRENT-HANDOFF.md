@@ -2,6 +2,8 @@
 
 ## Next.js v2 migration — 2026-10-23 (in progress)
 
+- Preview checkpoint952029a was pushed to v2. Owner confirmed https://v2--frankiholz.netlify.app/ and supplied Netlify logs: successful Next build, raw v2/.next publish, no adapter, zero functions, generic404. Added explicit official @netlify/plugin-nextjs5.16.4 with lockfile and netlify.toml plugin declaration. The actual NetlifyCLI27.14.2 offline branch-deploy build passed and packaged ___netlify-server-handler; no hosting credentials or deployment commands were used. Pushing this configuration triggers the owner-configured branch deploy. Frontend hardening and deeper tests continue in the working tree.
+
 - Owner explicitly requested the complete current site in Next.js on v2, then configured a Netlify v2 branch deploy and requested commits/pushes for preview. No merge into any branch is authorized. Existing remote v2 prototype at 55bf557 is extended without history rewrites. Main/develop remain unchanged.
 - Restored current audited develop reference source at the repository root on v2, preserving the isolated v2 app and its Netlify base. Next.js16.4.2/React19.3.1, strict TypeScript, bundled Supabase and Motion have a dedicated pinned v2/package-lock.json. No backend/API/RLS or payment rules changed.
 - Public React pages now consume bilingual Admin content, hero/SEO, genuine review summaries/custom entries and snapshot ratings, eight validated section order identifiers, host content, gallery, guide/PDF, consent-based map, policy and full owner-provided legal notices. Local approved fonts/images replace third-party fonts. Legacy .html paths redirect with query strings retained.

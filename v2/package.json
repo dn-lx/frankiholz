@@ -6,27 +6,28 @@
     "dev": "next dev --hostname 0.0.0.0",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "node --test tests/*.test.mjs",
     "test:e2e": "playwright test --project=chromium --project=webkit",
     "check": "npm run typecheck && npm test",
     "test:e2e:release": "playwright test --project=chromium --project=webkit --project=iphone-webkit --project=ipad-webkit"
   },
   "dependencies": {
+    "@supabase/supabase-js": "2.118.0",
+    "lucide-react": "1.61.0",
+    "motion": "14.6.0",
     "next": "16.4.2",
     "react": "19.3.1",
-    "react-dom": "19.3.1",
-    "@supabase/supabase-js": "2.118.0",
-    "motion": "14.6.0",
-    "lucide-react": "1.61.0"
+    "react-dom": "19.3.1"
   },
   "devDependencies": {
-    "typescript": "5.9.3",
+    "@axe-core/playwright": "4.13.0",
+    "@netlify/plugin-nextjs": "5.16.4",
+    "@playwright/test": "1.63.0",
     "@types/node": "22.19.15",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
-    "@playwright/test": "1.63.0",
-    "@axe-core/playwright": "4.13.0"
+    "typescript": "5.9.3"
   },
   "engines": {
     "node": ">=22.19"
