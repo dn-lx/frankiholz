@@ -38,7 +38,7 @@
       reviewBandSnapshot:'Airbnb listing snapshot · not live',reviewBandTopics:'Topics guests mention',
       reviewTopicHost:'Hospitality',reviewTopicLocation:'Location',reviewTopicClean:'Cleanliness',reviewBandLink:'Read reviews on Airbnb ↗',
       contactTitle:'Contact your host',contactIntro:'Questions about arrival, facilities or your booking? Contact us directly.',
-      mapKicker:'Location',mapTitle:'Find us on the map',mapPrivacy:'Map provided by Google Maps. Viewing it may share data with Google.',
+      mapKicker:'Location',mapTitle:'Find us on the map',mapPrivacy:'Google Maps stays unloaded until you choose to load it.',loadMap:'Load Google Maps',mapChoice:'Load the map to connect to Google. Your IP address and browser information may be shared with Google.',
       directions:'Open directions ↗'
     },
     de: {
@@ -56,7 +56,7 @@
       reviewBandSnapshot:'Airbnb-Momentaufnahme · nicht live',reviewBandTopics:'Häufig erwähnte Themen',
       reviewTopicHost:'Gastfreundschaft',reviewTopicLocation:'Lage',reviewTopicClean:'Sauberkeit',reviewBandLink:'Bewertungen auf Airbnb ansehen ↗',
       contactTitle:'Kontakt zum Gastgeber',contactIntro:'Fragen zur Anreise, Ausstattung oder Buchung? Kontaktieren Sie uns direkt.',
-      mapKicker:'Standort',mapTitle:'Unser Standort auf der Karte',mapPrivacy:'Die Karte wird von Google Maps bereitgestellt. Bei der Anzeige können Daten an Google übertragen werden.',
+      mapKicker:'Standort',mapTitle:'Unser Standort auf der Karte',mapPrivacy:'Google Maps bleibt deaktiviert, bis Sie die Karte laden.',loadMap:'Google Maps laden',mapChoice:'Beim Laden wird eine Verbindung zu Google hergestellt. Ihre IP-Adresse und Browserinformationen können an Google übertragen werden.',
       directions:'Route öffnen ↗'
     }
   };
@@ -216,7 +216,10 @@
       $('fhHostInitial').textContent=Array.from(fieldValue('fhHostName',lang))[0]||'';
       const photo=$('fhHostPhoto'),source=hostPhotoUrl(fieldValue('fhHostPhoto','en'));
       photo.alt=fieldValue('fhHostName',lang);
-      photo.classList.toggle('fh-host-photo-default',source==='/assets/host-inura.jpg');
+      const defaultPhoto=source==='/assets/host-inura.jpg';
+      photo.classList.toggle('fh-host-photo-default',defaultPhoto);
+      if(defaultPhoto){photo.srcset='/assets/images/host-inura-200.webp 200w, /assets/images/host-inura-400.webp 400w';photo.sizes='100px';}
+      else{photo.removeAttribute('srcset');photo.removeAttribute('sizes');}
       if(photo.getAttribute('src')!==source){photo.hidden=false;$('fhHostInitial').hidden=true;photo.src=source;}
       photo.onerror=()=>{photo.hidden=true;$('fhHostInitial').hidden=false;};
     }
@@ -476,4 +479,12 @@
     });
     setTimeout(onAuthenticated,0);
   }
+  const loadMap=$('fhLoadMap');
+  if(loadMap)loadMap.addEventListener('click',()=>{
+    const frame=document.createElement('iframe');
+    frame.title='FrankiHolz — Seehofstraße 20, Frankfurt am Main';
+    frame.src='https://www.google.com/maps?q=Seehofstra%C3%9Fe%2020%2C%2060594%20Frankfurt%20am%20Main%2C%20Germany&output=embed';
+    frame.loading='lazy';frame.referrerPolicy='no-referrer';frame.allowFullscreen=true;
+    $('fhMapTarget').replaceChildren(frame);
+  },{once:true});
 })();

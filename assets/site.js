@@ -7,6 +7,18 @@ const T={
 };
 Object.assign(T.en,{paymentPageAction:'Continue to payment',paymentPageNote:'Choose your payment option on the next page. Your request stays pending until the host approves it.',promoCodeLabel:'Promo code (optional)',applyPromoLabel:'Apply code'});
 Object.assign(T.de,{paymentPageAction:'Weiter zur Zahlung',paymentPageNote:'Wählen Sie Ihre Zahlungsoption auf der nächsten Seite. Ihre Anfrage bleibt bis zur Genehmigung durch den Gastgeber offen.',promoCodeLabel:'Gutscheincode (optional)',applyPromoLabel:'Code anwenden'});
+Object.assign(T.en,{
+ policyKicker:'Cancellation & payment',policyTitle:'Clear 14-day cancellation policy',
+ policyBeforeTitle:'More than 14 days before check-in',policyBeforeText:'Cancel for a full refund. If your card has not been charged yet, no charge is made.',
+ policyWithinTitle:'Within 14 days of check-in',policyWithinText:'The booking is non-refundable. Confirmed bookings are charged automatically 14 days before check-in, or after confirmation when check-in is already within 14 days.',
+ policyCardPrivacy:'Your card is saved securely with Stripe. FrankiHolz does not store your card number.'
+});
+Object.assign(T.de,{
+ policyKicker:'Stornierung & Zahlung',policyTitle:'Klare 14-Tage-Stornierungsbedingungen',
+ policyBeforeTitle:'Mehr als 14 Tage vor dem Check-in',policyBeforeText:'Bei Stornierung erhalten Sie eine volle Erstattung. Wurde Ihre Karte noch nicht belastet, erfolgt keine Belastung.',
+ policyWithinTitle:'Innerhalb von 14 Tagen vor dem Check-in',policyWithinText:'Die Buchung ist nicht erstattungsfähig. Bestätigte Buchungen werden automatisch 14 Tage vor dem Check-in belastet – oder nach der Bestätigung, wenn der Check-in bereits innerhalb von 14 Tagen liegt.',
+ policyCardPrivacy:'Ihre Karte wird sicher bei Stripe hinterlegt. FrankiHolz speichert Ihre Kartennummer nicht.'
+});
 let currentLang=(new URLSearchParams(location.search).get('lang')||localStorage.getItem('frankiholz-lang')||((navigator.language||'en').toLowerCase().startsWith('de')?'de':'en'));
 if(!['de','en'].includes(currentLang))currentLang='en';
 let settings=null,rooms=[],images=[],calendarRows=[],selectedRoom=null,start=null,end=null,cursorMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
@@ -25,7 +37,7 @@ function roomImgs(id){return images.filter(x=>x.room_id===id)} function cover(r)
 function renderRooms(){$('rooms').innerHTML=rooms.map(r=>`<article class="room-card">${cover(r)?`<img src="${cover(r)}" alt="${escapeHtml(roomName(r))}">`:`<div class="room-cover-placeholder" role="img" aria-label="${photoSoon()}" style="width:100%;display:grid;place-items:center;padding:24px;background:linear-gradient(135deg,var(--brand-ice),var(--brand-mint));color:var(--muted);font-weight:800;text-align:center">${photoSoon()}</div>`}<div class="room-body"><h3>${escapeHtml(roomName(r))}</h3><div class="price">${money(r.base_price)} <span class="muted" style="font-size:14px">${tr('night')}</span></div><button class="btn" onclick="selectRoom('${r.id}')" style="margin-top:14px">${tr('viewAvailability')}</button></div></article>`).join('')||`<div class="empty">${tr('noRooms')}</div>`;$('roomSelect').innerHTML=rooms.map(r=>`<option value="${r.id}" ${selectedRoom?.id===r.id?'selected':''}>${escapeHtml(roomName(r))}</option>`).join('')}
 window.selectRoom=async id=>{selectedRoom=rooms.find(r=>r.id===id);if(!selectedRoom)return;start=end=null;$('roomSelect').value=id;$('roomSelect').dispatchEvent(new Event('roomselectionchange'));$('bookingSection').hidden=false;$('calendarNotice').className='notice';$('calendarNotice').textContent=tr('chooseDates');renderSelectedRoom();updateSummary();await loadCalendar();void refreshPaymentEnvironmentNotice();$('bookingSection').scrollIntoView({behavior:'smooth'})};
 $('roomSelect').addEventListener('change',e=>selectRoom(e.target.value));$('jumpToCalendar').onclick=()=>$('calendarPanel').scrollIntoView({behavior:'smooth'});$('navBookBtn').onclick=$('heroRoomsBtn').onclick=()=>$('roomsSection').scrollIntoView({behavior:'smooth'});
-function renderSelectedRoom(){const ri=roomImgs(selectedRoom.id),fallback=cover(selectedRoom),urls=ri.length?ri.map(x=>publicUrl(x.storage_path)):(fallback?[fallback]:[]);if(urls.length){$('galleryMain').style.display='block';$('galleryMain').src=urls[0];$('galleryMain').alt=roomName(selectedRoom);$('thumbs').innerHTML=urls.map((u,k)=>`<button class="thumb ${k===0?'active':''}" type="button" onclick="showPhoto('${u.replace(/'/g,'%27')}',this)"><img src="${u}" alt="${escapeHtml(roomName(selectedRoom))} ${k+1}"></button>`).join('')}else{$('galleryMain').removeAttribute('src');$('galleryMain').alt='';$('galleryMain').style.display='none';$('thumbs').innerHTML=`<div role="img" aria-label="${photoSoon()}" style="grid-column:1/-1;width:100%;aspect-ratio:16/10;display:grid;place-items:center;padding:24px;border-radius:20px;background:linear-gradient(135deg,var(--brand-ice),var(--brand-mint));box-shadow:inset 0 0 0 1px var(--line);color:var(--muted);font-weight:800;text-align:center">${photoSoon()}</div>`}$('selectedRoomName').textContent=roomName(selectedRoom);$('selectedRoomDescription').textContent=roomDesc(selectedRoom);$('selectedRoomPrice').innerHTML=`${money(selectedRoom.base_price)} <span class="muted" style="font-size:14px">${tr('night')}</span>`;$('guestCount').innerHTML=Array.from({length:selectedRoom.max_guests},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('')}
+function renderSelectedRoom(){const ri=roomImgs(selectedRoom.id),fallback=cover(selectedRoom),urls=ri.length?ri.map(x=>publicUrl(x.storage_path)):(fallback?[fallback]:[]);if(urls.length){$('galleryMain').style.display='block';$('galleryMain').src=urls[0];$('galleryMain').alt=roomName(selectedRoom);$('thumbs').innerHTML=urls.map((u,k)=>`<button class="thumb ${k===0?'active':''}" type="button" onclick="showPhoto('${u.replace(/'/g,'%27')}',this)"><img src="${u}" alt="${escapeHtml(roomName(selectedRoom))} ${k+1}"></button>`).join('')}else{$('galleryMain').removeAttribute('src');$('galleryMain').alt='';$('galleryMain').style.display='none';$('thumbs').innerHTML=`<div role="img" aria-label="${photoSoon()}" style="grid-column:1/-1;width:100%;aspect-ratio:16/10;display:grid;place-items:center;padding:24px;border-radius:20px;background:linear-gradient(135deg,var(--brand-ice),var(--brand-mint));box-shadow:inset 0 0 0 1px var(--line);color:var(--muted);font-weight:800;text-align:center">${photoSoon()}</div>`}$('selectedRoomName').textContent=roomName(selectedRoom);$('selectedRoomDescription').textContent=roomDesc(selectedRoom);$('selectedRoomPrice').innerHTML=`${money(selectedRoom.base_price)} <span class="muted" style="font-size:14px">${tr('night')}</span>`;const guests=Number($('guestCount').value)||1;$('guestCount').innerHTML=Array.from({length:selectedRoom.max_guests},(_,i)=>`<option value="${i+1}"${i+1===guests?' selected':''}>${i+1}</option>`).join('')}
 window.showPhoto=(u,el)=>{$('galleryMain').src=u;document.querySelectorAll('.thumb').forEach(x=>x.classList.remove('active'));el.classList.add('active')};
 async function loadCalendar(){if(!selectedRoom)return;const from=fmt(new Date(cursorMonth.getFullYear(),cursorMonth.getMonth(),1)),to=fmt(new Date(cursorMonth.getFullYear(),cursorMonth.getMonth()+2,0));const {data,error}=await sb.rpc('frankiholz_get_calendar_rates',{p_room_id:selectedRoom.id,p_from:from,p_to:to});calendarRows=error?[]:(data||[]);if(error)console.error(error);renderCalendar()}
 function blocked(key){const row=calendarRows.find(x=>x.date===key);return !!(row&&row.is_available===false)} function rangeBlocked(a,b){if(!a||!b)return false;let d=new Date(a+'T12:00:00'),stop=new Date(b+'T12:00:00');while(d<stop){if(blocked(fmt(d)))return true;d.setDate(d.getDate()+1)}return false}
@@ -161,20 +173,36 @@ function paintPaymentSetupNote(){const free=promoState?.quote?.discount_percent=
 $('applyPromo').onclick=()=>{if(!start||!end){$('promoStatus').textContent=tr('chooseDatesFirst');return}estimate();};
 function updateSummary(){paintPromoStatus();paintPaymentSetupNote();$('sumIn').textContent=start||'—';$('sumOut').textContent=end||'—';if(!start||!end)$('sumTotal').textContent='—'}
 $('prevMonth').onclick=async()=>{cursorMonth=new Date(cursorMonth.getFullYear(),cursorMonth.getMonth()-1,1);await loadCalendar()};$('nextMonth').onclick=async()=>{cursorMonth=new Date(cursorMonth.getFullYear(),cursorMonth.getMonth()+1,1);await loadCalendar()};
+let bookingSubmitting=false;
+function unlockBookingForm(){bookingSubmitting=false;$('bookingForm').querySelector('button[type=submit]').disabled=false;paintPaymentSetupNote();}
+window.addEventListener('pageshow',event=>{if(event.persisted)unlockBookingForm();});
 $('bookingForm').addEventListener('submit',async e=>{
- e.preventDefault();const form=e.currentTarget;const out=$('bookingResult');out.innerHTML='';if(!selectedRoom||!start||!end){out.innerHTML=`<div class="notice">${tr('chooseDatesFirst')}</div>`;return}if(rangeBlocked(start,end)){out.innerHTML=`<div class="notice">${tr('selectedBlocked')}</div>`;return}
- const languages=$('guestLanguages').value.split(/[,;]/).map(x=>x.trim()).filter(Boolean);const intro=$('message').value.trim();
+ e.preventDefault();if(bookingSubmitting)return;
+ const form=e.currentTarget,out=$('bookingResult');out.innerHTML='';
+ if(!selectedRoom||!start||!end){out.innerHTML=`<div class="notice">${tr('chooseDatesFirst')}</div>`;return}
+ if(rangeBlocked(start,end)){out.innerHTML=`<div class="notice">${tr('selectedBlocked')}</div>`;return}
+ const languages=$('guestLanguages').value.split(/[,;]/).map(x=>x.trim()).filter(Boolean),intro=$('message').value.trim();
  if(languages.length===0||intro.length<20){out.innerHTML=`<div class="notice">${currentLang==='de'?'Bitte Sprache(n) angeben und eine kurze Vorstellung mit mindestens 20 Zeichen schreiben.':'Please add at least one language and a short introduction of at least 20 characters.'}</div>`;return}
- const payload={p_room_id:selectedRoom.id,p_check_in:start,p_check_out:end,p_guest_name:$('guestName').value.trim(),p_guest_email:$('guestEmail').value.trim(),p_guest_phone:$('guestPhone').value.trim(),p_guest_country:$('guestCountry').value.trim(),p_guests:Number($('guestCount').value),p_message:intro,p_language:currentLang,p_guest_age:Number($('guestAge').value),p_guest_sex:$('guestSex').value,p_guest_languages:languages,p_guest_hobbies:$('guestHobbies').value.trim(),p_guest_returning:$('guestReturning').value==='yes'};
- try{await resolvePaymentMode()}catch(modeError){out.innerHTML=`<div class="notice">${escapeHtml(modeError.message)}</div>`;return}
- const promoCode=$('promoCode').value.trim();
- const rpcName=promoCode?'frankiholz_create_booking_with_promo':'frankiholz_create_booking_v2';
- const rpcPayload=promoCode?{...payload,p_promo_code:promoCode}:payload;
- const submit=form.querySelector('button[type=submit]');const old=submit.textContent;submit.disabled=true;submit.textContent=currentLang==='de'?'Anfrage wird gespeichert …':'Saving request …';
- const {data,error}=await sb.rpc(rpcName,rpcPayload);if(error){submit.disabled=false;submit.textContent=old;out.innerHTML=`<div class="notice">${escapeHtml(promoError(error.message))}</div>`;await loadCalendar();return}const b=data?.[0];
- out.innerHTML=`<div class="notice success">${tr('requestSent')} ${tr('reference')} <b>${escapeHtml(b.reference)}</b>. ${tr('estimated')} <b>${money(b.total_price)}</b>.</div>`;
- try{sessionStorage.setItem('frankiholz-payment-email:'+b.reference,payload.p_guest_email)}catch(storageError){}
- location.assign((Number(b.total_price)===0?'/booking-status.html?reference=':'/payment.html?reference=')+encodeURIComponent(b.reference)+'&lang='+currentLang);
+ // Lock before the first asynchronous operation so repeated clicks share one attempt.
+ bookingSubmitting=true;
+ const submit=form.querySelector('button[type=submit]');submit.disabled=true;submit.textContent=currentLang==='de'?'Anfrage wird gespeichert …':'Saving request …';
+ let navigating=false;
+ try{
+  const payload={p_room_id:selectedRoom.id,p_check_in:start,p_check_out:end,p_guest_name:$('guestName').value.trim(),p_guest_email:$('guestEmail').value.trim(),p_guest_phone:$('guestPhone').value.trim(),p_guest_country:$('guestCountry').value.trim(),p_guests:Number($('guestCount').value),p_message:intro,p_language:currentLang,p_guest_age:Number($('guestAge').value),p_guest_sex:$('guestSex').value,p_guest_languages:languages,p_guest_hobbies:$('guestHobbies').value.trim(),p_guest_returning:$('guestReturning').value==='yes'};
+  const promoCode=$('promoCode').value.trim(),rpcName=promoCode?'frankiholz_create_booking_with_promo':'frankiholz_create_booking_v2';
+  const rpcPayload=promoCode?{...payload,p_promo_code:promoCode}:payload;
+  await resolvePaymentMode();
+  const {data,error}=await sb.rpc(rpcName,rpcPayload);
+  if(error)throw new Error(promoError(error.message));
+  const b=data?.[0];if(!b?.reference)throw new Error(currentLang==='de'?'Die Anfrage konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.':'Could not save your request. Please try again.');
+  out.innerHTML=`<div class="notice success">${tr('requestSent')} ${tr('reference')} <b>${escapeHtml(b.reference)}</b>. ${tr('estimated')} <b>${money(b.total_price)}</b>.</div>`;
+  try{sessionStorage.setItem('frankiholz-payment-email:'+b.reference,payload.p_guest_email)}catch(storageError){}
+  location.assign((Number(b.total_price)===0?'/booking-status.html?reference=':'/payment.html?reference=')+encodeURIComponent(b.reference)+'&lang='+payload.p_language);
+  navigating=true;
+ }catch(error){
+  out.innerHTML=`<div class="notice">${escapeHtml(error.message||'Could not save your request. Please try again.')}</div>`;
+  await loadCalendar().catch(()=>{});
+ }finally{if(!navigating)unlockBookingForm();}
 });
 
 async function cancelCurrentBooking(ref,email,out){if(!confirm(currentLang==='de'?'Möchten Sie diese Buchung wirklich stornieren?':'Do you really want to cancel this booking?'))return;const r=await fetch(`${CFG.supabaseUrl}/functions/v1/frankiholz-cancel-booking-v2`,{method:'POST',headers:{'Content-Type':'application/json','apikey':CFG.supabaseKey},body:JSON.stringify({reference:ref,email})});const j=await r.json().catch(()=>({}));if(!r.ok){out.innerHTML+=`<div class="notice">${escapeHtml(j.error||'Cancellation failed')}</div>`;return}out.innerHTML=`<div class="notice success">${j.policy==='no_payment'?(currentLang==='de'?'Buchung storniert. Keine Zahlung oder Erstattung erforderlich.':'Booking cancelled. No payment or refund required.'):j.refundable?(currentLang==='de'?'Buchung storniert. Volle Erstattung gilt.':'Booking cancelled. Full refund applies.'):(currentLang==='de'?'Buchung storniert. Innerhalb von 14 Tagen ist sie nicht erstattungsfähig.':'Booking cancelled. It is non-refundable within 14 days.')}</div>`;}

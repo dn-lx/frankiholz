@@ -80,7 +80,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: "22"
-      - name: Audit production dependencies when package.json exists
+      - name: Audit locked runtime and development dependencies when package.json exists
         shell: bash
         run: |
           set -euo pipefail
@@ -88,5 +88,5 @@ jobs:
             echo "No package.json; dependency audit not applicable."
             exit 0
           fi
-          npm install --package-lock-only --ignore-scripts --no-fund
-          npm audit --omit=dev --audit-level=high
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm audit --audit-level=high

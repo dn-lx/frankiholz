@@ -61,10 +61,10 @@ body{background:#f8faf7}
 .trust-item:last-child{border-right:0}
 .trust-icon{width:44px;height:44px;background:#eaf7ee;color:#146652;border-radius:13px;font-size:18px}
 .trust-item strong{font-size:13px;color:var(--premium-ink)}
-.trust-item span{font-size:11px;color:#647b7d;line-height:1.55}
+.trust-item span{font-size:11px;color:#536b70;line-height:1.55}
 .fh-section-nav{background:#f8faf7;border-bottom:1px solid var(--premium-border)}
 .fh-section-nav-inner{min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:20px}
-.fh-section-nav-label{font-size:10px;letter-spacing:.12em;font-weight:900;color:#849a96}
+.fh-section-nav-label{font-size:10px;letter-spacing:.12em;font-weight:900;color:#536b70}
 .fh-section-nav a{font-size:12px;font-weight:800;color:#234f51;text-decoration:none;display:inline-flex;align-items:center;padding:10px 0;gap:8px;white-space:nowrap}
 .fh-section-nav a:hover{color:#11765f}
 .fh-section-nav a span{font-size:15px}
@@ -163,7 +163,7 @@ body{background:#f8faf7}
 .admin-page .login-card{width:min(490px,92vw);padding:38px 42px;background:#fffefa;border-radius:24px}
 .admin-page .login-card:before{margin-bottom:26px}
 .fh-admin-login-kicker{font-size:10px;letter-spacing:.13em;color:#286e57;font-weight:900;margin:0 0 10px}
-.admin-page .login-card h2{font-size:36px;letter-spacing:-.06em}
+.admin-page .login-card h1{font-size:36px;letter-spacing:-.06em}
 .fh-login-divider{height:1px;background:#deebe3;margin:21px 0}
 .fh-login-signin-heading{margin:0 0 13px;font-size:15px;color:#234b4a;letter-spacing:-.025em}
 .admin-page .login-card input{min-height:49px}

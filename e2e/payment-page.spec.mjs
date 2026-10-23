@@ -5,7 +5,9 @@ async function fixture(page,overrides={}){
  await page.addInitScript(overrides=>{
   const booking={reference:'FH-PAYMENT',room_name:'Room 1',check_in:'2026-10-26',check_out:'2026-10-27',total_price:'0.50',booking_status:'pending',payment_status:'not_started',payment_collection_mode:'saved_method',payment_mode:'live',...overrides};
   sessionStorage.setItem('frankiholz-payment-email:FH-PAYMENT','fixture@example.invalid');
-  window.__calls=[];window.supabase={createClient:()=>({rpc:async(name,args)=>{window.__calls.push({name,args});return {data:name==='frankiholz_payment_details'?(args.p_email==='fixture@example.invalid'?booking:null):(overrides.environment||'live'),error:null}}})};
+  window.__calls=[];window.supabase={createClient:()=>({
+   from(){return {select(){return this},in:async()=>({data:overrides.contact===undefined?[]:[{copy_key:'fhContactPhone',text_en:overrides.contact,text_de:overrides.contactDe??overrides.contact}],error:overrides.contactError?{message:'Fixture contact read failed'}:null})}},
+   rpc:async(name,args)=>{window.__calls.push({name,args});return {data:name==='frankiholz_booking_status_v3'?[booking]:name==='frankiholz_payment_details'?(args.p_email==='fixture@example.invalid'?booking:null):(overrides.environment||'live'),error:null}}})};
  },overrides);
 }
 for(const lang of ['en','de'])for(const state of ['confirmed','cancelled'])test(`stay summary and host contact reflect ${state} in ${lang}`,async({page})=>{
@@ -62,4 +64,20 @@ test('Back restoration refreshes server state and unlocks the page',async({page}
 test('status link follows the booking returned by a fresh lookup',async({page})=>{
  await fixture(page,{reference:'FH-OTHER'});await page.goto('/payment.html?reference=FH-PAYMENT');
  await expect(page.locator('#statusLink')).toHaveAttribute('href','/booking-status.html?lang=en&reference=FH-OTHER');
+});
+
+for(const screen of ['payment','booking-status'])for(const language of ['en','de'])test(`${screen} support uses the Admin-managed contact in ${language}`,async({page})=>{
+ await fixture(page,{contact:'+49 170 1234 567',contactDe:'+49 171 7654 321'});
+ await page.goto('/'+screen+'.html?reference=FH-PAYMENT&lang='+language);
+ const link=page.locator(screen==='payment'?'#guestWhatsapp':'#guestStatusWhatsapp');
+ await expect(link).toBeVisible();await expect(link).toHaveAttribute('href',new RegExp('https://wa.me/'+(language==='en'?'491701234567':'491717654321')+'\\?text=.*FH-PAYMENT'));
+ await page.locator('.lang-btn[data-lang="'+(language==='en'?'de':'en')+'"]').click();
+ await expect(link).toHaveAttribute('href',new RegExp('https://wa.me/'+(language==='en'?'491717654321':'491701234567')+'\\?text=.*FH-PAYMENT'));
+});
+for(const screen of ['payment','booking-status'])test(`${screen} hides an invalid configured contact and keeps the default on read failure`,async({page})=>{
+ await fixture(page,{contact:'not a phone'});await page.goto('/'+screen+'.html?reference=FH-PAYMENT');
+ const link=page.locator(screen==='payment'?'#guestWhatsapp':'#guestStatusWhatsapp');
+ await expect(link).toHaveCount(1);await expect(link).toBeHidden();await expect(link).not.toHaveAttribute('href',/wa.me/);
+ await fixture(page,{contact:'+49 170 1234 567',contactError:true});await page.reload();
+ await expect(link).toBeVisible();await expect(link).toHaveAttribute('href',/https:\/\/wa.me\/4917662493041\?text=.*FH-PAYMENT/);
 });

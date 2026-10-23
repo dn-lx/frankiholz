@@ -459,3 +459,59 @@ test('photo and missing-photo room cards keep matching covers and aligned action
  expect(Math.max(...cards.map(c=>c.cover))-Math.min(...cards.map(c=>c.cover))).toBeLessThan(1);
  expect(Math.max(...cards.map(c=>c.button))-Math.min(...cards.map(c=>c.button))).toBeLessThan(1);
 });
+
+test('language switching preserves the selected guest count and stay dates',async({page})=>{
+ await selectPromoDates(page);
+ await page.evaluate(()=>{rooms[0].max_guests=2;renderSelectedRoom();});
+ await page.locator('#guestCount').selectOption('2');
+ const total=await page.locator('#sumTotal').innerText();
+ await page.locator('.lang-btn[data-lang="de"]').click();
+ await expect(page.locator('#guestCount')).toHaveValue('2');await expect(page.locator('#guestCountChoice')).toContainText('2');
+ await expect(page.locator('#sumIn')).toHaveText('2026-10-13');await expect(page.locator('#sumOut')).toHaveText('2026-10-14');
+ await expect(page.locator('#sumTotal')).toHaveText(total);
+ await page.locator('.lang-btn[data-lang="en"]').click();await expect(page.locator('#guestCount')).toHaveValue('2');
+});
+
+test('all cancellation and payment policy terms follow the language switch',async({page})=>{
+ await mockPublicBackend(page);await page.goto('/?lang=de');
+ const policy=page.locator('#cancellationPolicy');
+ await expect(policy.locator('[data-i18n=policyTitle]')).toHaveText('Klare 14-Tage-Stornierungsbedingungen');
+ await expect(policy.locator('[data-i18n=policyBeforeText]')).toContainText('volle Erstattung');
+ await expect(policy.locator('[data-i18n=policyWithinText]')).toContainText('nicht erstattungsfähig');
+ await expect(policy.locator('[data-i18n=policyCardPrivacy]')).toContainText('Kartennummer nicht');
+ await page.locator('.lang-btn[data-lang="en"]').click();
+ await expect(policy.locator('[data-i18n=policyTitle]')).toHaveText('Clear 14-day cancellation policy');
+ await expect(policy.locator('[data-i18n=policyBeforeText]')).toContainText('full refund');
+ await expect(policy.locator('[data-i18n=policyWithinText]')).toContainText('non-refundable');
+ await expect(policy.locator('[data-i18n=policyCardPrivacy]')).toContainText('does not store your card number');
+});
+
+for(const failAt of ['environment','booking'])test(`booking locks before async work and permits retry after ${failAt} failure`,async({page})=>{
+ await selectPromoDates(page);
+ await page.locator('#guestName').fill('Duplicate click fixture');await page.locator('#guestEmail').fill('fixture@example.invalid');
+ await page.locator('#guestCountry').fill('Germany');await page.locator('#guestAge').fill('30');await page.locator('#guestSex').selectOption('prefer_not_to_say');
+ await page.locator('#guestLanguages').fill('English');await page.locator('#guestReturning').selectOption('no');await page.locator('#message').fill('An isolated duplicate-submission regression fixture.');
+ await page.evaluate(failAt=>{
+  const rpc=sb.rpc.bind(sb);window.__attempts={environment:0,booking:0};
+  sb.rpc=async(name,args)=>{
+   if(name==='frankiholz_get_payment_environment'){
+    window.__attempts.environment++;await new Promise(resolve=>window.__releaseMode=resolve);
+    if(failAt==='environment')throw new Error('Fixture environment failure');
+    return {data:'test',error:null};
+   }
+   if(name==='frankiholz_create_booking_v2'){window.__attempts.booking++;return {data:null,error:{message:'Fixture booking failure'}};}
+   return rpc(name,args);
+  };
+ },failAt);
+ const submit=page.locator('#bookingForm button[type=submit]');
+ await submit.dblclick();await expect(submit).toBeDisabled();
+ // Also reject an explicit second submit event while the disabled UI is waiting.
+ await page.evaluate(()=>document.getElementById('bookingForm').dispatchEvent(new Event('submit',{cancelable:true})));
+ expect(await page.evaluate(()=>window.__attempts.environment)).toBe(1);
+ await page.evaluate(()=>window.__releaseMode());
+ await expect(page.locator('#bookingResult')).toContainText('Fixture '+failAt+' failure');await expect(submit).toBeEnabled();
+ expect(await page.evaluate(()=>window.__attempts.booking)).toBe(failAt==='booking'?1:0);
+ await submit.click();await expect.poll(()=>page.evaluate(()=>window.__attempts.environment)).toBe(2);
+ await page.evaluate(()=>window.__releaseMode());await expect(submit).toBeEnabled();
+ expect(await page.evaluate(()=>window.__attempts.booking)).toBe(failAt==='booking'?2:0);
+});

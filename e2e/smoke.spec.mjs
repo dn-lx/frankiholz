@@ -44,6 +44,8 @@ test('guest rules, amenities, contact and visible location map are available', a
   await expect(page.locator('#guestLanguages')).toHaveAttribute('placeholder','English, German');
   await expect(page.locator('#fhAmenitiesList')).toContainText('Wi-Fi');
   await expect(page.locator('#fhAmenitiesList')).toContainText('Laundry (additional charge)');
+  await expect(page.locator('#fhMapTarget iframe')).toHaveCount(0);
+  await page.locator('#fhLoadMap').click();
   await expect(page.locator('#fhMapTarget iframe')).toHaveCount(1);
   await expect(page.locator('#fhMapTarget iframe')).toHaveAttribute('loading', 'lazy');
   await expect(page.locator('#fhMapTarget iframe')).toHaveAttribute('src', /google\.com\/maps/);
