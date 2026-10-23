@@ -8,7 +8,7 @@ Production source for **FrankiHolz** direct accommodation and booking management
 
 - Website: `https://stay.frankiflow.de`
 - Legacy URL: `https://accommodation.frankiflow.de` (keep as a redirect/alias)
-- Netlify publish directory: repository root
+- Netlify publish directory: `dist` (runtime files only)
 - Backend: Supabase project used by FrankiHolz and FrankiFlow
 - Payments: Stripe Checkout through Supabase Edge Functions
 - Production branch: `main`
@@ -34,14 +34,20 @@ Opening the public FrankiHolz website requests a fresh Airbnb/iCal synchronizati
 
 ## Netlify build settings
 
-No build command is required.
+The site remains static HTML, CSS and JavaScript. The build copies only public runtime files; source notes, tests and backend code are excluded.
 
 ```text
-Build command:      (leave empty)
-Publish directory:  .
+Build command:      npm run build
+Publish directory:  dist
 ```
 
 The repository contains `netlify.toml`.
+
+Use Node 22.19 or newer, then `npm ci --ignore-scripts`. Run `npm run vendor:check`, `npm test`, `node --test supabase/tests/*.test.mjs` and `npm run build`. Browser tests use `npm run test:e2e` after `npx playwright install --with-deps chromium webkit`. The four payment/closure handlers additionally use `npm run check:functions` with Deno 2.9.6. Provider calls in the test suite are mocked.
+
+The Supabase browser library is pinned and served from `assets/vendor`; after an intentional dependency update, regenerate it with `npm run vendor:update` and commit the verified bundle and license. Netlify resizes images only from the approved public accommodation bucket, with original-image fallback; local previews use the originals. Room 2 still requires an actual room photo.
+
+Backend recovery changes require a separately verified database migration and Edge Function rollout. See [the recovery rollout guide](docs/backend-recovery-rollout.md); a frontend deploy alone does not deploy these fixes.
 
 ## Development workflow
 

@@ -71,6 +71,18 @@ async function mockPublicBackend(page, mode='test', stayTotal='0.90'){
 }
 const button=(page,date)=>page.locator('#calendar button[onclick="pickDate(\''+date+'\')"]');
 
+test('grouped booking fields focus the first missing visible required select',async({page})=>{
+ await selectPromoDates(page);
+ await page.locator('#guestName').fill('Validation fixture');await page.locator('#guestEmail').fill('fixture@example.invalid');
+ await page.locator('#guestCountry').fill('Germany');await page.locator('#guestAge').fill('30');
+ await page.locator('#guestLanguages').fill('English');await page.locator('#message').fill('An isolated required-field validation fixture.');
+ const submit=page.locator('#bookingForm button[type=submit]');
+ await submit.click();await expect(page.locator('#guestSexChoice')).toBeFocused();
+ await page.locator('#guestSexChoice').press('ArrowDown');await page.locator('#guestSexChoice').press('Enter');
+ await submit.click();await expect(page.locator('#guestReturningChoice')).toBeFocused();
+ expect(await page.evaluate(()=>window.__rpcCalls.filter(call=>call.name.startsWith('frankiholz_create_booking')))).toEqual([]);
+});
+
 for(const lang of ['en','de'])test(`booking dropdowns preserve keyboard selection in ${lang}`,async({page})=>{
  await mockPublicBackend(page);await page.goto('/?lang='+lang);await expect(page.locator('#rooms')).toContainText('Cozy Holz');
  await page.evaluate(()=>window.selectRoom('2facc875-9470-4b12-9b28-cd65b7360b14'));

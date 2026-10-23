@@ -19,32 +19,105 @@ Object.assign(T.de,{
  policyWithinTitle:'Innerhalb von 14 Tagen vor dem Check-in',policyWithinText:'Die Buchung ist nicht erstattungsfähig. Bestätigte Buchungen werden automatisch 14 Tage vor dem Check-in belastet – oder nach der Bestätigung, wenn der Check-in bereits innerhalb von 14 Tagen liegt.',
  policyCardPrivacy:'Ihre Karte wird sicher bei Stripe hinterlegt. FrankiHolz speichert Ihre Kartennummer nicht.'
 });
+Object.assign(T.en,{calendarLoading:'Loading availability…',calendarError:'Availability could not be loaded. Please retry before choosing dates.',calendarRetry:'Retry availability',calendarUnknown:'Availability not loaded',statusLoading:'Loading booking status…',statusError:'Could not load booking status. Please try again.',cancelError:'Cancellation could not be confirmed. Check your booking status before trying again.'});
+Object.assign(T.de,{calendarLoading:'Verfügbarkeit wird geladen …',calendarError:'Die Verfügbarkeit konnte nicht geladen werden. Bitte versuchen Sie es erneut, bevor Sie Daten wählen.',calendarRetry:'Verfügbarkeit erneut laden',calendarUnknown:'Verfügbarkeit nicht geladen',statusLoading:'Buchungsstatus wird geladen …',statusError:'Der Buchungsstatus konnte nicht geladen werden. Bitte versuchen Sie es erneut.',cancelError:'Die Stornierung konnte nicht bestätigt werden. Prüfen Sie vor einem erneuten Versuch den Buchungsstatus.'});
 let currentLang=(new URLSearchParams(location.search).get('lang')||localStorage.getItem('frankiholz-lang')||((navigator.language||'en').toLowerCase().startsWith('de')?'de':'en'));
 if(!['de','en'].includes(currentLang))currentLang='en';
 let settings=null,rooms=[],images=[],calendarRows=[],selectedRoom=null,start=null,end=null,cursorMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
-const $=id=>document.getElementById(id), tr=k=>T[currentLang][k]||T.en[k]||k, photoSoon=()=> 'Will be uploaded soon';
-const fmt=d=>new Date(d.getFullYear(),d.getMonth(),d.getDate(),12).toISOString().slice(0,10), money=n=>new Intl.NumberFormat(currentLang==='de'?'de-DE':'en-DE',{style:'currency',currency:'EUR'}).format(Number(n||0));
+const $=id=>document.getElementById(id), tr=k=>T[currentLang][k]||T.en[k]||k, photoSoon=()=>currentLang==='de'?'Fotos folgen in Kürze':'Will be uploaded soon';
+const fmt=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-'), money=n=>new Intl.NumberFormat(currentLang==='de'?'de-DE':'en-DE',{style:'currency',currency:'EUR'}).format(Number(n||0));
 const publicUrl=p=>p?`${CFG.supabaseUrl}/storage/v1/object/public/${CFG.mediaBucket}/${encodeURI(p)}`:null;
 const roomName=r=>currentLang==='de'?(r.name_de||r.name):(r.name||r.name_de), roomDesc=r=>currentLang==='de'?(r.description_de||r.description||''):(r.description||r.description_de||'');
 function escapeHtml(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function syncLanguageUrl(){const u=new URL(location.href);u.searchParams.set('lang',currentLang);history.replaceState({},'',u.pathname+u.search+u.hash)}
-function applyLanguage(){document.documentElement.lang=currentLang;localStorage.setItem('frankiholz-lang',currentLang);syncLanguageUrl();document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=tr(el.dataset.i18n)});document.querySelectorAll('.lang-btn[data-lang]').forEach(b=>b.classList.toggle('active',b.dataset.lang===currentLang));$('message').placeholder=tr('messagePlaceholder');if($('introHelp'))$('introHelp').textContent=currentLang==='de'?'Wir freuen uns, Sie kennenzulernen: Was führt Sie nach Frankfurt und wie können wir Ihren Aufenthalt angenehm gestalten?':'We would love to know a little about you: tell us what brings you to Frankfurt and anything that will help us make your stay comfortable.';if(settings){$('heroTitle').textContent=currentLang==='de'?(settings.hero_title_de||settings.hero_title):(settings.hero_title||settings.hero_title_de);$('heroSubtitle').textContent=currentLang==='de'?(settings.hero_subtitle_de||settings.hero_subtitle):(settings.hero_subtitle||settings.hero_subtitle_de);const title=currentLang==='de'?(settings.seo_title_de||settings.seo_title_en):(settings.seo_title_en||settings.seo_title_de);const desc=currentLang==='de'?(settings.seo_description_de||settings.seo_description_en):(settings.seo_description_en||settings.seo_description_de);if(title)document.title=title;if(desc){const m=document.querySelector('meta[name="description"]');if(m)m.content=desc;}}if(rooms.length)renderRooms();if(selectedRoom){renderSelectedRoom();renderCalendar();}if(!$('bookingSection').hidden&& !start && !end)$('calendarNotice').textContent=tr('chooseDates');paintPaymentEnvironmentNotice();paintPromoStatus();paintPaymentSetupNote()}
+function applyLanguage(){document.documentElement.lang=currentLang;localStorage.setItem('frankiholz-lang',currentLang);syncLanguageUrl();document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=tr(el.dataset.i18n)});document.querySelectorAll('.lang-btn[data-lang]').forEach(b=>b.classList.toggle('active',b.dataset.lang===currentLang));$('message').placeholder=tr('messagePlaceholder');if($('introHelp'))$('introHelp').textContent=currentLang==='de'?'Wir freuen uns, Sie kennenzulernen: Was führt Sie nach Frankfurt und wie können wir Ihren Aufenthalt angenehm gestalten?':'We would love to know a little about you: tell us what brings you to Frankfurt and anything that will help us make your stay comfortable.';if(settings){$('heroTitle').textContent=currentLang==='de'?(settings.hero_title_de||settings.hero_title):(settings.hero_title||settings.hero_title_de);$('heroSubtitle').textContent=currentLang==='de'?(settings.hero_subtitle_de||settings.hero_subtitle):(settings.hero_subtitle||settings.hero_subtitle_de);const title=currentLang==='de'?(settings.seo_title_de||settings.seo_title_en):(settings.seo_title_en||settings.seo_title_de);const desc=currentLang==='de'?(settings.seo_description_de||settings.seo_description_en):(settings.seo_description_en||settings.seo_description_de);if(title)document.title=title;if(desc){const m=document.querySelector('meta[name="description"]');if(m)m.content=desc;}}if(rooms.length)renderRooms();if(selectedRoom){renderSelectedRoom();renderCalendar();}if(!$('bookingSection').hidden&& !start && !end)$('calendarNotice').textContent=tr('chooseDates');paintPaymentEnvironmentNotice();paintPromoStatus();paintPaymentSetupNote();if(selectedRoom)paintCalendarState()}
 async function triggerCalendarSync(){try{const ctrl=new AbortController();const timer=setTimeout(()=>ctrl.abort(),8000);await fetch(`${CFG.supabaseUrl}/functions/v1/frankiholz-sync-airbnb`,{method:'POST',headers:{'Content-Type':'application/json','apikey':CFG.supabaseKey,'x-frankiholz-source':'public-site'},body:'{}',signal:ctrl.signal});clearTimeout(timer)}catch(err){console.warn('Calendar sync could not complete before page load',err)}}
-async function init(){applyLanguage();await triggerCalendarSync();await Promise.all([loadSettings(),loadRoomsAndImages()]);applyLanguage();$('calendarNotice').textContent=tr('chooseDates')}
-async function loadSettings(){const {data}=await sb.from('frankiholz_site_settings').select('*').eq('id',1).maybeSingle();settings=data||{};$('hero').style.backgroundImage=`url('${settings?.hero_storage_path?publicUrl(settings.hero_storage_path):fallbackHero}')`;}
+async function init(){applyLanguage();const settingsReady=loadSettings();await triggerCalendarSync();await Promise.all([settingsReady,loadRoomsAndImages()]);applyLanguage();$('calendarNotice').textContent=tr('chooseDates')}
+async function loadSettings(){
+ const {data}=await sb.from('frankiholz_site_settings').select('*').eq('id',1).maybeSingle();settings=data||{};
+ const original=settings.hero_storage_path?publicUrl(settings.hero_storage_path):fallbackHero;
+ const width=innerWidth<=650?960:innerWidth<=1000?1280:1920;
+ const source=window.FrankiHolzMedia?.imageUrl(original,width,74)||original;
+ $('hero').style.backgroundImage=`url('${source}')`;
+ const preload=document.createElement('link');preload.rel='preload';preload.as='image';preload.href=source;preload.setAttribute('fetchpriority','high');document.head.append(preload);
+ if(source!==original){const image=new Image();image.onerror=()=>{$('hero').style.backgroundImage=`url('${original}')`;};image.src=source;}
+}
 async function loadRoomsAndImages(){const [{data:r,error:re},{data:i,error:ie}]=await Promise.all([sb.from('frankiholz_rooms').select('*').eq('active',true).order('sort_order'),sb.from('frankiholz_room_images').select('*').order('sort_order').order('created_at')]);if(re||ie){$('rooms').innerHTML=`<div class="notice">${tr('loadRoomsError')}</div>`;return}rooms=r||[];images=i||[];renderRooms();$('roomSelect').innerHTML=rooms.map(r=>`<option value="${r.id}">${escapeHtml(roomName(r))}</option>`).join('')}
 function roomImgs(id){return images.filter(x=>x.room_id===id)} function cover(r){const ri=roomImgs(r.id)[0];return ri?publicUrl(ri.storage_path):null}
-function renderRooms(){$('rooms').innerHTML=rooms.map(r=>`<article class="room-card">${cover(r)?`<img src="${cover(r)}" alt="${escapeHtml(roomName(r))}">`:`<div class="room-cover-placeholder" role="img" aria-label="${photoSoon()}" style="width:100%;display:grid;place-items:center;padding:24px;background:linear-gradient(135deg,var(--brand-ice),var(--brand-mint));color:var(--muted);font-weight:800;text-align:center">${photoSoon()}</div>`}<div class="room-body"><h3>${escapeHtml(roomName(r))}</h3><div class="price">${money(r.base_price)} <span class="muted" style="font-size:14px">${tr('night')}</span></div><button class="btn" onclick="selectRoom('${r.id}')" style="margin-top:14px">${tr('viewAvailability')}</button></div></article>`).join('')||`<div class="empty">${tr('noRooms')}</div>`;$('roomSelect').innerHTML=rooms.map(r=>`<option value="${r.id}" ${selectedRoom?.id===r.id?'selected':''}>${escapeHtml(roomName(r))}</option>`).join('')}
-window.selectRoom=async id=>{selectedRoom=rooms.find(r=>r.id===id);if(!selectedRoom)return;start=end=null;$('roomSelect').value=id;$('roomSelect').dispatchEvent(new Event('roomselectionchange'));$('bookingSection').hidden=false;$('calendarNotice').className='notice';$('calendarNotice').textContent=tr('chooseDates');renderSelectedRoom();updateSummary();await loadCalendar();void refreshPaymentEnvironmentNotice();$('bookingSection').scrollIntoView({behavior:'smooth'})};
+function roomImageMarkup(original,alt,widths,sizes,loading='lazy'){
+ const api=window.FrankiHolzMedia,source=api?.imageUrl(original,widths[1]||widths[0])||original;
+ const candidates=api?.srcset(original,widths)||'';
+ return `<img src="${escapeHtml(source)}" ${candidates?`srcset="${escapeHtml(candidates)}" sizes="${escapeHtml(sizes)}"`:''} data-original="${escapeHtml(original)}" onerror="window.FrankiHolzMedia?.fallback(this)" alt="${escapeHtml(alt)}" width="720" height="480" loading="${loading}" decoding="async">`;
+}
+function renderRooms(){
+ $('rooms').innerHTML=rooms.map(r=>`<article class="room-card">${cover(r)?roomImageMarkup(cover(r),roomName(r),[400,720,1080],'(max-width:900px) calc(100vw - 32px), 380px'):`<div class="room-cover-placeholder" role="img" aria-label="${photoSoon()}" style="width:100%;display:grid;place-items:center;padding:24px;background:linear-gradient(135deg,var(--brand-ice),var(--brand-mint));color:var(--muted);font-weight:800;text-align:center">${photoSoon()}</div>`}<div class="room-body"><h3>${escapeHtml(roomName(r))}</h3><div class="price">${money(r.base_price)} <span class="muted" style="font-size:14px">${tr('night')}</span></div><button class="btn" onclick="selectRoom('${r.id}')" style="margin-top:14px">${tr('viewAvailability')}</button></div></article>`).join('')||`<div class="empty">${tr('noRooms')}</div>`;
+ $('roomSelect').innerHTML=rooms.map(r=>`<option value="${r.id}" ${selectedRoom?.id===r.id?'selected':''}>${escapeHtml(roomName(r))}</option>`).join('');
+}
+window.selectRoom=async id=>{selectedRoom=rooms.find(r=>r.id===id);if(!selectedRoom)return;start=end=null;$('roomSelect').value=id;$('roomSelect').dispatchEvent(new Event('roomselectionchange'));$('bookingSection').hidden=false;$('calendarNotice').className='notice';$('calendarNotice').textContent=tr('chooseDates');renderSelectedRoom();updateSummary();await loadCalendar();if(selectedRoom?.id!==id)return;void refreshPaymentEnvironmentNotice();$('bookingSection').scrollIntoView({behavior:'smooth'})};
 $('roomSelect').addEventListener('change',e=>selectRoom(e.target.value));$('jumpToCalendar').onclick=()=>$('calendarPanel').scrollIntoView({behavior:'smooth'});$('navBookBtn').onclick=$('heroRoomsBtn').onclick=()=>$('roomsSection').scrollIntoView({behavior:'smooth'});
-function renderSelectedRoom(){const ri=roomImgs(selectedRoom.id),fallback=cover(selectedRoom),urls=ri.length?ri.map(x=>publicUrl(x.storage_path)):(fallback?[fallback]:[]);if(urls.length){$('galleryMain').style.display='block';$('galleryMain').src=urls[0];$('galleryMain').alt=roomName(selectedRoom);$('thumbs').innerHTML=urls.map((u,k)=>`<button class="thumb ${k===0?'active':''}" type="button" onclick="showPhoto('${u.replace(/'/g,'%27')}',this)"><img src="${u}" alt="${escapeHtml(roomName(selectedRoom))} ${k+1}"></button>`).join('')}else{$('galleryMain').removeAttribute('src');$('galleryMain').alt='';$('galleryMain').style.display='none';$('thumbs').innerHTML=`<div role="img" aria-label="${photoSoon()}" style="grid-column:1/-1;width:100%;aspect-ratio:16/10;display:grid;place-items:center;padding:24px;border-radius:20px;background:linear-gradient(135deg,var(--brand-ice),var(--brand-mint));box-shadow:inset 0 0 0 1px var(--line);color:var(--muted);font-weight:800;text-align:center">${photoSoon()}</div>`}$('selectedRoomName').textContent=roomName(selectedRoom);$('selectedRoomDescription').textContent=roomDesc(selectedRoom);$('selectedRoomPrice').innerHTML=`${money(selectedRoom.base_price)} <span class="muted" style="font-size:14px">${tr('night')}</span>`;const guests=Number($('guestCount').value)||1;$('guestCount').innerHTML=Array.from({length:selectedRoom.max_guests},(_,i)=>`<option value="${i+1}"${i+1===guests?' selected':''}>${i+1}</option>`).join('')}
-window.showPhoto=(u,el)=>{$('galleryMain').src=u;document.querySelectorAll('.thumb').forEach(x=>x.classList.remove('active'));el.classList.add('active')};
-async function loadCalendar(){if(!selectedRoom)return;const from=fmt(new Date(cursorMonth.getFullYear(),cursorMonth.getMonth(),1)),to=fmt(new Date(cursorMonth.getFullYear(),cursorMonth.getMonth()+2,0));const {data,error}=await sb.rpc('frankiholz_get_calendar_rates',{p_room_id:selectedRoom.id,p_from:from,p_to:to});calendarRows=error?[]:(data||[]);if(error)console.error(error);renderCalendar()}
-function blocked(key){const row=calendarRows.find(x=>x.date===key);return !!(row&&row.is_available===false)} function rangeBlocked(a,b){if(!a||!b)return false;let d=new Date(a+'T12:00:00'),stop=new Date(b+'T12:00:00');while(d<stop){if(blocked(fmt(d)))return true;d.setDate(d.getDate()+1)}return false}
+function setGalleryPhoto(original,alt){
+ const image=$('galleryMain'),api=window.FrankiHolzMedia;
+ image.style.display='block';image.dataset.original=original;image.alt=alt;
+ image.width=960;image.height=600;image.decoding='async';
+ image.onerror=()=>api?.fallback(image);
+ if(api){image.srcset=api.srcset(original,[480,960,1280],80);image.sizes='(max-width:900px) calc(100vw - 72px), 600px';}
+ image.src=api?.imageUrl(original,960,80)||original;
+}
+function renderSelectedRoom(){
+ const ri=roomImgs(selectedRoom.id),fallback=cover(selectedRoom),urls=ri.length?ri.map(x=>publicUrl(x.storage_path)):(fallback?[fallback]:[]);
+ if(urls.length){
+  setGalleryPhoto(urls[0],roomName(selectedRoom));
+  $('thumbs').innerHTML=urls.map((u,k)=>`<button class="thumb ${k===0?'active':''}" type="button" aria-pressed="${k===0}" onclick="showPhoto('${u.replace(/'/g,'%27')}',this)">${roomImageMarkup(u,roomName(selectedRoom)+' '+(k+1),[80,160], '66px')}</button>`).join('');
+ }else{
+  const image=$('galleryMain');image.onerror=null;image.removeAttribute('src');image.removeAttribute('srcset');image.removeAttribute('sizes');image.alt='';image.style.display='none';
+  $('thumbs').innerHTML=`<div role="img" aria-label="${photoSoon()}" style="width:100%;aspect-ratio:16/10;display:grid;place-items:center;padding:24px;border-radius:20px;background:linear-gradient(135deg,var(--brand-ice),var(--brand-mint));color:var(--muted);font-weight:800;text-align:center">${photoSoon()}</div>`;
+ }
+ $('selectedRoomName').textContent=roomName(selectedRoom);$('selectedRoomDescription').textContent=roomDesc(selectedRoom);
+ $('selectedRoomPrice').innerHTML=`${money(selectedRoom.base_price)} <span class="muted" style="font-size:14px">${tr('night')}</span>`;
+ const guests=Number($('guestCount').value)||1;$('guestCount').innerHTML=Array.from({length:selectedRoom.max_guests},(_,i)=>`<option value="${i+1}"${i+1===guests?' selected':''}>${i+1}</option>`).join('');
+}
+window.showPhoto=(u,el)=>{
+ setGalleryPhoto(u,el.querySelector('img')?.alt||roomName(selectedRoom));
+ document.querySelectorAll('.thumb').forEach(x=>{x.classList.toggle('active',x===el);x.setAttribute('aria-pressed',String(x===el));});
+};
+let calendarRequestVersion=0,calendarContext={state:'idle'};
+function calendarView(){return fmt(new Date(cursorMonth.getFullYear(),cursorMonth.getMonth(),1));}
+function calendarReady(){return calendarContext.state==='ready'&&calendarContext.roomId===selectedRoom?.id&&calendarContext.view===calendarView();}
+function calendarHasDate(key){return calendarReady()&&key>=calendarContext.from&&key<=calendarContext.to;}
+function paintCalendarState(){
+ const notice=$('calendarNotice');notice.setAttribute('role','status');notice.setAttribute('aria-live','polite');
+ if(calendarReady())return;
+ notice.className='notice';notice.textContent=tr(calendarContext.state==='error'?'calendarError':'calendarLoading');
+ if(calendarContext.state==='error'){
+  const retry=document.createElement('button');retry.id='retryCalendar';retry.type='button';retry.className='btn secondary small';retry.textContent=tr('calendarRetry');retry.onclick=()=>loadCalendar();notice.append(' ',retry);
+ }
+}
+async function loadCalendar(){
+ if(!selectedRoom)return;
+ const roomId=selectedRoom.id,view=calendarView(),version=++calendarRequestVersion;
+ const viewEnd=fmt(new Date(cursorMonth.getFullYear(),cursorMonth.getMonth()+2,0));
+ const from=start&&start<view?start:view,to=end&&end>viewEnd?end:viewEnd;
+ calendarContext={state:'loading',roomId,view,from,to};calendarRows=[];estimateVersion++;promoState=null;$('sumTotal').textContent='—';
+ renderCalendar();paintCalendarState();
+ try{
+  const {data,error}=await sb.rpc('frankiholz_get_calendar_rates',{p_room_id:roomId,p_from:from,p_to:to});
+  if(version!==calendarRequestVersion||selectedRoom?.id!==roomId||calendarView()!==view)return;
+  if(error||!Array.isArray(data))throw error||new Error('Invalid availability response');
+  calendarRows=data;calendarContext={state:'ready',roomId,view,from,to};
+  $('calendarNotice').className='notice';$('calendarNotice').textContent=tr(start?'chooseCheckout':'chooseDates');
+  if(start&&end){if(rangeBlocked(start,end)){end=null;updateSummary();$('calendarNotice').textContent=tr('datesUnavailable');}else await estimate();}
+ }catch(error){
+  if(version!==calendarRequestVersion||selectedRoom?.id!==roomId||calendarView()!==view)return;
+  calendarContext={state:'error',roomId,view,from,to};calendarRows=[];$('sumTotal').textContent='—';
+ }finally{if(version===calendarRequestVersion&&selectedRoom?.id===roomId&&calendarView()===view){renderCalendar();paintCalendarState();}}
+}
+function blocked(key){if(!calendarHasDate(key))return true;const row=calendarRows.find(x=>x.date===key);return !!(row&&row.is_available===false)}
+function rangeBlocked(a,b){if(!a||!b)return false;let d=new Date(a+'T12:00:00'),stop=new Date(b+'T12:00:00');while(d<stop){if(blocked(fmt(d)))return true;d.setDate(d.getDate()+1)}return false}
 function canCheckOutOn(key){
   return !!(start && !end && key>start && !rangeBlocked(start,key));
 }
 function renderCalendar(){
+  const calendar=$('calendar'),focused=calendar.contains(document.activeElement)?document.activeElement.dataset.date:null;
   const y=cursorMonth.getFullYear(),m=cursorMonth.getMonth();
   $('monthTitle').textContent=cursorMonth.toLocaleString(currentLang==='de'?'de-DE':'en-DE',{month:'long',year:'numeric'});
   const labels=currentLang==='de'?['Mo','Di','Mi','Do','Fr','Sa','So']:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
@@ -57,8 +130,8 @@ function renderCalendar(){
     const isStart=start===key,isEnd=end===key,inRange=start&&end&&key>start&&key<end;
     // Blocked overnights remain unavailable; guests may leave on the first blocked morning.
     const checkoutOnly=!past&&isBlocked&&canCheckOutOn(key);
-    const disabled=past||(isBlocked&&!checkoutOnly&&!isStart&&!isEnd);
-    const note=isEnd?'Check-out':
+    const known=calendarHasDate(key),disabled=!known||past||(isBlocked&&!checkoutOnly&&!isStart&&!isEnd);
+    const note=!known?tr('calendarUnknown'):isEnd?'Check-out':
       checkoutOnly?(currentLang==='de'?'Nur Check-out':'Check-out only'):
       isBlocked?(isBooked?tr('booked'):tr('unavailable')):(row?.nightly_price?money(row.nightly_price):'');
     const aria=(currentLang==='de'?'Datum ':'Date ')+key+
@@ -66,12 +139,13 @@ function renderCalendar(){
         isEnd?(currentLang==='de'?', Check-out ausgewählt':', check-out selected'):
         checkoutOnly?(currentLang==='de'?', nur Check-out':', check-out only'):
         isBlocked?(currentLang==='de'?', nicht verfügbar':', unavailable'):'');
-    html+=`<button type="button" aria-label="${escapeHtml(aria)}" aria-pressed="${isStart||isEnd?'true':'false'}" class="day ${past?'disabled':''} ${isBlocked?'blocked':''} ${isBooked?'booked-day':''} ${checkoutOnly?'checkout-only':''} ${isStart?'start':''} ${isEnd?'end':''} ${inRange?'inrange':''}" ${disabled?'disabled':''} onclick="pickDate('${key}')"><strong>${n}</strong><small>${escapeHtml(note)}</small></button>`;
+    html+=`<button type="button" data-date="${key}" aria-label="${escapeHtml(aria)}" aria-pressed="${isStart||isEnd?'true':'false'}" class="day ${past?'disabled':''} ${isBlocked?'blocked':''} ${isBooked?'booked-day':''} ${checkoutOnly?'checkout-only':''} ${isStart?'start':''} ${isEnd?'end':''} ${inRange?'inrange':''}" ${disabled?'disabled':''} onclick="pickDate('${key}')"><strong>${n}</strong><small>${escapeHtml(note)}</small></button>`;
   }
-  $('calendar').innerHTML=html;
+  calendar.innerHTML=html;calendar.setAttribute('aria-busy',String(calendarContext.state==='loading'));
+  if(focused){const replacement=calendar.querySelector(`[data-date="${focused}"]`);if(replacement&&!replacement.disabled)replacement.focus({preventScroll:true});}
 }
 window.pickDate=async key=>{
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(key)||key<fmt(new Date()))return;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(key)||key<fmt(new Date())||!calendarHasDate(key))return;
   const isBlocked=blocked(key),checkoutOnly=canCheckOutOn(key);
   if(key===start){
     start=end=null;
@@ -143,7 +217,7 @@ function paintPromoStatus(){
   el.textContent=(currentLang==='de'?`${q.discount_percent}% Rabatt: ${money(q.original_total_price)} → ${money(q.total_price)}`:`${q.discount_percent}% off: ${money(q.original_total_price)} → ${money(q.total_price)}`)+(q.discount_percent===100?(currentLang==='de'?' · Keine Zahlung erforderlich; Bestätigung durch den Gastgeber ausstehend.':' · No payment required; host approval still required.'):'');
 }
 async function estimate(){
-  if(!selectedRoom||!start||!end)return;
+  if(!selectedRoom||!start||!end||!calendarReady()||rangeBlocked(start,end))return;
   const version=++estimateVersion,roomId=selectedRoom.id,checkIn=start,checkOut=end;
   const code=$('promoCode').value.trim();
   const args={p_room_id:roomId,p_check_in:checkIn,p_check_out:checkOut};
@@ -179,6 +253,7 @@ window.addEventListener('pageshow',event=>{if(event.persisted)unlockBookingForm(
 $('bookingForm').addEventListener('submit',async e=>{
  e.preventDefault();if(bookingSubmitting)return;
  const form=e.currentTarget,out=$('bookingResult');out.innerHTML='';
+ if(selectedRoom&&!calendarReady()){paintCalendarState();out.textContent=tr('calendarError');return}
  if(!selectedRoom||!start||!end){out.innerHTML=`<div class="notice">${tr('chooseDatesFirst')}</div>`;return}
  if(rangeBlocked(start,end)){out.innerHTML=`<div class="notice">${tr('selectedBlocked')}</div>`;return}
  const languages=$('guestLanguages').value.split(/[,;]/).map(x=>x.trim()).filter(Boolean),intro=$('message').value.trim();
@@ -205,8 +280,54 @@ $('bookingForm').addEventListener('submit',async e=>{
  }finally{if(!navigating)unlockBookingForm();}
 });
 
-async function cancelCurrentBooking(ref,email,out){if(!confirm(currentLang==='de'?'Möchten Sie diese Buchung wirklich stornieren?':'Do you really want to cancel this booking?'))return;const r=await fetch(`${CFG.supabaseUrl}/functions/v1/frankiholz-cancel-booking-v2`,{method:'POST',headers:{'Content-Type':'application/json','apikey':CFG.supabaseKey},body:JSON.stringify({reference:ref,email})});const j=await r.json().catch(()=>({}));if(!r.ok){out.innerHTML+=`<div class="notice">${escapeHtml(j.error||'Cancellation failed')}</div>`;return}out.innerHTML=`<div class="notice success">${j.policy==='no_payment'?(currentLang==='de'?'Buchung storniert. Keine Zahlung oder Erstattung erforderlich.':'Booking cancelled. No payment or refund required.'):j.refundable?(currentLang==='de'?'Buchung storniert. Volle Erstattung gilt.':'Booking cancelled. Full refund applies.'):(currentLang==='de'?'Buchung storniert. Innerhalb von 14 Tagen ist sie nicht erstattungsfähig.':'Booking cancelled. It is non-refundable within 14 days.')}</div>`;}
-
-$('checkStatusBtn').onclick=async()=>{const ref=$('statusReference').value.trim(),email=$('statusEmail').value.trim(),out=$('statusResult');if(!ref||!email){out.innerHTML=`<div class="notice">${tr('enterRefEmail')}</div>`;return}const {data,error}=await sb.rpc('frankiholz_booking_status_v3',{p_reference:ref,p_email:email});if(error){out.innerHTML=`<div class="notice">${escapeHtml(error.message)}</div>`;return}const b=data?.[0];if(!b){out.innerHTML=`<div class="notice">${tr('noBooking')}</div>`;return}const paymentLabels=currentLang==='de'?{not_required:'Keine Zahlung erforderlich (100%-Gutschein)',not_started:'Zahlung noch nicht gestartet',awaiting_payment:'Zahlungsdaten oder Überweisung ausstehend',payment_method_saved:'Zahlungsmethode sicher gespeichert',processing:'Zahlung wird verarbeitet',scheduled_charge:'Zahlung geplant',paid:'Bezahlt',failed:'Zahlung fehlgeschlagen',released:'Freigegeben',refunded:'Erstattet',expired:'Abgelaufen'}:{not_required:'No payment required (100% promo)',not_started:'Payment not started',awaiting_payment:'Payment details or bank transfer outstanding',payment_method_saved:'Payment method saved securely',processing:'Payment processing',scheduled_charge:'Payment scheduled',paid:'Paid',failed:'Payment failed',released:'Released',refunded:'Refunded',expired:'Expired'};const paymentLabel=paymentLabels[b.payment_status]||String(b.payment_status||'not_started').replaceAll('_',' '),action=b.booking_status==='pending'&&['not_started','awaiting_payment','expired','failed'].includes(b.payment_status)?`<a class="btn secondary" href="/payment.html?reference=${encodeURIComponent(b.reference)}&amp;lang=${currentLang}" id="statusPaymentLink" style="display:inline-block;text-decoration:none;margin-top:12px">${tr('payNow')}</a>`:'';const due=b.charge_due_at?`<br>${tr('scheduledCharge')}: <b>${new Date(b.charge_due_at).toLocaleString(currentLang==='de'?'de-DE':'en-DE')}</b>`:(b.payment_due_at?`<br>${tr('paymentDeadline')}: ${new Date(b.payment_due_at).toLocaleString(currentLang==='de'?'de-DE':'en-DE')}`:'');const policy=b.payment_status==='not_required'?`<div class="status-policy refundable">${currentLang==='de'?'Keine Zahlung oder Erstattung erforderlich.':'No payment or refund required.'}</div>`:b.cancel_refund_eligible?`<div class="status-policy refundable">${tr('cancelFullRefund')}</div>`:`<div class="status-policy nonrefundable">${tr('cancelNonRefundable')}</div>`;const cancel=b.booking_status!=='cancelled'?`<button class="btn ghost" id="cancelBookingBtn" type="button" style="margin-top:12px">${tr('cancelBooking')}</button>`:'';out.innerHTML=`<div class="notice ${b.payment_status==='paid'?'success':''}"><b>${escapeHtml(b.reference)}</b> · ${escapeHtml(b.room_name)}<br>${b.check_in} → ${b.check_out} · ${money(b.total_price)}<br>${tr('booking')}: <b>${escapeHtml(b.booking_status)}</b> · ${tr('payment')}: <b>${escapeHtml(paymentLabel)}</b>${due}${policy}${action}${cancel}</div>`;$('statusPaymentLink')?.addEventListener('click',()=>{try{sessionStorage.setItem('frankiholz-payment-email:'+b.reference,email)}catch(storageError){}});$('cancelBookingBtn')?.addEventListener('click',()=>cancelCurrentBooking(ref,email,out));};
-document.querySelectorAll('.lang-btn[data-lang]').forEach(btn=>btn.addEventListener('click',()=>{currentLang=btn.dataset.lang;applyLanguage()}));
+let inlineStatusVersion=0,inlineStatusCurrent=null,inlineStatusCancelling=false;
+function inlineStatusMatches(snapshot){return snapshot&&snapshot.version===inlineStatusVersion&&snapshot.ref===$('statusReference').value.trim()&&snapshot.email===$('statusEmail').value.trim();}
+function invalidateInlineStatus(){inlineStatusVersion++;inlineStatusCurrent=null;$('statusResult').textContent='';if(!inlineStatusCancelling)$('checkStatusBtn').disabled=false;}
+for(const id of ['statusReference','statusEmail'])$(id).addEventListener('input',invalidateInlineStatus);
+async function cancelCurrentBooking(snapshot){
+ if(inlineStatusCancelling||!inlineStatusMatches(snapshot))return;
+ const question=currentLang==='de'?`Möchten Sie die Buchung ${snapshot.booking.reference} wirklich stornieren?`:`Do you really want to cancel booking ${snapshot.booking.reference}?`;
+ if(!confirm(question)||!inlineStatusMatches(snapshot))return;
+ inlineStatusCancelling=true;
+ const out=$('statusResult'),button=$('cancelBookingBtn');
+ for(const id of ['statusReference','statusEmail','checkStatusBtn'])$(id).disabled=true;
+ if(button)button.disabled=true;
+ try{
+  const r=await fetch(`${CFG.supabaseUrl}/functions/v1/frankiholz-cancel-booking-v2`,{method:'POST',headers:{'Content-Type':'application/json','apikey':CFG.supabaseKey},body:JSON.stringify({reference:snapshot.booking.reference,email:snapshot.email})});
+  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||tr('cancelError'));
+  if(!inlineStatusMatches(snapshot))return;
+  inlineStatusCurrent=null;inlineStatusVersion++;
+  const message=j.policy==='no_payment'?(currentLang==='de'?'Buchung storniert. Keine Zahlung oder Erstattung erforderlich.':'Booking cancelled. No payment or refund required.'):j.refundable?(currentLang==='de'?'Buchung storniert. Volle Erstattung gilt.':'Booking cancelled. Full refund applies.'):(currentLang==='de'?'Buchung storniert. Innerhalb von 14 Tagen ist sie nicht erstattungsfähig.':'Booking cancelled. It is non-refundable within 14 days.');
+  out.innerHTML=`<div class="notice success"><b>${escapeHtml(snapshot.booking.reference)}</b> · ${message}</div>`;
+ }catch(error){if(inlineStatusMatches(snapshot)){let notice=$('inlineCancelError');if(!notice){notice=document.createElement('div');notice.id='inlineCancelError';notice.className='notice';out.append(notice);}notice.textContent=error.message||tr('cancelError');}}
+ finally{inlineStatusCancelling=false;for(const id of ['statusReference','statusEmail','checkStatusBtn'])$(id).disabled=false;if(button?.isConnected)button.disabled=false;}
+}
+function renderInlineStatus(snapshot){
+ const b=snapshot.booking,out=$('statusResult');
+ const paymentLabels=currentLang==='de'?{not_required:'Keine Zahlung erforderlich (100%-Gutschein)',not_started:'Zahlung noch nicht gestartet',awaiting_payment:'Zahlungsdaten oder Überweisung ausstehend',payment_method_saved:'Zahlungsmethode sicher gespeichert',processing:'Zahlung wird verarbeitet',scheduled_charge:'Zahlung geplant',paid:'Bezahlt',failed:'Zahlung fehlgeschlagen',released:'Freigegeben',refunded:'Erstattet',expired:'Abgelaufen'}:{not_required:'No payment required (100% promo)',not_started:'Payment not started',awaiting_payment:'Payment details or bank transfer outstanding',payment_method_saved:'Payment method saved securely',processing:'Payment processing',scheduled_charge:'Payment scheduled',paid:'Paid',failed:'Payment failed',released:'Released',refunded:'Refunded',expired:'Expired'};
+ const paymentLabel=paymentLabels[b.payment_status]||String(b.payment_status||'not_started').replaceAll('_',' ');
+ const action=b.booking_status==='pending'&&['not_started','awaiting_payment','expired','failed'].includes(b.payment_status)?`<a class="btn secondary" href="/payment.html?reference=${encodeURIComponent(b.reference)}&amp;lang=${currentLang}" id="statusPaymentLink" style="display:inline-block;text-decoration:none;margin-top:12px">${tr('payNow')}</a>`:'';
+ const due=b.charge_due_at?`<br>${tr('scheduledCharge')}: <b>${new Date(b.charge_due_at).toLocaleString(currentLang==='de'?'de-DE':'en-DE')}</b>`:(b.payment_due_at?`<br>${tr('paymentDeadline')}: ${new Date(b.payment_due_at).toLocaleString(currentLang==='de'?'de-DE':'en-DE')}`:'');
+ const policy=b.payment_status==='not_required'?`<div class="status-policy refundable">${currentLang==='de'?'Keine Zahlung oder Erstattung erforderlich.':'No payment or refund required.'}</div>`:b.cancel_refund_eligible?`<div class="status-policy refundable">${tr('cancelFullRefund')}</div>`:`<div class="status-policy nonrefundable">${tr('cancelNonRefundable')}</div>`;
+ const cancel=b.booking_status!=='cancelled'?`<button class="btn ghost" id="cancelBookingBtn" type="button" style="margin-top:12px">${tr('cancelBooking')}</button>`:'';
+ out.innerHTML=`<div class="notice ${b.payment_status==='paid'?'success':''}"><b>${escapeHtml(b.reference)}</b> · ${escapeHtml(b.room_name)}<br>${escapeHtml(b.check_in)} → ${escapeHtml(b.check_out)} · ${money(b.total_price)}<br>${tr('booking')}: <b>${escapeHtml(b.booking_status)}</b> · ${tr('payment')}: <b>${escapeHtml(paymentLabel)}</b>${due}${policy}${action}${cancel}</div>`;
+ $('statusPaymentLink')?.addEventListener('click',event=>{if(!inlineStatusMatches(snapshot)){event.preventDefault();return;}try{sessionStorage.setItem('frankiholz-payment-email:'+b.reference,snapshot.email)}catch(storageError){}});
+ $('cancelBookingBtn')?.addEventListener('click',()=>cancelCurrentBooking(snapshot));
+}
+async function loadInlineStatus(){
+ if(inlineStatusCancelling)return;
+ const snapshot={version:++inlineStatusVersion,ref:$('statusReference').value.trim(),email:$('statusEmail').value.trim()},out=$('statusResult');
+ inlineStatusCurrent=null;out.setAttribute('role','status');out.setAttribute('aria-live','polite');
+ if(!snapshot.ref||!snapshot.email){out.textContent=tr('enterRefEmail');return;}
+ $('checkStatusBtn').disabled=true;out.textContent=tr('statusLoading');
+ try{
+  const {data,error}=await sb.rpc('frankiholz_booking_status_v3',{p_reference:snapshot.ref,p_email:snapshot.email});
+  if(!inlineStatusMatches(snapshot))return;if(error)throw error;
+  const booking=data?.[0];if(!booking){out.textContent=tr('noBooking');return;}
+  inlineStatusCurrent={...snapshot,booking};renderInlineStatus(inlineStatusCurrent);
+ }catch(error){if(inlineStatusMatches(snapshot))out.textContent=tr('statusError');}
+ finally{if(snapshot.version===inlineStatusVersion)$('checkStatusBtn').disabled=false;}
+}
+$('checkStatusBtn').onclick=loadInlineStatus;
+document.querySelectorAll('.lang-btn[data-lang]').forEach(btn=>btn.addEventListener('click',()=>{const reloadStatus=Boolean(inlineStatusCurrent)&&!inlineStatusCancelling;currentLang=btn.dataset.lang;applyLanguage();if(reloadStatus)loadInlineStatus();else if(!inlineStatusCancelling)invalidateInlineStatus()}));
 init();

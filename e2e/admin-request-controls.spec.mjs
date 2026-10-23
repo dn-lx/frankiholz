@@ -6,7 +6,7 @@ test.beforeEach(async({page})=>{
   window.__requests=['not_started','awaiting_payment','paid','processing','scheduled_charge','refunded'].map((payment_status,i)=>({created_at:'2026-10-18T'+String(15-i).padStart(2,'0')+':00:00Z',message:'a'.repeat(600)+'\nSecond line',guest_phone:'+491700000000',id:'request-'+i,reference:'FH-FIXTURE-'+i,status:i<2?'pending':'confirmed',payment_status,payment_mode:'live',payment_schedule_version:'v2_14_day',total_price:0.5,guests:1,check_in:'2026-10-21',check_out:'2026-10-22',guest_name:'Fixture',guest_email:'fixture@example.invalid',frankiholz_rooms:{name:'Room 1'}}));
   window.__calls=[];
   window.supabase={createClient:()=>({
-   from(table){return {select(){return this},order(){return this},eq(){return this},gte(){return this},lte(){return this},in(){return this},maybeSingle:async()=>({data:null}),then(resolve,reject){return Promise.resolve({data:table==='frankiholz_bookings'?window.__requests:[],error:null}).then(resolve,reject)}}},
+   from(table){return {select(){return this},order(){return this},eq(){return this},gte(){return this},lte(){return this},in(){return this},maybeSingle:async()=>({data:null}),then(resolve,reject){return Promise.resolve({data:table==='frankiholz_bookings'?window.__requests:table==='frankiholz_calendar'?(window.__calendar||[]):table==='frankiholz_ical_blocks'?(window.__icalBlocks||[]):[],error:null}).then(resolve,reject)}}},
    rpc:async(name,args)=>{window.__calls.push({name,args});if(name==='frankiholz_admin_remove_requests'){window.__requests.forEach(b=>{if(args.p_booking_ids.includes(b.id))b.admin_deleted_at=args.p_restore?null:'2026-10-18T17:00:00Z'});return {data:args.p_booking_ids.length,error:null}}return {data:false,error:null}},
    auth:{getSession:async()=>({data:{session:null}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}
   })};
@@ -30,7 +30,7 @@ for(const width of [390,1280])test(`every request is selectable, removed and res
 });
 test('Admin calendar displays an explicit available override above booking and imported blocks',async({page})=>{
  await page.goto('/admin.html#rooms',{waitUntil:'domcontentloaded'});
- const statuses=await page.evaluate(()=>{const st=calState('fixture-room');st.rows=[{date:'2026-10-21',is_available:true,availability_status:'available',admin_available_override:true},{date:'2026-10-22',is_available:false,availability_status:'booked',booking_id:'old-booking'}];st.icalBlocks=[{date:'2026-10-21',provider:'airbnb'}];return [statusFor('fixture-room','2026-10-21'),statusFor('fixture-room','2026-10-22')]});
+ const statuses=await page.evaluate(async()=>{calState('fixture-room').cursor=new Date(2026,9,1);window.__calendar=[{date:'2026-10-21',is_available:true,availability_status:'available',admin_available_override:true},{date:'2026-10-22',is_available:false,availability_status:'booked',booking_id:'old-booking'}];window.__icalBlocks=[{date:'2026-10-21',provider:'airbnb'}];await loadRoomCalendar('fixture-room');return [statusFor('fixture-room','2026-10-21'),statusFor('fixture-room','2026-10-22')]});
  expect(statuses).toEqual(['available','booked']);
 });
 test('received timestamps determine stable newest-first order regardless of payment updates',async({page})=>{

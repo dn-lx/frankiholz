@@ -1,5 +1,14 @@
 [build]
-  publish = "."
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Only resize this project's intentionally public media; private/signed URLs
+# and arbitrary remote hosts are excluded from the image edge.
+[images]
+  remote_images = ['^https://bdeajozhylypiidrldka\.supabase\.co/storage/v1/object/public/frankiholz-media/[^?#]+$']
 
 [[redirects]]
   from = "/de"
@@ -60,9 +69,10 @@
   for = "/*"
   [headers.values]
     Strict-Transport-Security = "max-age=31536000"
-    Content-Security-Policy = "upgrade-insecure-requests; block-all-mixed-content"
+    Content-Security-Policy = "upgrade-insecure-requests; block-all-mixed-content; frame-ancestors 'none'; base-uri 'self'; object-src 'none'"
+    X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
+    Referrer-Policy = "no-referrer"
 
 [[headers]]
   for = "/admin*"
@@ -71,6 +81,11 @@
 
 [[headers]]
   for = "/booking-status*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/payment*"
   [headers.values]
     X-Robots-Tag = "noindex, nofollow"
 

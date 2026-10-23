@@ -1,3 +1,4 @@
+import { notifyClosedBooking } from "../_shared/closure-notification.ts";
 import { isComplimentary, closeComplimentary } from "../_shared/complimentary.ts";
 import { claimOperation, releaseOperation } from "../_shared/payment-operation.ts";
 import { cancelTransfer } from "../_shared/cancel-transfer.ts";
@@ -39,21 +40,6 @@ function cors(req: Request) {
   };
 }
 
-async function sendEmail(bookingId: string) {
-  try {
-    await fetch(`${SUPABASE_URL}/functions/v1/frankiholz-guest-email`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${SERVICE_ROLE}`,
-      },
-      body: JSON.stringify({ event_type: "booking_cancelled", booking_id: bookingId }),
-    });
-  } catch (error) {
-    console.warn("Cancellation email failed", error);
-  }
-}
-
 const chargeOutstanding=(booking:any,stripe:Stripe)=>chargeBooking(service,stripe,booking);
 
 Deno.serve(async (req: Request) => {
@@ -87,12 +73,13 @@ Deno.serve(async (req: Request) => {
     }
     let booking=foundBooking;
     if (booking.status === "cancelled") {
-      return new Response(JSON.stringify({ ok: true, already_cancelled: true, payment_mode: booking.payment_mode }), { headers });
+      const notified = await notifyClosedBooking(service, booking.id, SUPABASE_URL, SERVICE_ROLE, fetch);
+      return new Response(JSON.stringify({ ok: true, already_cancelled: true, payment_mode: notified.booking.payment_mode, notification_recovery_required: !notified.notified }), { headers });
     }
 
     if(booking.payment_collection_mode==="complimentary"){
       if(!isComplimentary(booking))return new Response(JSON.stringify({error:"Invalid complimentary booking"}),{status:409,headers});
-      await closeComplimentary(service,booking);await sendEmail(booking.id);
+      await closeComplimentary(service,booking,"booking_cancelled");await notifyClosedBooking(service,booking.id,SUPABASE_URL,SERVICE_ROLE,fetch);
       return new Response(JSON.stringify({ok:true,refundable:false,refunded:false,policy:"no_payment",payment_status:"not_required",payment_mode:booking.payment_mode}),{headers});
     }
     const key = booking.payment_mode === "test" ? TEST_KEY : LIVE_KEY;
@@ -151,8 +138,9 @@ Deno.serve(async (req: Request) => {
     }).eq("booking_id", booking.id);
     if (calendarError) throw calendarError;
 
-    const { error: updateError } = await service.from("frankiholz_bookings").update({
+    const { data: updated, error: updateError } = await service.from("frankiholz_bookings").update({
       status: "cancelled",
+      closure_notification_event: "booking_cancelled",
       bank_transfer_review_required: booking.payment_collection_mode==="bank_transfer",
       stripe_refund_id:refundId,refund_review_required:refundReview,
       cancelled_at: new Date().toISOString(),
@@ -160,8 +148,9 @@ Deno.serve(async (req: Request) => {
       stripe_checkout_url: null,
       payment_due_at: null,
       updated_at: new Date().toISOString(),
-    }).eq("id", booking.id);
+    }).eq("id", booking.id).eq("payment_operation_token", operationToken).select("id");
     if (updateError) throw updateError;
+    if (updated?.length !== 1) throw new Error("Booking cancellation needs reconciliation; please contact FrankiHolz");
 
     if (booking.stripe_checkout_session_id && booking.payment_status === "awaiting_payment") {
       try {
@@ -172,7 +161,7 @@ Deno.serve(async (req: Request) => {
     }
 
     await releaseOperation(service,booking.id,operationToken);
-    await sendEmail(booking.id);
+    await notifyClosedBooking(service,booking.id,SUPABASE_URL,SERVICE_ROLE,fetch);
 
     return new Response(JSON.stringify({
       ok: true,

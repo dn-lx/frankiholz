@@ -41,7 +41,7 @@
       if(e.key.length===1&&!e.ctrlKey&&!e.metaKey&&!e.altKey){e.preventDefault();if(list.hidden)open();clearTimeout(timer);search+=e.key.toLocaleLowerCase();const i=options().findIndex(o=>(words()[o.value]||o.textContent).toLocaleLowerCase().startsWith(search));if(i>=0)highlight(i);timer=setTimeout(()=>search='',700);}
     });
     native.addEventListener('change',()=>{error.hidden=true;trigger.removeAttribute('aria-invalid');render();});
-    native.addEventListener('invalid',e=>{e.preventDefault();error.hidden=false;trigger.setAttribute('aria-invalid','true');queueMicrotask(()=>{if(native.form?.querySelector(':invalid')===native)trigger.focus();});});
+    native.addEventListener('invalid',e=>{e.preventDefault();error.hidden=false;trigger.setAttribute('aria-invalid','true');queueMicrotask(()=>{if(native.form?.querySelector('input:invalid,select:invalid,textarea:invalid')===native)trigger.focus();});});
     native.form?.addEventListener('reset',()=>queueMicrotask(()=>{close();error.hidden=true;trigger.removeAttribute('aria-invalid');render();}));
     document.addEventListener('click',e=>{if(!wrap.contains(e.target))close();});wrap.addEventListener('focusout',e=>{if(!wrap.contains(e.relatedTarget))close();});
     new MutationObserver(()=>{close();render();}).observe(native,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['disabled']});

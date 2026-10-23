@@ -42,7 +42,9 @@ test('public legal links identify the operator and describe the booking data flo
   await page.goto('/privacy.html');
   for(const lang of ['en','de']) {
     const section=page.locator(`section[lang="${lang}"]`);
-    for(const provider of ['Supabase','Stripe','Resend','Google','Netlify','jsDelivr'])await expect(section).toContainText(provider);
+    for(const provider of ['Supabase','Stripe','Resend','Google','Netlify'])await expect(section).toContainText(provider);
+    await expect(section).not.toContainText('jsDelivr');
+    await expect(section).toContainText(lang==='en'?'served locally':'lokal');
     await expect(section.getByRole('link',{name:'info@frankiflow.de',exact:true})).toHaveAttribute('href','mailto:info@frankiflow.de');
   }
 });

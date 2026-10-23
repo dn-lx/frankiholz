@@ -28,6 +28,7 @@ const pages = [
   ['accommodation', '/?lang=en'],
   ['booking status', '/booking-status.html?reference=FH-A11Y&lang=en'],
   ['payment', '/payment.html?reference=FH-A11Y&lang=en'],
+  ['Stripe return', '/payment-success.html?reference=FH-A11Y&lang=en'],
   ['admin sign-in', '/admin.html'],
   ['legal notice', '/imprint.html'],
   ['privacy notice', '/privacy.html']
@@ -45,6 +46,7 @@ for (const width of [390,1280]) for (const [name,path] of pages) {
     }
     if (name === 'booking status') await expect(page.locator('#out .notice')).toBeVisible();
     if (name === 'payment') await expect(page.locator('#paymentContent')).toBeVisible();
+    if (name === 'Stripe return') await expect(page.locator('#verifiedReturn')).toContainText('FH-A11Y');
     // Audit the completed render, rather than sampling text halfway through a fade.
     // Infinite decorative animations must not hold this readiness check open.
     await page.evaluate(async()=>{

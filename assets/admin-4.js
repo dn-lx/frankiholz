@@ -1,18 +1,28 @@
+function roomCalendarReady(id){const st=calState(id);return st.loadState==='ready'&&st.loadedView===dateKey(new Date(st.cursor.getFullYear(),st.cursor.getMonth(),1));}
+function paintRoomCalendarState(id){
+ const st=calState(id),anchor=$(`rc-status-${id}`);if(!anchor)return;
+ let out=$(`rc-read-status-${id}`);
+ if(!out){out=document.createElement('div');out.id=`rc-read-status-${id}`;out.className='notice';out.setAttribute('role','status');out.setAttribute('aria-live','polite');anchor.before(out);}
+ out.hidden=roomCalendarReady(id);if(out.hidden){out.textContent='';return;}
+ out.textContent=st.loadState==='error'?'Availability could not be loaded. Retry before editing dates.':'Loading availability…';
+ if(st.loadState==='error'){const retry=document.createElement('button');retry.type='button';retry.className='btn secondary small';retry.textContent='Retry availability';retry.onclick=()=>loadRoomCalendar(id);out.append(' ',retry);}
+}
 async function loadRoomCalendar(id){
-  const st=calState(id);
-  const from=dateKey(new Date(st.cursor.getFullYear(),st.cursor.getMonth(),1));
-  const to=dateKey(new Date(st.cursor.getFullYear(),st.cursor.getMonth()+1,0));
-  const [{data,error},{data:ib,error:ibError},{data:reservations,error:bookingError}]=await Promise.all([
-    sb.from('frankiholz_calendar').select('id,date,is_available,availability_status,price_override,note,booking_id,admin_available_override').eq('room_id',id).gte('date',from).lte('date',to),
-    sb.from('frankiholz_ical_blocks').select('date,provider').eq('room_id',id).gte('date',from).lte('date',to),
-    sb.from('frankiholz_bookings').select('check_in,check_out').eq('room_id',id).eq('status','confirmed').gte('check_out',from).lte('check_in',to)
+ const st=calState(id),view=dateKey(new Date(st.cursor.getFullYear(),st.cursor.getMonth(),1)),viewEnd=dateKey(new Date(st.cursor.getFullYear(),st.cursor.getMonth()+1,0));
+ const from=st.start&&st.start<view?st.start:view,to=st.end&&st.end>viewEnd?st.end:viewEnd,version=(st.requestVersion||0)+1;
+ st.requestVersion=version;st.loadState='loading';renderRoomCalendar(id);paintRoomCalendarState(id);
+ try{
+  const results=await Promise.all([
+   sb.from('frankiholz_calendar').select('id,date,is_available,availability_status,price_override,note,booking_id,admin_available_override').eq('room_id',id).gte('date',from).lte('date',to),
+   sb.from('frankiholz_ical_blocks').select('date,provider').eq('room_id',id).gte('date',from).lte('date',to),
+   sb.from('frankiholz_bookings').select('check_in,check_out').eq('room_id',id).eq('status','confirmed').gte('check_out',from).lte('check_in',to)
   ]);
-  if(error||ibError||bookingError){
-    $(`rc-status-${id}`).innerHTML=`<div class="notice">${esc((error||ibError||bookingError).message)}</div>`;
-    return;
-  }
-  st.rows=data||[];st.icalBlocks=ib||[];st.reservations=reservations||[];
-  renderRoomCalendar(id);
+  if(version!==st.requestVersion||view!==dateKey(new Date(st.cursor.getFullYear(),st.cursor.getMonth(),1)))return;
+  const error=results.find(result=>result.error)?.error;if(error)throw error;
+  st.rows=results[0].data||[];st.icalBlocks=results[1].data||[];st.reservations=results[2].data||[];
+  st.loadState='ready';st.loadedView=view;st.loadedFrom=from;st.loadedTo=to;
+ }catch(error){if(version===st.requestVersion){st.loadState='error';}}
+ finally{if(version===st.requestVersion){renderRoomCalendar(id);paintRoomCalendarState(id);}}
 }
 
 function rowFor(id,key){
@@ -20,6 +30,7 @@ function rowFor(id,key){
 }
 function isAirbnbBlocked(id,key){return calState(id).icalBlocks.some(x=>x.date===key)}
 function statusFor(id,key){
+  const state=calState(id);if(!roomCalendarReady(id)||key<state.loadedFrom||key>state.loadedTo)return 'unknown';
   const row=rowFor(id,key);
   if(row?.admin_available_override&&row.is_available)return 'available';
   if(calState(id).reservations?.some(b=>key>=b.check_in&&key<b.check_out))return 'booked';
@@ -29,7 +40,8 @@ function statusFor(id,key){
   return 'available';
 }
 function renderRoomCalendar(id){
-  const st=calState(id),y=st.cursor.getFullYear(),m=st.cursor.getMonth();
+  const st=calState(id),y=st.cursor.getFullYear(),m=st.cursor.getMonth(),calendar=$(`rc-${id}`);
+  const focused=calendar?.contains(document.activeElement)?document.activeElement.dataset.date:null;
   const title=$(`rc-title-${id}`);
   if(!title)return;
   title.textContent=st.cursor.toLocaleString('en',{month:'long',year:'numeric'});
@@ -42,17 +54,20 @@ function renderRoomCalendar(id){
     const rangeStart=s===key,rangeEnd=e===key,rangeMid=s&&e&&key>s&&key<e;
     const price=row?.price_override?money(row.price_override):'';
     const airbnbOverride=status==='available'&&row?.admin_available_override&&isAirbnbBlocked(id,key);
-    const label=airbnbOverride?'Available here':status==='booked'?'Booked':status==='blocked'&&isAirbnbBlocked(id,key)?'Airbnb':status==='blocked'?'Blocked':price;
-    html+=`<button type="button" aria-label="${key}: ${airbnbOverride?'Airbnb blocked, available here':label||'Available'}" class="day admin-day ${status} ${airbnbOverride?'airbnb-override':''} ${rangeStart?'range-start':''} ${rangeEnd?'range-end':''} ${rangeMid?'range-mid':''}" onclick="pickRoomDate('${id}','${key}')"><strong>${n}</strong><small>${label}</small></button>`;
+    const label=status==='unknown'?'Availability not loaded':airbnbOverride?'Available here':status==='booked'?'Booked':status==='blocked'&&isAirbnbBlocked(id,key)?'Airbnb':status==='blocked'?'Blocked':price;
+    html+=`<button type="button" data-date="${key}" ${status==='unknown'?'disabled':''} aria-label="${key}: ${airbnbOverride?'Airbnb blocked, available here':label||'Available'}" class="day admin-day ${status} ${airbnbOverride?'airbnb-override':''} ${rangeStart?'range-start':''} ${rangeEnd?'range-end':''} ${rangeMid?'range-mid':''}" onclick="pickRoomDate('${id}','${key}')"><strong>${n}</strong><small>${label}</small></button>`;
   }
-  $(`rc-${id}`).innerHTML=html;
+  calendar.innerHTML=html;calendar.setAttribute('aria-busy',String(st.loadState==='loading'));
+  if(focused){const replacement=calendar.querySelector(`[data-date="${focused}"]`);if(replacement&&!replacement.disabled)replacement.focus({preventScroll:true});}
   $(`rc-range-${id}`).textContent=st.start ? `${st.start}${st.end?' → '+st.end:''}` : 'Select a start date and an end date';
-  const overrides=st.icalBlocks.filter(b=>rowFor(id,b.date)?.admin_available_override&&rowFor(id,b.date)?.is_available).length;
-  $(`rc-sync-${id}`).textContent=`This month: ${st.icalBlocks.length} Airbnb-blocked night${st.icalBlocks.length===1?'':'s'} · ${overrides} available here by admin override. Sync preserves these overrides.`;
+  const visibleFrom=dateKey(new Date(y,m,1)),visibleTo=dateKey(new Date(y,m+1,0)),visibleBlocks=st.icalBlocks.filter(b=>b.date>=visibleFrom&&b.date<=visibleTo);
+  const overrides=visibleBlocks.filter(b=>rowFor(id,b.date)?.admin_available_override&&rowFor(id,b.date)?.is_available).length;
+  $(`rc-sync-${id}`).textContent=`This month: ${visibleBlocks.length} Airbnb-blocked night${visibleBlocks.length===1?'':'s'} · ${overrides} available here by admin override. Sync preserves these overrides.`;
 }
 
 window.applyAirbnbRange=async(id,availableHere)=>{
   const st=calState(id),out=$(`rc-status-${id}`);
+  if(!roomCalendarReady(id)){paintRoomCalendarState(id);return;}
   if(!st.start){out.innerHTML='<div class="notice">Select at least one date first.</div>';return;}
   if(st.saving)return;
   st.saving=true;
@@ -70,7 +85,7 @@ window.applyAirbnbRange=async(id,availableHere)=>{
 };
 
 window.pickRoomDate=(id,key)=>{
-  const st=calState(id);
+  const st=calState(id);if(!roomCalendarReady(id)||key<st.loadedFrom||key>st.loadedTo)return;
   if(!st.start || st.end){
     st.start=key;st.end=null;
   }else if(key<st.start){
@@ -88,7 +103,7 @@ window.moveRoomMonth=async(id,delta)=>{
 };
 
 window.applyRoomRange=async(id,status)=>{
-  const st=calState(id);
+  const st=calState(id);if(!roomCalendarReady(id)){paintRoomCalendarState(id);return;}
   if(!st.start){
     $(`rc-status-${id}`).innerHTML='<div class="notice">Select at least one date first.</div>';
     return;
