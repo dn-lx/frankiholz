@@ -87,7 +87,11 @@ async function loadBookings(){
     const cleanup=deletable&&!b.admin_deleted_at?`<label class="booking-check-label"><input class="booking-delete-check" type="checkbox" aria-label="Select request ${attr(b.reference)}" data-booking-id="${attr(b.id)}" data-booking-ref="${attr(b.reference)}" data-booking-mode="${attr(mode)}"> Select request</label>`:'';
     let actions='';
     if(isV2){
-      if(b.status==='pending'&&['payment_method_saved','paid','not_required'].includes(pay)){
+      if(b.status==='pending'&&b.payment_collection_mode==='manual_bank'&&pay==='awaiting_payment'){
+        actions+=`<span class="status">Manual bank transfer · verify actual bank credit (receipt alone is not enough)</span>`;
+        actions+=`<button class="btn small secondary" onclick="decideBooking('${b.id}','accept',this,true,'manual_bank','${attr(b.reference)}','${attr(b.total_price)}')">Bank received · confirm stay</button>`;
+        actions+=`<button class="btn small danger" onclick="decideBooking('${b.id}','reject',this,true,'manual_bank')">Reject / review incoming funds</button>`;
+      }else if(b.status==='pending'&&['payment_method_saved','paid','not_required'].includes(pay)){
         actions+=`<button class="btn small secondary" onclick="decideBooking('${b.id}','accept',this,true,'${b.payment_collection_mode==='complimentary'?'complimentary':b.payment_collection_mode==='bank_transfer'?'bank_transfer':'saved_method'}')">Confirm booking</button>`;
         actions+=`<button class="btn small danger" onclick="decideBooking('${b.id}','reject',this,true,'${b.payment_collection_mode==='complimentary'?'complimentary':b.payment_collection_mode==='bank_transfer'?'bank_transfer':'saved_method'}')">Reject request</button>`;
       }else if(b.status==='pending'&&['not_started','awaiting_payment'].includes(pay)){
@@ -114,13 +118,14 @@ async function loadBookings(){
     if(b.admin_deleted_at)actions+=`<button class="btn small secondary" data-restore-booking="${attr(b.id)}">Restore to bookings</button>`;
     if(b.refund_review_required)actions+=`<span class="status cancelled">Refund pending / requires review in Stripe</span>`;
     if(b.bank_transfer_review_required)actions+=`<span class="status cancelled">Bank-transfer funds review required in Stripe (partial, excess or late receipts)</span>`;
+    if(b.manual_bank_reconciliation_required)actions+=`<span class="status cancelled">Direct bank account: check late incoming transfers and arrange manual refunds if applicable</span>`;
     if(b.payment_operation_token)actions+=`<span class="status cancelled">Payment operation locked · reconcile Stripe before retrying</span>`;
     const received=Number.isFinite(Date.parse(b.created_at))?`<time datetime="${attr(b.created_at)}">${esc(new Intl.DateTimeFormat('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',timeZone:'Europe/Berlin',timeZoneName:'short'}).format(new Date(b.created_at)))}</time>`:'Time unavailable';
     const due=isV2&&['payment_method_saved','scheduled_charge','processing','failed'].includes(pay)&&b.charge_due_at?` · scheduled charge ${new Date(b.charge_due_at).toLocaleString()}`:(!isV2&&b.payment_due_at?` · decision/payment deadline ${new Date(b.payment_due_at).toLocaleString()}`:'');
     return `<article class="booking-row" aria-label="${attr(b.reference)}">
       <div class="booking-row-top"><div class="booking-identity"><b>${esc(b.reference)}</b><span>${esc(b.frankiholz_rooms?.name||'')}</span></div>${cleanup}</div>
       <div class="booking-received">Received ${received}</div>
-      <div class="booking-badges">${modeBadge}<span class="status ${attr(b.status)}">${esc(b.status)}</span><span class="status ${payClass}">${esc(b.payment_collection_mode==='bank_transfer'&&pay==='awaiting_payment'?'existing bank transfer outstanding':labels[pay]||pay.replaceAll('_',' '))}</span></div>
+      <div class="booking-badges">${modeBadge}<span class="status ${attr(b.status)}">${esc(b.status)}</span><span class="status ${payClass}">${esc(b.payment_collection_mode==='manual_bank'&&pay==='awaiting_payment'?'direct transfer: waiting for bank credit':b.payment_collection_mode==='bank_transfer'&&pay==='awaiting_payment'?'existing bank transfer outstanding':labels[pay]||pay.replaceAll('_',' '))}</span></div>
       ${bookingStaySummary(b,due)}
       ${bookingGuestProfile(b)}
       <div class="booking-actions">${actions}</div>
@@ -131,12 +136,23 @@ async function loadBookings(){
   wireBookingCleanupControls();
 }
 
-window.decideBooking=async(id,action,button,isV2,collectionMode)=>{
+window.decideBooking=async(id,action,button,isV2,collectionMode,reference,receivedAmount)=>{
   const accept=action==='accept';
-  const question=collectionMode==='complimentary'?(accept?'Confirm this complimentary booking? No payment will be collected.':'Reject this complimentary request? No payment or refund is required.'):isV2&&collectionMode==='bank_transfer'?(accept?'Confirm this booking? The bank payment has already been received.':'Reject this bank-transfer request? Received payment will be refunded. Review any partial, excess or late funds in Stripe.'):isV2
+  const question=collectionMode==='manual_bank'?(accept?'Have you checked the REAL credited amount and booking reference in your bank account? A emailed transfer receipt is NOT proof of settlement.':'Reject pending manual transfer? You must reconcile any incoming or late transfer and arrange a manual refund if necessary.'):collectionMode==='complimentary'?(accept?'Confirm this complimentary booking? No payment will be collected.':'Reject this complimentary request? No payment or refund is required.'):isV2&&collectionMode==='bank_transfer'?(accept?'Confirm this booking? The bank payment has already been received.':'Reject this bank-transfer request? Received payment will be refunded. Review any partial, excess or late funds in Stripe.'):isV2
     ?(accept?'Confirm this booking? Payment will be scheduled for 14 days before check-in, or charged now if the stay begins within 14 days.':'Reject this booking request? The saved card will not be charged.')
     :(accept?'Accept this legacy booking and capture the existing card authorization?':'Reject this legacy booking and release the card authorization?');
   if(!confirm(question))return;
+  let received_eur,verified_reference;
+  if(collectionMode==='manual_bank'&&accept){
+    verified_reference=prompt('Enter the booking reference EXACTLY as shown on your bank statement:', '');
+    if(verified_reference===null)return;
+    const typed=prompt('Enter the amount actually credited to your separate bank account (EUR):', '');
+    if(typed===null)return;
+    received_eur=Number(typed.trim().replace(',','.'));
+    if(!Number.isFinite(received_eur)||received_eur<0||String(verified_reference).toUpperCase()!==String(reference).toUpperCase()||Math.abs(received_eur-Number(receivedAmount))>0.000001){
+      alert('Amount or reference differs from the booking. Do not confirm; reconcile the bank credit first.');return;
+    }
+  }
   if(button){button.disabled=true;button.textContent=accept?'Updating booking…':'Closing request…'}
   try{
     const {data:{session}}=await sb.auth.getSession();
@@ -144,7 +160,7 @@ window.decideBooking=async(id,action,button,isV2,collectionMode)=>{
     const res=await fetch(`${CFG.supabaseUrl}/functions/v1/frankiholz-booking-decision`,{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':`Bearer ${session.access_token}`,'apikey':CFG.supabaseKey},
-      body:JSON.stringify({booking_id:id,action})
+      body:JSON.stringify({booking_id:id,action,received_eur,verified_reference,reconciliation_acknowledged:collectionMode==='manual_bank'&&!accept})
     });
     const out=await res.json();
     if(!res.ok)throw new Error(out.error||'Could not update booking');
