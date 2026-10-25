@@ -17,6 +17,23 @@ Deno.serve(async(req:Request)=>{const headers=cors(req);if(req.method==="OPTIONS
     const notified=await notifyClosedBooking(service,b.id,SUPABASE_URL,SERVICE_ROLE,fetch);
     return new Response(JSON.stringify({ok:true,status:"cancelled",payment_status:notified.booking.payment_status,mode:notified.booking.payment_mode,notification_recovery_required:!notified.notified}),{headers});
   }
+  // Manual direct transfers are independent of Stripe. An authorized admin must
+  // attest to the bank statement's credited amount, not just an emailed receipt.
+  if(b.payment_collection_mode==="manual_bank"){
+    if(b.payment_schedule_version!=="v2_14_day")return new Response(JSON.stringify({error:"Invalid manual transfer booking"}),{status:409,headers});
+    if(action==="accept"){
+      const amount=Number(body?.received_eur),reference=String(body?.verified_reference||"").trim();
+      if(!Number.isFinite(amount)||!reference)return new Response(JSON.stringify({error:"Bank statement amount and verified payment reference are required"}),{status:400,headers});
+      const {error:confirmError}=await userClient.rpc("frankiholz_admin_confirm_manual_bank",{p_booking_id:b.id,p_received_eur:amount,p_verified_reference:reference});
+      if(confirmError)return new Response(JSON.stringify({error:confirmError.message}),{status:409,headers});
+      await email("booking_confirmed",b.id);
+      return new Response(JSON.stringify({ok:true,status:"confirmed",payment_status:"paid",mode:b.payment_mode}),{headers});
+    }
+    const {error:rejectError}=await userClient.rpc("frankiholz_admin_reject_manual_bank",{p_booking_id:b.id,p_reconciliation_acknowledged:body?.reconciliation_acknowledged===true});
+    if(rejectError)return new Response(JSON.stringify({error:rejectError.message}),{status:409,headers});
+    await notifyClosedBooking(service,b.id,SUPABASE_URL,SERVICE_ROLE,fetch);
+    return new Response(JSON.stringify({ok:true,status:"cancelled",payment_status:"released",manual_reconciliation_required:true}),{headers});
+  }
   if(b.payment_collection_mode==="complimentary"){
     if(!isComplimentary(b))return new Response(JSON.stringify({error:"Invalid complimentary booking"}),{status:409,headers});
     if(action==="accept")await markConfirmed(b,"not_required");else await closeComplimentary(service,b,"booking_rejected");
