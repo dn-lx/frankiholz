@@ -95,3 +95,5 @@
 .status-check-panel .fh-status-actions .btn{margin:0!important;min-height:46px}
 .status-check-panel .fh-status-actions .field-help{margin:0;font-size:12px;line-height:1.5}
 @media(max-width:480px){.status-check-panel .fh-status-top{padding:16px}.status-check-panel .fh-status-facts{padding:16px;gap:15px 10px}.status-check-panel .fh-status-bottom{margin:0 16px 16px;padding:13px}.status-check-panel .fh-status-actions{margin:13px 16px 18px}.status-check-panel .fh-status-actions .btn{width:100%}}
+
+.status-check-panel .fh-status-secondary{display:block;margin-top:6px;color:#547172}
