@@ -1,0 +1,32 @@
+/* Payment method priority: bank transfer is the primary guest choice. */
+.payment-option-preferred {
+  position:relative;
+  border:2px solid #248b65;
+  background:linear-gradient(135deg,#f1fcf6,#e5f6ec);
+  box-shadow:0 8px 24px rgba(17,100,74,.1);
+}
+.payment-preferred-label {
+  display:inline-flex;
+  align-items:center;
+  background:#126747;
+  color:white;
+  border-radius:999px;
+  padding:5px 11px;
+  font-weight:800;
+  font-size:12px;
+  margin-bottom:9px;
+}
+.payment-option-total {
+  display:block;
+  margin:11px 0;
+  font-size:1.15rem;
+  font-weight:800;
+  color:#103f36;
+}
+.payment-option-preferred .btn {background:#11764d;color:#fff;}
+.payment-option-preferred .btn:hover {background:#0c5b3b;}
+.payment-option[hidden]{display:none!important}
+@media (max-width:680px){
+ .payment-option-preferred {padding:18px}
+ .payment-option-total {font-size:1.05rem}
+}
