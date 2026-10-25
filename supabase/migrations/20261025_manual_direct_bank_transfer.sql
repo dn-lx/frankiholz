@@ -1,23 +1,23 @@
 -- Manual direct-bank booking, separate from the Stripe customer-balance bank-transfer rail.
--- Rollout is deliberately OFF until a receiving IBAN and a legal review are supplied.
+-- Rollout remains OFF until a verified bank account is configured. Direct-transfer discount is independent of Stripe.
 -- Shared Supabase backend: coordinate this migration with the frontend/Edge Function deploy.
 
 CREATE TABLE IF NOT EXISTS public.frankiholz_manual_bank_settings (
  id smallint PRIMARY KEY DEFAULT 1 CHECK (id=1),
  enabled boolean NOT NULL DEFAULT false,
- legal_discount_approved boolean NOT NULL DEFAULT false,
+ discount_enabled boolean NOT NULL DEFAULT false,
  account_holder text NOT NULL DEFAULT '',
  bank_name text NOT NULL DEFAULT '',
  iban text NOT NULL DEFAULT '',
  bic text NOT NULL DEFAULT '',
- discount_percent numeric(5,2) NOT NULL DEFAULT 2.00
+ discount_percent numeric(5,2) NOT NULL DEFAULT 3.00
    CHECK (discount_percent >= 0 AND discount_percent <= 5),
  updated_at timestamptz NOT NULL DEFAULT now()
 );
 INSERT INTO public.frankiholz_manual_bank_settings (id) VALUES (1)
  ON CONFLICT (id) DO NOTHING;
 ALTER TABLE public.frankiholz_manual_bank_settings ENABLE ROW LEVEL SECURITY;
-REVOKE ALL ON public.frankiholz_manual_bank_settings FROM PUBLIC, anon;
+REVOKE ALL ON public.frankiholz_manual_bank_settings FROM PUBLIC, anon, authenticated;
 GRANT SELECT, UPDATE ON public.frankiholz_manual_bank_settings TO authenticated;
 GRANT ALL ON public.frankiholz_manual_bank_settings TO service_role;
 DROP POLICY IF EXISTS frankiholz_manual_bank_admin ON public.frankiholz_manual_bank_settings;
@@ -52,7 +52,7 @@ AS $$
   'available',coalesce(s.enabled AND public.frankiholz_get_payment_environment()='live'
                       AND length(trim(s.account_holder))>1 AND
                       length(regexp_replace(s.iban,'[[:space:]]','','g'))>=15,false),
-  'discount_percent', CASE WHEN s.legal_discount_approved THEN s.discount_percent ELSE 0 END)
+  'discount_percent', CASE WHEN s.discount_enabled THEN s.discount_percent ELSE 0 END)
  FROM public.frankiholz_manual_bank_settings s WHERE s.id=1;
 $$;
 REVOKE ALL ON FUNCTION public.frankiholz_manual_bank_offer() FROM PUBLIC;
@@ -76,7 +76,7 @@ BEGIN
  FOR UPDATE;
  IF NOT FOUND OR b.status<>'pending' OR b.payment_schedule_version<>'v2_14_day'
     OR b.payment_status NOT IN ('not_started','awaiting_payment')
-    OR b.stripe_customer_id IS NOT NULL
+    -- A customer profile without a saved method or active Checkout is safe to switch.
     OR b.stripe_checkout_session_id IS NOT NULL
     OR b.stripe_payment_intent_id IS NOT NULL
     OR b.stripe_payment_method_id IS NOT NULL
@@ -96,14 +96,14 @@ BEGIN
    IF room_open IS DISTINCT FROM true THEN
       RAISE EXCEPTION 'Those stay dates are no longer available; please choose another booking';
    END IF;
-   total:=round(b.total_price*(100-(CASE WHEN s.legal_discount_approved THEN s.discount_percent ELSE 0 END))/100,2);
+   total:=round(b.total_price*(100-(CASE WHEN s.discount_enabled THEN s.discount_percent ELSE 0 END))/100,2);
    IF total<0.50 THEN RAISE EXCEPTION 'Total after discount must be at least EUR 0.50'; END IF;
    UPDATE public.frankiholz_bookings SET
     total_price=total, payment_collection_mode='manual_bank',
     payment_status='awaiting_payment',manual_bank_base_total=b.total_price,
     manual_bank_account_holder=s.account_holder,manual_bank_bank_name=s.bank_name,
     manual_bank_iban=s.iban,manual_bank_bic=s.bic,
-    manual_bank_discount_percent=(CASE WHEN s.legal_discount_approved THEN s.discount_percent ELSE 0 END),manual_bank_requested_at=now(),
+    manual_bank_discount_percent=(CASE WHEN s.discount_enabled THEN s.discount_percent ELSE 0 END),manual_bank_requested_at=now(),
     charge_due_at=NULL,payment_due_at=NULL,updated_at=now()
    WHERE id=b.id;
  ELSE RAISE EXCEPTION 'This booking already has another payment method'; END IF;
@@ -114,7 +114,7 @@ BEGIN
     'bic',coalesce(b.manual_bank_bic,s.bic),
     'payment_reference',b.reference,
     'proof_email','info@frankiflow.de','discount_percent',
-    coalesce(b.manual_bank_discount_percent,(CASE WHEN s.legal_discount_approved THEN s.discount_percent ELSE 0 END)));
+    coalesce(b.manual_bank_discount_percent,(CASE WHEN s.discount_enabled THEN s.discount_percent ELSE 0 END)));
 END $$;
 REVOKE ALL ON FUNCTION public.frankiholz_start_manual_bank_transfer(text,text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.frankiholz_start_manual_bank_transfer(text,text) TO anon,authenticated,service_role;

@@ -2,7 +2,7 @@
 // Never place real bank details in website source or Netlify environment variables.
 (()=>{
  const ids={account_holder:'manualBankHolder',bank_name:'manualBankName',iban:'manualBankIban',bic:'manualBankBic',
-  enabled:'manualBankEnabled',legal_discount_approved:'manualBankLegal'};
+  enabled:'manualBankEnabled',discount_enabled:'manualBankDiscount'};
  const status=document.getElementById('manualBankAdminStatus'),save=document.getElementById('manualBankSave');
  if(!status||!save||typeof sb==='undefined')return;
  let loading=false;
@@ -11,14 +11,14 @@
   try{
    const {data:{session}}=await sb.auth.getSession();
    if(!session)return;
-   const {data,error}=await sb.from('frankiholz_manual_bank_settings').select('account_holder,bank_name,iban,bic,enabled,legal_discount_approved').eq('id',1).maybeSingle();
+   const {data,error}=await sb.from('frankiholz_manual_bank_settings').select('account_holder,bank_name,iban,bic,enabled,discount_enabled').eq('id',1).maybeSingle();
    if(error)throw error;
    if(!data){status.textContent='Manual bank settings migration has not yet been applied.';return;}
    for(const [name,id] of Object.entries(ids)){
     const el=document.getElementById(id);if(!el)continue;
     if(el.type==='checkbox')el.checked=Boolean(data[name]);else el.value=String(data[name]||'');
    }
-   status.textContent='Settings loaded. Discount applies only after explicit legal sign-off.';
+   status.textContent='Settings loaded. The bank transfer discount can be enabled independently of Stripe.';
   }catch(error){status.textContent=error.message||String(error);}
   finally{loading=false;}
  }
@@ -36,7 +36,7 @@
    const {data:updated,error}=await sb.from('frankiholz_manual_bank_settings').update({...data,updated_at:new Date().toISOString()}).eq('id',1).select('id');
    if(error||!updated?.length)throw error||Error('Not authorized or no settings row updated');
    status.textContent='Saved. Bank transfer '+(data.enabled?'enabled':'disabled')+
-     (data.legal_discount_approved?' with 2% discount.':' without a payment-method discount.');
+     (data.discount_enabled?' with 3% discount.':' without a payment-method discount.');
   }catch(error){status.textContent=error.message||String(error)}
   finally{save.disabled=false}
  });

@@ -8,21 +8,21 @@ const copy={
  de:{lookupDetails:'Buchungsdaten',step:'Ihre Buchungsanfrage',title:'Wie möchten Sie bezahlen?',lead:'Wählen Sie eine direkte Banküberweisung oder die sichere Stripe-Zahlung. Der Gastgeber bestätigt den Aufenthalt separat.',reference:'Buchungsreferenz',email:'E-Mail der Buchung',load:'Zahlungsoptionen anzeigen',savedTitle:'Karte, Wallets & Banklastschrift',savedMethods:'Karten, Apple Pay, Google Pay, SEPA-Lastschrift und weitere geeignete Methoden werden bei Stripe angeboten.',savedTiming:'Speichern Sie Ihre Zahlungsdaten jetzt ohne Belastung. Bei Zustimmung wird die Zahlung 14 Tage vor Check-in ausgelöst, bei Aufenthalten innerhalb von 14 Tagen nach Bestätigung. Banklastschriften können mehrere Werktage dauern.',savedAction:'Methode bei Stripe wählen',bankAction:'Bestehende Überweisungsdaten ansehen',eligibility:'Stripe zeigt die für Ihr Land, Ihre Währung, Ihr Gerät und diesen Zahlungsablauf verfügbaren Methoden.',status:'Buchungs- & Zahlungsstatus',back:'Zurück zu FrankiHolz',loading:'Buchung wird geladen …',opening:'Stripe wird geöffnet …',missing:'Keine passende Buchung gefunden. Prüfen Sie Referenz und E-Mail.',error:'Zahlung konnte nicht geöffnet werden. Versuchen Sie es erneut oder kontaktieren Sie FrankiHolz.',changed:'Die Zahlungsumgebung wurde geändert. Kontaktieren Sie FrankiHolz, bevor Sie fortfahren.',test:'Stripe TEST — keine echte Zahlung. Diese Buchung bleibt in der Testumgebung.',closed:'Diese Anfrage ist geschlossen. Es kann keine neue Zahlung gestartet werden.',ready:'Die Zahlung ist bereits gespeichert, geplant, in Verarbeitung oder abgeschlossen. Details finden Sie im Buchungsstatus.',bankExisting:'Überweisungen werden für neue Anfragen nicht mehr angeboten. Für diese Anfrage läuft bereits eine Überweisung. Die bestehenden Bankdaten bleiben einsehbar. Überweisen Sie nicht erneut, wenn Sie bereits bezahlt haben.'}
 };
 Object.assign(copy.en,{
- manualPreferred:'Preferred · 2% bank-transfer discount',manualTitle:'Direct bank transfer',
- manualDescription:'Transfer to our separate business bank account and send us confirmation by email. We confirm your stay only after funds arrive and the room is still available.',
+ manualPreferred:'Preferred · 3% bank-transfer discount',manualTitle:'Direct bank transfer',
+ manualDescription:'Transfer to our separate business bank account and send Inura your transfer receipt by email. We confirm your stay only after funds arrive and the room is still available.',
  manualChoose:'Choose direct bank transfer',manualInstructionsTitle:'Your bank transfer details',
- manualInstructionsText:'Include the booking reference in the transfer. Email the receipt as an attachment. Sending the receipt does not reserve the room or confirm payment.',
- manualSendProof:'Email transfer confirmation',manualPending:'We will verify the actual credited amount and availability before confirming your booking.',
+ manualInstructionsText:'Include the booking reference in the transfer. Email the receipt to Inura at info@frankiflow.de as an attachment. Sending the receipt does not reserve the room or confirm payment.',
+ manualSendProof:'Email transfer receipt to Inura',manualPending:'We will verify the actual credited amount and availability before confirming your booking.',
  manualTotal:'Bank transfer price',manualDiscount:'Bank-transfer discount',
  manualAccount:'Account holder',manualBank:'Bank',manualIban:'IBAN',manualBic:'BIC',manualAmount:'Amount',manualRef:'Payment reference',
  manualEmailSubject:'FrankiHolz bank transfer confirmation'
 });
 Object.assign(copy.de,{
- manualPreferred:'Empfohlen · 2 % Rabatt bei Überweisung',manualTitle:'Direkte Banküberweisung',
- manualDescription:'Überweisen Sie auf unser separates Geschäftskonto und schicken Sie die Bestätigung per E-Mail. Wir bestätigen den Aufenthalt erst nach Geldeingang und erneuter Verfügbarkeitsprüfung.',
+ manualPreferred:'Empfohlen · 3 % Rabatt bei Überweisung',manualTitle:'Direkte Banküberweisung',
+ manualDescription:'Überweisen Sie auf unser separates Geschäftskonto und senden Sie Inura den Überweisungsbeleg per E-Mail. Wir bestätigen den Aufenthalt erst nach Geldeingang und erneuter Verfügbarkeitsprüfung.',
  manualChoose:'Banküberweisung auswählen',manualInstructionsTitle:'Ihre Überweisungsdaten',
- manualInstructionsText:'Bitte die Buchungsreferenz als Verwendungszweck angeben und den Beleg als Anhang per E-Mail senden. Ein Beleg ist noch keine Zahlungs- oder Buchungsbestätigung.',
- manualSendProof:'Überweisungsbeleg per E-Mail senden',manualPending:'Wir prüfen den tatsächlichen Geldeingang und die Verfügbarkeit, bevor wir Ihre Buchung bestätigen.',
+ manualInstructionsText:'Bitte die Buchungsreferenz als Verwendungszweck angeben und den Beleg per E-Mail an Inura (info@frankiflow.de) senden. Ein Beleg ist noch keine Zahlungs- oder Buchungsbestätigung.',
+ manualSendProof:'Überweisungsbeleg an Inura senden',manualPending:'Wir prüfen den tatsächlichen Geldeingang und die Verfügbarkeit, bevor wir Ihre Buchung bestätigen.',
  manualTotal:'Überweisungspreis',manualDiscount:'Überweisungsrabatt',
  manualAccount:'Kontoinhaber',manualBank:'Bank',manualIban:'IBAN',manualBic:'BIC',manualAmount:'Betrag',manualRef:'Verwendungszweck',
  manualEmailSubject:'FrankiHolz Überweisungsbestätigung'
