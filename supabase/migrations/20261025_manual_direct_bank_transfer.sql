@@ -76,7 +76,7 @@ BEGIN
  FOR UPDATE;
  IF NOT FOUND OR b.status<>'pending' OR b.payment_schedule_version<>'v2_14_day'
     OR b.payment_status NOT IN ('not_started','awaiting_payment')
-    OR b.stripe_customer_id IS NOT NULL
+    -- A customer profile without a saved method or active Checkout is safe to switch.
     OR b.stripe_checkout_session_id IS NOT NULL
     OR b.stripe_payment_intent_id IS NOT NULL
     OR b.stripe_payment_method_id IS NOT NULL
