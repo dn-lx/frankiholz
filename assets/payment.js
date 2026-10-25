@@ -8,24 +8,64 @@ const copy={
  de:{lookupDetails:'Buchungsdaten',step:'Ihre Buchungsanfrage',title:'Wie möchten Sie bezahlen?',lead:'Wählen Sie eine direkte Banküberweisung oder die sichere Stripe-Zahlung. Der Gastgeber bestätigt den Aufenthalt separat.',reference:'Buchungsreferenz',email:'E-Mail der Buchung',load:'Zahlungsoptionen anzeigen',savedTitle:'Karte, Wallets & Banklastschrift',savedMethods:'Karten, Apple Pay, Google Pay, SEPA-Lastschrift und weitere geeignete Methoden werden bei Stripe angeboten.',savedTiming:'Speichern Sie Ihre Zahlungsdaten jetzt ohne Belastung. Bei Zustimmung wird die Zahlung 14 Tage vor Check-in ausgelöst, bei Aufenthalten innerhalb von 14 Tagen nach Bestätigung. Banklastschriften können mehrere Werktage dauern.',savedAction:'Methode bei Stripe wählen',bankAction:'Bestehende Überweisungsdaten ansehen',eligibility:'Stripe zeigt die für Ihr Land, Ihre Währung, Ihr Gerät und diesen Zahlungsablauf verfügbaren Methoden.',status:'Buchungs- & Zahlungsstatus',back:'Zurück zu FrankiHolz',loading:'Buchung wird geladen …',opening:'Stripe wird geöffnet …',missing:'Keine passende Buchung gefunden. Prüfen Sie Referenz und E-Mail.',error:'Zahlung konnte nicht geöffnet werden. Versuchen Sie es erneut oder kontaktieren Sie FrankiHolz.',changed:'Die Zahlungsumgebung wurde geändert. Kontaktieren Sie FrankiHolz, bevor Sie fortfahren.',test:'Stripe TEST — keine echte Zahlung. Diese Buchung bleibt in der Testumgebung.',closed:'Diese Anfrage ist geschlossen. Es kann keine neue Zahlung gestartet werden.',ready:'Die Zahlung ist bereits gespeichert, geplant, in Verarbeitung oder abgeschlossen. Details finden Sie im Buchungsstatus.',bankExisting:'Überweisungen werden für neue Anfragen nicht mehr angeboten. Für diese Anfrage läuft bereits eine Überweisung. Die bestehenden Bankdaten bleiben einsehbar. Überweisen Sie nicht erneut, wenn Sie bereits bezahlt haben.'}
 };
 Object.assign(copy.en,{
- manualPreferred:'Preferred · 3% bank-transfer discount',manualTitle:'Direct bank transfer',
- manualDescription:'Transfer to our separate business bank account and send Inura your transfer receipt by email. We confirm your stay only after funds arrive and the room is still available.',
- manualChoose:'Choose direct bank transfer',manualInstructionsTitle:'Your bank transfer details',
- manualInstructionsText:'Include the booking reference in the transfer. Email the receipt to Inura at info@frankiflow.de as an attachment. Sending the receipt does not reserve the room or confirm payment.',
- manualSendProof:'Email transfer receipt to Inura',manualPending:'We will verify the actual credited amount and availability before confirming your booking.',
- manualTotal:'Bank transfer price',manualDiscount:'Bank-transfer discount',
- manualAccount:'Account holder',manualBank:'Bank',manualIban:'IBAN',manualBic:'BIC',manualAmount:'Amount',manualRef:'Payment reference',
- manualEmailSubject:'FrankiHolz bank transfer confirmation'
+ chooseEyebrow:'PAYMENT OPTIONS',chooseTitle:'Choose your payment method',
+ chooseLead:'Save 3% with direct bank transfer, or continue to secure online payment.',
+ chooseOnlineOnly:'Continue to secure online payment.',
+ onlineBadge:'ONLINE PAYMENT',onlineTimingTitle:'No charge right now',
+ savedTitle:'Card & digital wallets',
+ savedMethods:'Continue to Stripe to choose a payment method available for your device and country.',
+ savedTiming:'Save your payment details now. If the host confirms, payment is initiated 14 days before check-in, or after confirmation for nearer stays.',
+ savedAction:'Continue to secure payment',
+ eligibility:'Payment methods depend on your device and eligibility. The host confirms your booking separately.',
+ manualPreferred:'Preferred · Save 3%',manualNoDiscount:'Preferred · Direct bank transfer',
+ manualTitle:'Direct bank transfer',
+ manualDescription:'Transfer directly to Inura and send the payment receipt by email. Confirmation follows a check of the bank credit and room availability.',
+ manualNoDiscountDescription:'Transfer directly to Inura and email your receipt. The host checks the credited funds before confirming.',
+ manualYouPay:'Your bank transfer price',manualRegular:'Regular price',manualBenefitDiscount:'3% off your booking total',
+ manualBenefitDirect:'Transfer directly to Inura',
+ manualBenefitVerify:'Confirmation after the funds arrive',
+ manualFineprint:'Email the receipt to Inura. Your booking is not confirmed until payment and availability are checked.',
+ manualChoose:'Choose direct bank transfer',
+ bankSelected:'DIRECT BANK TRANSFER SELECTED',bankNextStepTitle:'Next step: email your receipt',
+ manualInstructionsTitle:'Your bank transfer details',
+ manualInstructionsText:'Transfer the exact amount and use your booking reference. Then email your payment receipt to Inura at info@frankiflow.de.',
+ manualSendProof:'Email receipt to Inura',
+ manualPending:'Inura will verify the actual bank credit and room availability. The stay remains pending until confirmed.',
+ manualTotal:'Bank transfer price',manualAccount:'Account holder',manualBank:'Bank',
+ manualIban:'IBAN',manualBic:'BIC',manualAmount:'Amount to transfer',manualRef:'Payment reference',
+ manualCopy:'Copy',manualCopied:'Copied',manualCopyFailed:'Unable to copy. Please select the text.',
+ manualEmailSubject:'FrankiHolz bank transfer confirmation',
+ existingLabel:'TRANSFER IN PROGRESS',existingTitle:'Existing bank transfer'
 });
 Object.assign(copy.de,{
- manualPreferred:'Empfohlen · 3 % Rabatt bei Überweisung',manualTitle:'Direkte Banküberweisung',
- manualDescription:'Überweisen Sie auf unser separates Geschäftskonto und senden Sie Inura den Überweisungsbeleg per E-Mail. Wir bestätigen den Aufenthalt erst nach Geldeingang und erneuter Verfügbarkeitsprüfung.',
- manualChoose:'Banküberweisung auswählen',manualInstructionsTitle:'Ihre Überweisungsdaten',
- manualInstructionsText:'Bitte die Buchungsreferenz als Verwendungszweck angeben und den Beleg per E-Mail an Inura (info@frankiflow.de) senden. Ein Beleg ist noch keine Zahlungs- oder Buchungsbestätigung.',
- manualSendProof:'Überweisungsbeleg an Inura senden',manualPending:'Wir prüfen den tatsächlichen Geldeingang und die Verfügbarkeit, bevor wir Ihre Buchung bestätigen.',
- manualTotal:'Überweisungspreis',manualDiscount:'Überweisungsrabatt',
- manualAccount:'Kontoinhaber',manualBank:'Bank',manualIban:'IBAN',manualBic:'BIC',manualAmount:'Betrag',manualRef:'Verwendungszweck',
- manualEmailSubject:'FrankiHolz Überweisungsbestätigung'
+ chooseEyebrow:'ZAHLUNGSMÖGLICHKEITEN',chooseTitle:'Wählen Sie Ihre Zahlungsart',
+ chooseLead:'3 % bei direkter Überweisung sparen oder sicher online fortfahren.',
+ chooseOnlineOnly:'Fahren Sie mit der sicheren Online-Zahlung fort.',
+ onlineBadge:'ONLINE-ZAHLUNG',onlineTimingTitle:'Jetzt noch keine Belastung',
+ savedTitle:'Karte & digitale Wallets',
+ savedMethods:'Bei Stripe wählen Sie die für Ihr Gerät und Land verfügbaren Zahlungsmethoden aus.',
+ savedTiming:'Speichern Sie Ihre Zahlungsdaten ohne sofortige Belastung. Bei Zusage erfolgt die Zahlung 14 Tage vor Anreise, bei kurzfristigen Aufenthalten nach der Bestätigung.',
+ savedAction:'Sicher online fortfahren',
+ eligibility:'Die verfügbaren Methoden hängen von Gerät und Berechtigung ab. Der Gastgeber bestätigt die Buchung separat.',
+ manualPreferred:'Empfohlen · 3 % sparen',manualNoDiscount:'Empfohlen · Direkte Überweisung',
+ manualTitle:'Direkte Banküberweisung',
+ manualDescription:'Überweisen Sie direkt an Inura und senden Sie den Beleg per E-Mail. Die Buchung wird nach Geldeingang und Verfügbarkeitsprüfung bestätigt.',
+ manualNoDiscountDescription:'Überweisen Sie direkt an Inura und senden Sie den Beleg per E-Mail. Der Zahlungseingang wird vor der Bestätigung geprüft.',
+ manualYouPay:'Ihr Überweisungspreis',manualRegular:'Regulärer Preis',manualBenefitDiscount:'3 % Rabatt auf den Buchungspreis',
+ manualBenefitDirect:'Direkt an Inura überweisen',
+ manualBenefitVerify:'Bestätigung nach Geldeingang',
+ manualFineprint:'Senden Sie den Beleg an Inura. Die Buchung wird erst nach Zahlungs- und Verfügbarkeitsprüfung bestätigt.',
+ manualChoose:'Direkte Banküberweisung wählen',
+ bankSelected:'DIREKTE BANKÜBERWEISUNG GEWÄHLT',bankNextStepTitle:'Nächster Schritt: Beleg per E-Mail senden',
+ manualInstructionsTitle:'Ihre Überweisungsdaten',
+ manualInstructionsText:'Überweisen Sie den exakten Betrag mit Ihrer Buchungsreferenz als Verwendungszweck. Schicken Sie dann den Beleg an Inura: info@frankiflow.de.',
+ manualSendProof:'Beleg an Inura senden',
+ manualPending:'Inura prüft den tatsächlichen Geldeingang und die Verfügbarkeit. Bis zur Bestätigung bleibt Ihre Anfrage offen.',
+ manualTotal:'Überweisungspreis',manualAccount:'Kontoinhaber',manualBank:'Bank',
+ manualIban:'IBAN',manualBic:'BIC',manualAmount:'Zu überweisen',manualRef:'Verwendungszweck',
+ manualCopy:'Kopieren',manualCopied:'Kopiert',manualCopyFailed:'Kopieren nicht möglich. Bitte den Text markieren.',
+ manualEmailSubject:'FrankiHolz Überweisungsbestätigung',
+ existingLabel:'ÜBERWEISUNG LÄUFT',existingTitle:'Bestehende Überweisung'
 });
 let manualBankOffer=null,manualBankDetails=null;
 let booking=null,credentials=null,lookupVersion=0,checkoutVersion=0,busy=false,hostNumbers=null,pageActive=true;
@@ -71,11 +111,19 @@ function paint(){
  const discount=Number(manualBankOffer?.discount_percent||0);
  const estimatedManual=Math.round((Number(booking.total_price)*(100-discount)/100+Number.EPSILON)*100)/100;
  const badge=el('manualBankChoice').querySelector('[data-copy="manualPreferred"]');
- if(badge)badge.textContent=discount>0?text('manualPreferred'):(language==='de'?'Empfohlen · Ohne Aufpreis':'Preferred · No additional fee');
+ if(badge)badge.textContent=discount>0?text('manualPreferred'):text('manualNoDiscount');
+ const description=el('manualBankChoice').querySelector('[data-copy="manualDescription"]');
+ if(description)description.textContent=discount>0?text('manualDescription'):text('manualNoDiscountDescription');
+ el('manualDiscountBenefit').hidden=discount<=0;
+ el('manualBankSaving').hidden=discount<=0;
  const formatted=new Intl.NumberFormat(language==='de'?'de-DE':'en-DE',{style:'currency',currency:'EUR'});
- el('manualBankPrice').textContent=available?text('manualTotal')+': '+formatted.format(estimatedManual):'';
+ el('manualBankPrice').textContent=available?formatted.format(estimatedManual):'';
+ el('manualBankRegularPrice').textContent=available&&discount>0?formatted.format(Number(booking.total_price)):'';
  el('manualBankChoice').hidden=!available;
  el('manualBankInstructions').hidden=!manual||!manualBankDetails;
+ el('paymentMethodHeading').hidden=manual;
+ el('paymentMethodHeading').querySelector('[data-copy="chooseLead"]').textContent=available?text('chooseLead'):text('chooseOnlineOnly');
+ el('paymentChoices').querySelector('.fh-payment-grid').classList.toggle('fh-single-method',!available);
  if(manualBankDetails)renderManualBankDetails();
  el('paymentChoices').hidden=!payable&&!manual;
  el('savedPayment').closest('.payment-option').hidden=bank||manual;
@@ -135,20 +183,40 @@ el('paymentLookup').addEventListener('submit',lookup);
 el('paymentLookup').addEventListener('input',invalidateLookup);
 function renderManualBankDetails(){
  if(!manualBankDetails)return;
- const d=manualBankDetails,fields=[
-  ['manualAccount',d.account_holder],['manualBank',d.bank_name],
-  ['manualIban',d.iban],['manualBic',d.bic],
-  ['manualAmount',new Intl.NumberFormat(language==='de'?'de-DE':'en-DE',{style:'currency',currency:'EUR'}).format(Number(d.amount))],
-  ['manualRef',d.payment_reference]
+ const d=manualBankDetails;
+ const rows=[
+  ['manualAccount',d.account_holder,false,false],
+  ['manualBank',d.bank_name,false,false],
+  ['manualIban',d.iban,true,false],
+  ['manualBic',d.bic,false,false],
+  ['manualAmount',new Intl.NumberFormat(language==='de'?'de-DE':'en-DE',{style:'currency',currency:'EUR'}).format(Number(d.amount)),false,true],
+  ['manualRef',d.payment_reference,true,false]
  ];
- el('manualBankFields').innerHTML=fields.map(([key,value])=>'<dt>'+safe(text(key))+'</dt><dd>'+safe(value||'—')+'</dd>').join('');
+ el('manualBankFields').innerHTML=rows.map(([key,value,copiable,large])=>
+  '<div class="fh-bank-field'+(large?' fh-bank-field-large':'')+(copiable?' fh-bank-field-copiable':'')+'"><dt>'+safe(text(key))+'</dt><dd>'+safe(value||'—')+'</dd>'+
+   (copiable?'<button type="button" class="fh-copy-button" data-bank-copy="'+key+'" aria-label="'+safe(text('manualCopy')+' '+text(key))+'">'+safe(text('manualCopy'))+'</button>':'')+'</div>'
+ ).join('');
  const email=String(d.proof_email||'info@frankiflow.de');
  if(email!=='info@frankiflow.de')throw new Error('Unexpected transfer contact');
  el('manualBankEmail').href='mailto:'+email+'?subject='+encodeURIComponent(text('manualEmailSubject')+' '+d.reference)
-    +'&body='+encodeURIComponent((language==='de'?'Buchungsreferenz: ':'Booking reference: ')+d.reference+'\n'+
-        (language==='de'?'Überweisungsbetrag: ':'Transfer amount: ')+d.amount+' EUR\n'+
-        (language==='de'?'Ich füge meinen Überweisungsbeleg dieser E-Mail bei.':'I have attached my transfer receipt to this email.'));
+   +'&body='+encodeURIComponent((language==='de'?'Buchungsreferenz: ':'Booking reference: ')+d.reference+'\\n'+
+   (language==='de'?'Überweisungsbetrag: ':'Transfer amount: ')+d.amount+' EUR\\n'+
+   (language==='de'?'Ich füge meinen Überweisungsbeleg dieser E-Mail bei.':'I have attached my transfer receipt to this email.'));
 }
+el('manualBankFields').addEventListener('click',async event=>{
+ const button=event.target.closest('[data-bank-copy]');
+ if(!button||!manualBankDetails)return;
+ const value=button.dataset.bankCopy==='manualIban'?manualBankDetails.iban:
+    button.dataset.bankCopy==='manualRef'?manualBankDetails.payment_reference:null;
+ if(!value)return;
+ try{
+  if(!navigator.clipboard?.writeText)throw Error('Clipboard unavailable');
+  await navigator.clipboard.writeText(String(value));
+  el('manualBankCopyFeedback').textContent=text('manualCopied')+' · '+text(button.dataset.bankCopy);
+ }catch(error){
+  el('manualBankCopyFeedback').textContent=text('manualCopyFailed');
+ }
+});
 async function selectManualBank(){
  if(busy||!pageActive||!booking||!credentials||!manualBankOffer?.available)return;
  const identity={...credentials},version=lookupVersion;
@@ -161,6 +229,7 @@ async function selectManualBank(){
   booking={...booking,payment_collection_mode:'manual_bank',payment_status:'awaiting_payment',total_price:result.data.amount,
     manual_bank_discount_percent:result.data.discount_percent};
   paint();message('');el('paymentContent').hidden=false;
+  el('bankInstructionsTitle').focus({preventScroll:true});
  }catch(error){if(pageActive&&version===lookupVersion)message(error.message||text('error'));}
  finally{if(pageActive&&version===lookupVersion)setBusy(false);}
 }
