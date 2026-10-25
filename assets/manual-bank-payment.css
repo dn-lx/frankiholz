@@ -1,18 +1,99 @@
-/* Preferred direct SEPA transfer; deliberately separate from Stripe. */
-.manual-bank-preferred{
- border:2px solid #168053;
- background:linear-gradient(125deg,#f0fff4,#e6f7ed);
- box-shadow:0 10px 28px rgba(10,96,62,.10);
+/* FrankiHolz guest checkout — refined cards, no change to payment processing. */
+.payment-panel .fh-payments{margin:clamp(24px,4vw,34px) 0 0}
+.payment-panel .fh-payments-heading{margin:0 0 17px}
+.payment-panel .fh-payments-eyebrow{display:block;margin:0 0 7px;color:#187354;font-size:11px;font-weight:850;letter-spacing:.12em}
+.payment-panel .fh-payments-heading h2{margin:0 0 7px;color:#123b42;font-size:clamp(23px,3.6vw,29px);line-height:1.18;letter-spacing:-.035em}
+.payment-panel .fh-payments-heading p{max-width:56ch;margin:0;color:#526e72;font-size:14px;line-height:1.6}
+.payment-panel .fh-payment-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.payment-panel .fh-payment-card{display:flex;flex-direction:column;min-width:0;margin:0;padding:22px;border:1px solid #dce9e6;border-radius:22px;background:#fff;box-shadow:0 5px 20px rgba(16,60,63,.045)}
+.payment-panel .fh-card-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:34px;margin-bottom:18px}
+.payment-panel .manual-bank-label,.payment-panel .fh-neutral-label{display:inline-flex;align-items:center;max-width:100%;padding:7px 11px;border-radius:999px;font-size:11px;font-weight:850;line-height:1.25;letter-spacing:.025em}
+.payment-panel .manual-bank-label{background:#15744f;color:white}
+.payment-panel .fh-neutral-label{background:#f0f5f4;color:#557075}
+.payment-panel .fh-card-icon,.payment-panel .fh-online-icon{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:12px;font-size:22px;font-weight:600}
+.payment-panel .fh-card-icon{color:#136b49;background:#def2e8}
+.payment-panel .fh-online-icon{color:#315e6b;background:#edf3f5}
+.payment-panel .fh-payment-card h3{margin:0 0 8px;color:#133c43;font-size:clamp(20px,2.5vw,24px);font-weight:800;letter-spacing:-.035em;line-height:1.19}
+.payment-panel .fh-payment-card p{line-height:1.58}
+.payment-panel .fh-card-description{margin:0;color:#567177;font-size:14px}
+.payment-panel .manual-bank-preferred{border:2px solid #25885e;background:linear-gradient(155deg,#effaf4 0%,#fcfffd 78%);box-shadow:0 13px 27px rgba(31,113,81,.10)}
+.payment-panel .fh-bank-price-wrap{margin:20px 0 12px;padding:15px 17px;border:1px solid #d4e9dd;border-radius:17px;background:rgba(255,255,255,.77)}
+.payment-panel .fh-price-caption{display:block;margin-bottom:3px;color:#54756c;font-size:12px;font-weight:650}
+.payment-panel .manual-bank-price{display:block;margin:0;color:#0d533b;font-size:clamp(29px,4vw,37px);font-weight:850;letter-spacing:-.045em;line-height:1.17}
+.payment-panel .fh-price-saving{margin-top:5px;color:#648279;font-size:12px}
+.payment-panel .fh-price-saving s{text-decoration-thickness:1px}
+.payment-panel .fh-payment-points{display:grid;gap:10px;margin:5px 0 20px;padding:0;list-style:none}
+.payment-panel .fh-payment-points li{position:relative;margin:0;padding-left:24px;color:#345950;font-size:13px;line-height:1.5}
+.payment-panel .fh-payment-points li::before{content:"✓";position:absolute;left:1px;top:0;color:#0d8453;font-weight:900}
+.payment-panel .fh-payment-action{display:inline-flex;align-items:center;justify-content:center;width:100%;min-height:52px;margin-top:auto;padding:12px 14px;border-radius:13px;font-size:14px;font-weight:800;line-height:1.25;white-space:normal;text-align:center;text-decoration:none;transition:transform .14s ease,box-shadow .14s ease}
+.payment-panel .fh-payment-action:focus-visible,.payment-panel .fh-copy-button:focus-visible{outline:3px solid #1b9069;outline-offset:3px}
+.payment-panel .manual-bank-preferred .fh-payment-action{border-color:#08754f;background:#087b51;color:white;box-shadow:0 5px 13px rgba(3,101,70,.16)}
+.payment-panel .manual-bank-preferred .fh-payment-action:hover{background:#086847;box-shadow:0 7px 17px rgba(3,101,70,.23)}
+.payment-panel .fh-card-fineprint{margin:11px 0 0;color:#68817f;font-size:11px;line-height:1.55}
+.payment-panel .fh-online-card .fh-card-description{margin-bottom:16px}
+.payment-panel .fh-online-summary{margin:0 0 21px;padding:14px 15px;border:1px solid #e6eeed;border-radius:14px;background:#f7faf9}
+.payment-panel .fh-online-summary strong{display:block;margin:0 0 5px;color:#244f55;font-size:13px}
+.payment-panel .fh-online-summary p{margin:0;color:#5d7478;font-size:12px;line-height:1.55}
+.payment-panel .fh-online-card .fh-payment-action{border:1px solid #d4e2de;background:#f1f6f4;color:#194d4d;box-shadow:none}
+.payment-panel .fh-online-card .fh-payment-action:hover{background:#e9f2ee}
+.payment-panel .fh-details-card,.payment-panel .fh-existing-card{grid-column:1/-1}
+.payment-panel .fh-details-card{border-color:#cfe4d9;background:#fbfefc}
+.payment-panel .fh-detail-top{display:flex;gap:9px;align-items:center;margin:0 0 14px}
+.payment-panel .fh-success-icon{display:grid;place-items:center;width:27px;height:27px;border-radius:100%;background:#15744f;color:white;font-size:15px;font-weight:800}
+.payment-panel .fh-bank-fields{display:grid;grid-template-columns:minmax(0,1fr);gap:9px;margin:20px 0 0}
+.payment-panel .fh-bank-field{min-width:0;position:relative;padding:12px 14px;border:1px solid #e2ebe7;border-radius:13px;background:white}
+.payment-panel .fh-bank-field dt{margin:0 0 6px;color:#61797b;font-size:11px;font-weight:700;letter-spacing:.01em}
+.payment-panel .fh-bank-field dd{margin:0;color:#183d43;font-size:14px;font-weight:750;line-height:1.4;overflow-wrap:anywhere}
+.payment-panel .fh-bank-field-large{border-color:#bddccc;background:#f0f9f4}
+.payment-panel .fh-bank-field-large dd{font-size:20px;letter-spacing:-.02em}
+.payment-panel .fh-bank-field-copiable{padding-right:72px}
+.payment-panel .fh-copy-button{position:absolute;right:9px;top:50%;transform:translateY(-50%);padding:6px 10px;border:1px solid #c9ddd4;border-radius:8px;background:#f1f7f4;color:#205f4f;font-family:inherit;font-size:11px;font-weight:800;cursor:pointer}
+.payment-panel .fh-bank-copy-feedback{min-height:16px;margin:7px 0 0;color:#13744d;font-size:12px}
+.payment-panel .fh-bank-next-step{display:flex;flex-direction:column;gap:14px;margin-top:13px;padding:17px;border-radius:16px;background:#f2f8f4}
+.payment-panel .fh-bank-next-step strong{display:block;color:#204b41;font-size:14px}
+.payment-panel .fh-bank-next-step p{margin:5px 0 0;color:#526c67;font-size:12px;line-height:1.6}
+.payment-panel .fh-send-proof{margin:0;background:#0c8056;color:white}
+.payment-panel #paymentState:empty{display:none}
+.payment-panel .fh-payment-card[hidden],.payment-panel #paymentChoices[hidden]{display:none!important}
+@media(min-width:720px){
+ .payment-panel .fh-payment-grid{grid-template-columns:minmax(0,1.07fr) minmax(0,.93fr);gap:16px;align-items:stretch}
+ .payment-panel .fh-payment-grid.fh-single-method .fh-online-card{grid-column:1/-1}
+ .payment-panel .fh-payment-card{padding:24px}
+ .payment-panel .fh-bank-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .payment-panel .fh-bank-next-step{flex-direction:row;align-items:center;justify-content:space-between}
+ .payment-panel .fh-send-proof{width:auto;min-width:218px}
 }
-.manual-bank-label{
- display:inline-block;border-radius:999px;background:#146a47;color:#fff;
- padding:6px 12px;font-size:12px;font-weight:800;margin-bottom:8px
+@media(max-width:560px){
+ .payment-panel .fh-payment-card{padding:19px 17px;border-radius:18px}
+ .payment-panel .fh-payment-card h3{font-size:21px}
+ .payment-panel .fh-payments-heading{margin-bottom:15px}
+ .payment-panel .fh-payment-grid{gap:12px}
+ .payment-panel .fh-card-heading{margin-bottom:13px}
+ .payment-panel .fh-bank-price-wrap{margin-top:16px}
+ .payment-panel .fh-bank-field dd{font-size:13px}
+ .payment-panel .fh-bank-field-large dd{font-size:19px}
 }
-.manual-bank-price{font-size:1.2rem;font-weight:800;color:#115536;margin:12px 0}
-.manual-bank-instructions{border:2px solid #a5d1bc;background:#f8fcf9}
-.manual-bank-instructions dl{display:grid;grid-template-columns:minmax(95px,1fr) 2fr;gap:8px 14px;margin:18px 0}
-.manual-bank-instructions dt{font-weight:700}
-.manual-bank-instructions dd{margin:0;overflow-wrap:anywhere;font-family:ui-monospace,monospace}
-.payment-option[hidden]{display:none!important}
-#manualBankInstructions[hidden],#manualBankChoice[hidden]{display:none!important}
-@media(max-width:600px){.manual-bank-instructions dl{grid-template-columns:1fr;gap:3px}.manual-bank-instructions dd{margin-bottom:10px}}
+@media(prefers-reduced-motion:reduce){.payment-panel .fh-payment-action{transition:none}}
+/* Booking status shares the same calm surface language; no payment logic change. */
+.status-check-panel .fh-status-card{margin-top:20px;border:1px solid #d9e8e1;border-radius:21px;background:#fff;box-shadow:0 7px 22px rgba(16,60,63,.05);overflow:hidden}
+.status-check-panel .fh-status-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;padding:19px 20px 16px;background:#f4f9f6}
+.status-check-panel .fh-status-eyebrow{display:block;margin-bottom:5px;color:#598074;font-size:10px;font-weight:850;letter-spacing:.1em}
+.status-check-panel .fh-status-reference{font-size:17px;font-weight:850;color:#173e42}
+.status-check-panel .fh-status-room{margin-top:4px;font-size:13px;color:#557277}
+.status-check-panel .fh-status-pill{display:inline-flex;align-items:center;padding:7px 11px;border:1px solid #cfe5d9;border-radius:100px;background:#e6f5ea;color:#176448;font-size:11px;font-weight:850}
+.status-check-panel .fh-status-pill.is-pending{border-color:#eadfc1;background:#fff8e6;color:#806325}
+.status-check-panel .fh-status-pill.is-cancelled{border-color:#e6d0d0;background:#fff0f0;color:#954747}
+.status-check-panel .fh-status-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;padding:17px 20px}
+.status-check-panel .fh-status-fact{min-width:0}
+.status-check-panel .fh-status-fact-label{display:block;margin-bottom:5px;color:#617c7c;font-size:11px;font-weight:700}
+.status-check-panel .fh-status-fact-value{display:block;overflow-wrap:anywhere;color:#163e44;font-size:14px;font-weight:800;line-height:1.4}
+.status-check-panel .fh-status-total{color:#0d684e;font-size:20px}
+.status-check-panel .fh-status-bottom{margin:0 20px 20px;padding:15px 16px;border:1px solid #e1ebe6;border-radius:14px;background:#f8fbf9}
+.status-check-panel .fh-status-bottom strong{font-size:13px;color:#294b4c}
+.status-check-panel .fh-status-bottom p{margin:6px 0 0;color:#547172;font-size:12px;line-height:1.6}
+.status-check-panel .fh-status-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:15px 20px 20px}
+.status-check-panel .fh-status-actions .btn{margin:0!important;min-height:46px}
+.status-check-panel .fh-status-actions .field-help{margin:0;font-size:12px;line-height:1.5}
+@media(max-width:480px){.status-check-panel .fh-status-top{padding:16px}.status-check-panel .fh-status-facts{padding:16px;gap:15px 10px}.status-check-panel .fh-status-bottom{margin:0 16px 16px;padding:13px}.status-check-panel .fh-status-actions{margin:13px 16px 18px}.status-check-panel .fh-status-actions .btn{width:100%}}
+
+.status-check-panel .fh-status-secondary{display:block;margin-top:6px;color:#547172}

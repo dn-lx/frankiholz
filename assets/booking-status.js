@@ -35,7 +35,20 @@ function renderLoaded(){
  const due=b.charge_due_at?'<br>'+tx[lang].charge+': <b>'+esc(new Date(b.charge_due_at).toLocaleString(de?'de-DE':'en-GB',{timeZone:'Europe/Berlin'}))+'</b>':'';
  const policy=manual&&b.booking_status==='pending'?(de?'Ein Überweisungsbeleg ist keine Zahlungsbestätigung. Die Buchung ist erst nach geprüftem Geldeingang und Verfügbarkeit bestätigt.':'A transfer receipt is not proof of cleared funds. Your booking is confirmed only after credited payment and availability checks.'):b.payment_status==='not_required'?(de?'Keine Zahlung oder Erstattung erforderlich.':'No payment or refund required.'):b.cancel_refund_eligible?tx[lang].full:tx[lang].nonref;
  const cancel=manual?(b.booking_status==='cancelled'?'':'<p class="field-help">'+(de?'Direkte Überweisung: Bei Stornierung oder Erstattung bitte Inura unter info@frankiflow.de kontaktieren.':'Direct bank transfer: for cancellation or a refund, contact Inura at info@frankiflow.de.')+'</p>'):b.booking_status!=='cancelled'?'<button class="btn ghost" id="cancelBookingBtn" type="button" style="margin-top:12px">'+tx[lang].cancel+'</button>':'';
- out.innerHTML='<div class="notice '+(b.payment_status==='paid'?'success':'')+'"><b>'+esc(b.reference)+'</b>'+test+' · '+esc(b.room_name)+'<br>'+esc(b.check_in)+' → '+esc(b.check_out)+' · '+money(b.total_price)+'<br>'+tx[lang].book+': <b>'+esc(b.booking_status)+'</b> · '+tx[lang].pay+': <b>'+esc(state)+'</b>'+due+'<div class="muted" style="margin-top:8px">'+esc(policy)+'</div>'+pay+cancel+'</div>';
+ const bookingLabel=b.booking_status==='confirmed'?(de?'Bestätigt':'Confirmed'):b.booking_status==='cancelled'?(de?'Geschlossen':'Closed'):(de?'Wartet auf Bestätigung':'Awaiting confirmation');
+ const bookingPill=b.booking_status==='cancelled'?'is-cancelled':b.booking_status==='pending'?'is-pending':'';
+ const bankInfo=manual&&b.booking_status==='pending'?(de?'Ihr Beleg ist noch kein Nachweis über den Geldeingang. Inura prüft die Überweisung und die Zimmerverfügbarkeit.':'The receipt does not prove bank settlement. Inura will verify the transfer and room availability.'):'';
+ out.innerHTML='<section class="fh-status-card" aria-label="'+esc(de?'Buchungsübersicht':'Booking overview')+'">'+
+  '<div class="fh-status-top"><div><span class="fh-status-eyebrow">'+esc(de?'IHRE BUCHUNG':'YOUR BOOKING')+'</span><div class="fh-status-reference">'+esc(b.reference)+test+'</div><div class="fh-status-room">'+esc(b.room_name)+'</div></div>'+
+  '<span class="fh-status-pill '+bookingPill+'">'+esc(bookingLabel)+'</span></div>'+
+  '<div class="fh-status-facts">'+
+  '<div class="fh-status-fact"><span class="fh-status-fact-label">'+esc(de?'Check-in':'Check-in')+'</span><strong class="fh-status-fact-value">'+esc(b.check_in)+'</strong></div>'+
+  '<div class="fh-status-fact"><span class="fh-status-fact-label">'+esc(de?'Check-out':'Check-out')+'</span><strong class="fh-status-fact-value">'+esc(b.check_out)+'</strong></div>'+
+  '<div class="fh-status-fact"><span class="fh-status-fact-label">'+esc(tx[lang].pay)+'</span><strong class="fh-status-fact-value">'+esc(state)+'</strong></div>'+
+  '<div class="fh-status-fact"><span class="fh-status-fact-label">'+esc(de?'Gesamtbetrag':'Stay total')+'</span><strong class="fh-status-fact-value fh-status-total">'+money(b.total_price)+'</strong></div></div>'+
+  '<div class="fh-status-bottom"><strong>'+esc(de?'Zahlung & Bestätigung':'Payment & confirmation')+'</strong><p>'+esc(policy)+(bankInfo?'<span class="fh-status-secondary">'+esc(bankInfo)+'</span>':'')+due+'</p></div>'+
+  ((pay||cancel)?'<div class="fh-status-actions">'+pay+cancel+'</div>':'')+
+  '</section>';
  const confirmed=b.booking_status==='confirmed',closed=b.booking_status==='cancelled';
  const welcome=confirmed?(de?'Wir freuen uns auf Sie!':'We look forward to welcoming you!'):closed?(de?'Wir sind weiterhin gerne für Sie da':'We are still here to help'):(de?'Vielen Dank für Ihre Anfrage':'Thank you for your request');
  const checkIn=hostTimes[lang].checkIn;
