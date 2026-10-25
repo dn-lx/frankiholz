@@ -19,7 +19,7 @@ export async function openBankTransfer(service: any, stripe: any, booking: any, 
   const {data:pricedTotal,error:priceError}=await service.rpc('frankiholz_prepare_collection_total',{
     p_booking_id:claimed.id,p_operation_token:token,p_collection_mode:'bank_transfer',
   });
-  if(priceError||!Number.isFinite(Number(pricedTotal)))throw priceError||new Error('Payment amount unavailable');
+  if(priceError||!Number.isFinite(Number(pricedTotal))){await releaseOperation(service,claimed.id,token);throw priceError||new Error('Payment amount unavailable');}
   const b={...claimed,total_price:Number(pricedTotal)};
   const amount = Math.round(Number(b.total_price) * 100);
   if (!Number.isSafeInteger(amount) || amount < 50) {
