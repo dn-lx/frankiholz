@@ -27,12 +27,13 @@ function showError(message){const node=document.createElement('div');node.classN
 function renderLoaded(){
  const snapshot=loaded;if(!snapshot||!isCurrent(snapshot))return;
  const b=snapshot.booking,out=$('out'),de=lang==='de',focused=document.activeElement?.id;
- const state=tx[lang].states[b.payment_status]||String(b.payment_status||'not_started').replaceAll('_',' ');
+ const manual=b.payment_collection_mode==='manual_bank';
+ const state=manual&&b.payment_status==='awaiting_payment'?(de?'Direkte Überweisung · Geldeingang ausstehend':'Direct transfer · awaiting bank credit'):(tx[lang].states[b.payment_status]||String(b.payment_status||'not_started').replaceAll('_',' '));
  const test=b.payment_mode==='test'?'<span class="status" style="background:#fff3cd;color:#7a5a00;margin-left:6px">TEST</span>':'';
  const canRetry=b.booking_status==='pending'&&['not_started','expired','failed','awaiting_payment'].includes(b.payment_status);
  const pay=canRetry?'<button class="btn secondary" id="retryCardBtn" type="button" style="margin-top:12px">'+tx[lang].retry+'</button>':'';
  const due=b.charge_due_at?'<br>'+tx[lang].charge+': <b>'+esc(new Date(b.charge_due_at).toLocaleString(de?'de-DE':'en-GB',{timeZone:'Europe/Berlin'}))+'</b>':'';
- const policy=b.payment_status==='not_required'?(de?'Keine Zahlung oder Erstattung erforderlich.':'No payment or refund required.'):b.cancel_refund_eligible?tx[lang].full:tx[lang].nonref;
+ const policy=manual&&b.booking_status==='pending'?(de?'Ein Überweisungsbeleg ist keine Zahlungsbestätigung. Die Buchung ist erst nach geprüftem Geldeingang und Verfügbarkeit bestätigt.':'A transfer receipt is not proof of cleared funds. Your booking is confirmed only after credited payment and availability checks.'):b.payment_status==='not_required'?(de?'Keine Zahlung oder Erstattung erforderlich.':'No payment or refund required.'):b.cancel_refund_eligible?tx[lang].full:tx[lang].nonref;
  const cancel=b.booking_status!=='cancelled'?'<button class="btn ghost" id="cancelBookingBtn" type="button" style="margin-top:12px">'+tx[lang].cancel+'</button>':'';
  out.innerHTML='<div class="notice '+(b.payment_status==='paid'?'success':'')+'"><b>'+esc(b.reference)+'</b>'+test+' · '+esc(b.room_name)+'<br>'+esc(b.check_in)+' → '+esc(b.check_out)+' · '+money(b.total_price)+'<br>'+tx[lang].book+': <b>'+esc(b.booking_status)+'</b> · '+tx[lang].pay+': <b>'+esc(state)+'</b>'+due+'<div class="muted" style="margin-top:8px">'+esc(policy)+'</div>'+pay+cancel+'</div>';
  const confirmed=b.booking_status==='confirmed',closed=b.booking_status==='cancelled';
@@ -73,7 +74,10 @@ async function loadStatus(){
  try{
   const {data,error}=await s.rpc('frankiholz_booking_status_v3',{p_reference:identity.reference,p_email:identity.email});
   if(!pageActive||version!==lookupVersion||!sameInput(identity))return;
-  const b=data?.[0];if(error||!b?.reference)throw new Error(error?.message||tx[lang].n);
+  const base=data?.[0];if(error||!base?.reference)throw new Error(error?.message||tx[lang].n);
+  const extra=await s.rpc('frankiholz_payment_details',{p_reference:base.reference,p_email:identity.email});
+  if(!pageActive||version!==lookupVersion||!sameInput(identity))return;
+  const b={...base,...(extra.error?{}:extra.data||{})};
   const credentials={reference:b.reference,email:identity.email};guest.rememberCredentials(credentials);
   loaded={booking:b,credentials,identity,version};renderLoaded();
  }catch(error){if(pageActive&&version===lookupVersion&&sameInput(identity))showError(error.message||tx[lang].n);}

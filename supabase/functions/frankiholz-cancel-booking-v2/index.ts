@@ -82,6 +82,15 @@ Deno.serve(async (req: Request) => {
       await closeComplimentary(service,booking,"booking_cancelled");await notifyClosedBooking(service,booking.id,SUPABASE_URL,SERVICE_ROLE,fetch);
       return new Response(JSON.stringify({ok:true,refundable:false,refunded:false,policy:"no_payment",payment_status:"not_required",payment_mode:booking.payment_mode}),{headers});
     }
+    if(booking.payment_collection_mode==="manual_bank"){
+      if(booking.status==="confirmed"){
+        return new Response(JSON.stringify({error:"Please contact FrankiHolz to arrange a manual bank-transfer cancellation or refund."}),{status:409,headers});
+      }
+      const {error:cancelError}=await service.rpc("frankiholz_cancel_pending_manual_bank",{p_reference:reference,p_email:guestEmail});
+      if(cancelError)return new Response(JSON.stringify({error:cancelError.message}),{status:409,headers});
+      await notifyClosedBooking(service,booking.id,SUPABASE_URL,SERVICE_ROLE,fetch);
+      return new Response(JSON.stringify({ok:true,refundable:false,refunded:false,policy:"manual_bank_reconciliation",payment_status:"released",manual_reconciliation_required:true}),{headers});
+    }
     const key = booking.payment_mode === "test" ? TEST_KEY : LIVE_KEY;
     if (!key) {
       return new Response(JSON.stringify({ error: `Stripe ${booking.payment_mode} key is not configured` }), { status: 503, headers });
