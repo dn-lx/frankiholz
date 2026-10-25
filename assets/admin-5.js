@@ -157,17 +157,35 @@ window.decideBooking=async(id,action,button,isV2,collectionMode,reference,receiv
   try{
     const {data:{session}}=await sb.auth.getSession();
     if(!session)throw new Error('Admin session expired. Please sign in again.');
-    const res=await fetch(`${CFG.supabaseUrl}/functions/v1/frankiholz-booking-decision`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':`Bearer ${session.access_token}`,'apikey':CFG.supabaseKey},
-      body:JSON.stringify({booking_id:id,action,received_eur,verified_reference,reconciliation_acknowledged:collectionMode==='manual_bank'&&!accept})
-    });
-    const out=await res.json();
-    if(!res.ok)throw new Error(out.error||'Could not update booking');
+    let out,notificationFailed=false;
+    if(collectionMode==='manual_bank'){
+      // Direct bank transfer must never call Stripe's booking decision function.
+      const functionName=accept?'frankiholz_admin_confirm_manual_bank':'frankiholz_admin_reject_manual_bank';
+      const parameters=accept?{p_booking_id:id,p_received_eur:received_eur,p_verified_reference:verified_reference}:{p_booking_id:id,p_reconciliation_acknowledged:true};
+      const result=await sb.rpc(functionName,parameters);
+      if(result.error)throw new Error(result.error.message||'Could not reconcile direct bank transfer');
+      out={payment_status:accept?'paid':'released'};
+      try{
+        const emailResponse=await fetch(`${CFG.supabaseUrl}/functions/v1/frankiholz-guest-email`,{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':`Bearer ${session.access_token}`,'apikey':CFG.supabaseKey},
+          body:JSON.stringify({booking_id:id,event_type:accept?'booking_confirmed':'booking_rejected'})
+        });
+        notificationFailed=!emailResponse.ok;
+      }catch(emailError){notificationFailed=true;console.warn('Direct bank booking email needs retry',emailError)}
+    }else{
+      const res=await fetch(`${CFG.supabaseUrl}/functions/v1/frankiholz-booking-decision`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':`Bearer ${session.access_token}`,'apikey':CFG.supabaseKey},
+        body:JSON.stringify({booking_id:id,action,received_eur,verified_reference,reconciliation_acknowledged:false})
+      });
+      out=await res.json();
+      if(!res.ok)throw new Error(out.error||'Could not update booking');
+    }
     await loadBookings();
     await Promise.all(rooms.map(r=>loadRoomCalendar(r.id)));
-    if(accept)alert(out.payment_status==='scheduled_charge'?'Booking confirmed. Payment is scheduled.':'Booking confirmed.');
-    else alert('Booking request closed.');
+    if(accept)alert(notificationFailed?'Booking confirmed, but the confirmation email could not be sent. Contact Inura to resend it.':out.payment_status==='scheduled_charge'?'Booking confirmed. Payment is scheduled.':'Booking confirmed.');
+    else alert(notificationFailed?'Booking request closed. Guest email needs manual follow-up.':'Booking request closed.');
   }catch(e){alert(e.message||String(e));await loadBookings()}
   finally{if(button?.isConnected){button.disabled=false;button.textContent=accept?'Confirm booking':'Reject request'}}
 };
