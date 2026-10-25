@@ -17,6 +17,7 @@ export async function chargeBooking(service: any, stripe: any, booking: any) {
         amount, currency: 'eur', customer: b.stripe_customer_id,
         payment_method: b.stripe_payment_method_id, off_session: true, confirm: true,
         automatic_payment_methods: { enabled: true, allow_redirects: 'never' },
+        excluded_payment_method_types: ['paypal'],
         description: `FrankiHolz ${b.reference}`,
         metadata: { booking_id: b.id, reference: b.reference, frankiholz_mode: b.payment_mode, payment_schedule_version: 'v2_14_day' },
       }, { idempotencyKey: `fh-v2-charge-${b.payment_mode}-${b.id}-${b.stripe_setup_intent_id || 'legacy'}` });
