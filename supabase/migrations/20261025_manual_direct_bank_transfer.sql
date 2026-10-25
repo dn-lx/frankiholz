@@ -5,6 +5,7 @@
 CREATE TABLE IF NOT EXISTS public.frankiholz_manual_bank_settings (
  id smallint PRIMARY KEY DEFAULT 1 CHECK (id=1),
  enabled boolean NOT NULL DEFAULT false,
+ legal_discount_approved boolean NOT NULL DEFAULT false,
  account_holder text NOT NULL DEFAULT '',
  bank_name text NOT NULL DEFAULT '',
  iban text NOT NULL DEFAULT '',
@@ -46,7 +47,7 @@ AS $$
  SELECT jsonb_build_object(
   'available',coalesce(s.enabled AND length(trim(s.account_holder))>1 AND
                       length(regexp_replace(s.iban,'[[:space:]]','','g'))>=15,false),
-  'discount_percent', coalesce(s.discount_percent,0))
+  'discount_percent', CASE WHEN s.legal_discount_approved THEN s.discount_percent ELSE 0 END)
  FROM public.frankiholz_manual_bank_settings s WHERE s.id=1;
 $$;
 REVOKE ALL ON FUNCTION public.frankiholz_manual_bank_offer() FROM PUBLIC;
@@ -83,12 +84,12 @@ BEGIN
      RAISE EXCEPTION 'Manual transfer already completed or closed'; END IF;
    total:=b.total_price;
  ELSIF b.payment_collection_mode='saved_method' AND b.payment_status='not_started' THEN
-   total:=round(b.total_price*(100-s.discount_percent)/100,2);
+   total:=round(b.total_price*(100-(CASE WHEN s.legal_discount_approved THEN s.discount_percent ELSE 0 END))/100,2);
    IF total<0.50 THEN RAISE EXCEPTION 'Total after discount must be at least EUR 0.50'; END IF;
    UPDATE public.frankiholz_bookings SET
     total_price=total, payment_collection_mode='manual_bank',
     payment_status='awaiting_payment',manual_bank_base_total=b.total_price,
-    manual_bank_discount_percent=s.discount_percent,manual_bank_requested_at=now(),
+    manual_bank_discount_percent=(CASE WHEN s.legal_discount_approved THEN s.discount_percent ELSE 0 END),manual_bank_requested_at=now(),
     charge_due_at=NULL,payment_due_at=NULL,updated_at=now()
    WHERE id=b.id;
  ELSE RAISE EXCEPTION 'This booking already has another payment method'; END IF;
@@ -96,7 +97,7 @@ BEGIN
     'account_holder',s.account_holder,'bank_name',s.bank_name,'iban',s.iban,
     'bic',s.bic,'payment_reference',b.reference,
     'proof_email','info@frankiflow.de','discount_percent',
-    coalesce(b.manual_bank_discount_percent,s.discount_percent));
+    coalesce(b.manual_bank_discount_percent,(CASE WHEN s.legal_discount_approved THEN s.discount_percent ELSE 0 END)));
 END $$;
 REVOKE ALL ON FUNCTION public.frankiholz_start_manual_bank_transfer(text,text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.frankiholz_start_manual_bank_transfer(text,text) TO anon,authenticated,service_role;
