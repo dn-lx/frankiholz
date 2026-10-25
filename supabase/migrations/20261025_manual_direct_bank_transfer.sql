@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS public.frankiholz_manual_bank_settings (
 INSERT INTO public.frankiholz_manual_bank_settings (id) VALUES (1)
  ON CONFLICT (id) DO NOTHING;
 ALTER TABLE public.frankiholz_manual_bank_settings ENABLE ROW LEVEL SECURITY;
-REVOKE ALL ON public.frankiholz_manual_bank_settings FROM PUBLIC, anon;
+REVOKE ALL ON public.frankiholz_manual_bank_settings FROM PUBLIC, anon, authenticated;
 GRANT SELECT, UPDATE ON public.frankiholz_manual_bank_settings TO authenticated;
 GRANT ALL ON public.frankiholz_manual_bank_settings TO service_role;
 DROP POLICY IF EXISTS frankiholz_manual_bank_admin ON public.frankiholz_manual_bank_settings;
