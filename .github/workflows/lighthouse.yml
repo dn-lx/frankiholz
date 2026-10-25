@@ -26,7 +26,7 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Create Lighthouse reports
         continue-on-error: true
-        run: npx lhci autorun
+        run: npm run test:lighthouse
       - name: Upload reports
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5

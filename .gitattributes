@@ -1,0 +1,4 @@
+# Preserve PDF byte offsets and keep generated documents out of text diffs.
+*.pdf binary
+# Keep the verified upstream browser bundle byte-for-byte, including whitespace.
+assets/vendor/*.js -whitespace

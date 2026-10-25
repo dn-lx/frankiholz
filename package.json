@@ -5,11 +5,24 @@
   "type": "module",
   "scripts": {
     "test:e2e": "playwright test --project=chromium --project=webkit",
-    "test:e2e:release": "playwright test --project=chromium --project=webkit --project=iphone-webkit --project=ipad-webkit"
+    "test:e2e:release": "playwright test --project=chromium --project=webkit --project=iphone-webkit --project=ipad-webkit",
+    "test:lighthouse": "node scripts/lighthouse-report.mjs",
+    "build": "node scripts/build-site.mjs",
+    "vendor:update": "node scripts/vendor-supabase.mjs update",
+    "vendor:check": "node scripts/vendor-supabase.mjs check",
+    "test:unit": "node --test tests/*.test.mjs",
+    "check:functions": "deno check --no-config --no-lock --node-modules-dir=none supabase/functions/frankiholz-create-authorization-v2/index.ts supabase/functions/frankiholz-create-authorization-test/index.ts supabase/functions/frankiholz-booking-decision/index.ts supabase/functions/frankiholz-cancel-booking-v2/index.ts",
+    "test": "npm run test:unit"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
-    "@lhci/cli": "0.15.1",
-    "@playwright/test": "1.63.0"
+    "@playwright/test": "1.63.0",
+    "lighthouse": "13.5.0"
+  },
+  "engines": {
+    "node": ">=22.19"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.118.0"
   }
 }

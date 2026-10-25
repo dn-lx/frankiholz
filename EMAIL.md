@@ -34,7 +34,11 @@ The sender identity and Reply-To are defined by `frankiholz-guest-email` as `sta
 3. **Booking confirmed / rejected / cancelled** — FrankiHolz Admin triggers the corresponding lifecycle email.
 4. **Payment confirmed / failed** — Stripe webhook or scheduled charge flow triggers the corresponding lifecycle email.
 
-All templates use `frankiholz_bookings.language`, so a German booking receives German email and an English booking receives English email.
+Every guest lifecycle email contains English first and German second in one message, regardless of the booking's selected language. Each section has its own localized stay details, truthful payment status, warm greeting and closing, WhatsApp and status/rules links. A shared light-background logo heads the message; the subject includes both language headings and one booking reference. Internal admin notifications remain separate.
+
+Guest messages include a personal greeting, a warm introduction and closing, the approved FrankiHolz logo for light backgrounds, stay details and a direct WhatsApp contact link. Confirmed-booking messages ask for the estimated arrival time (check-in from 17:00; check-out by 11:00). Pending requests never ask guests to treat the stay as confirmed. The WhatsApp message is only prefilled; it is not sent automatically. Guest email addresses are not placed in links.
+
+The email logo is the cropped, proportionally resized approved light-background mark, served from the public GitHub `develop` assets on a light header. The WhatsApp email icon is a PNG rasterization of the approved repository SVG, served from the public GitHub `develop` assets so existing production pages need no new asset deployment. The visible contact text remains usable when mail clients block images. House-rule links use the configured public site's existing `#houseRules` section. The new bilingual, selectable-text guide is published at `/assets/documents/frankiholz-house-guide.pdf` on the updated frontend. Rebuild it with `scripts/build-house-guide.py` using Python, Pillow and ReportLab; its source transcribes the owner's printed rules rather than embedding their photo.
 
 ## Duplicate protection
 
@@ -43,3 +47,7 @@ All templates use `frankiholz_bookings.language`, so a German booking receives G
 ## Security
 
 The Resend API key stays exclusively in Supabase Edge Function secrets. Browser JavaScript never sees the provider key. Public request-received email calls must match the new booking reference and guest email and come from an allowed FrankiHolz origin; administrative lifecycle emails require an authenticated FrankiHolz admin or trusted internal service call; payment-confirmation email is triggered internally by the Stripe/webhook workflow.
+
+## Consolidated guest delivery
+
+Guests receive one request-ready email after payment setup (or immediately for a complimentary request), then one host-decision email: confirmation or rejection. Rejecting an unconfirmed request sends the rejection decision, including whether no payment was collected, a refund is processing, or a refund has completed. These are alternative second messages, not three normal messages. Payment callbacks reuse the decision stage and cannot send duplicate guest receipts. No existing messages are resent when templates change. Already prepared retry payloads stay immutable for provider idempotency.

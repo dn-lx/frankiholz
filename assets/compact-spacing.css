@@ -3,7 +3,7 @@
 @media (min-width:901px){
   .hero{min-height:clamp(580px,66vh,665px)}
   .fh-hero-grid.fh-hero-split{
-    padding-block:clamp(138px,15vh,155px) clamp(65px,8vh,82px);
+    padding-block:32px clamp(65px,8vh,82px);
   }
 }
 .fh-section-nav-inner{min-height:56px}
@@ -44,8 +44,15 @@
 .cancellation-policy{padding-bottom:clamp(40px,4.5vw,62px)}
 #bookingStatusSection{padding-block:clamp(43px,4.5vw,61px)}
 .footer{padding-block:33px}
+/* A compact photo strip keeps dates and booking details close together. */
+#bookingSection .thumbs{display:flex;gap:10px;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x proximity;padding:3px 3px 10px}
+#bookingSection .thumb{flex:0 0 66px;width:66px;height:66px;scroll-snap-align:start}
+#bookingSection .thumbs>div[role="img"]{flex:1;min-width:100%}
+.booking-fieldset{border:0;padding:0;margin:20px 0 0;min-width:0}
+.booking-fieldset legend{padding:0;font-size:17px;font-weight:800;color:var(--ink);margin-bottom:8px}
+#bookingSection .selected-summary{position:sticky;top:12px;z-index:4;background:#fff;padding:8px 0;box-shadow:0 8px 14px rgba(12,52,71,.04)}
 @media(max-width:900px){
-  .fh-hero-grid.fh-hero-split{padding-block:139px 59px;gap:14px}
+  .fh-hero-grid.fh-hero-split{padding-block:32px 59px;gap:14px}
   .fh-hero-split .fh-hero-minor{margin-top:17px}
   .section{padding-block:clamp(38px,5.5vw,52px)}
   #guestInfoPublic .fh-guest-editorial{gap:15px}
@@ -54,7 +61,7 @@
   #location .fh-map-embed,#location .fh-map-embed iframe{min-height:290px}
 }
 @media(max-width:600px){
-  .fh-hero-grid.fh-hero-split{padding-block:134px 55px;gap:13px}
+  .fh-hero-grid.fh-hero-split{padding-block:24px 55px;gap:13px}
   .fh-hero-split .hero-content h1{margin-block:9px 15px}
   .fh-section-nav-inner{min-height:52px}
   .section{padding-block:39px}
@@ -68,4 +75,19 @@
   #location{padding-block:40px}
   #location .fh-map-embed,#location .fh-map-embed iframe{min-height:270px}
   .footer{padding-block:29px}
+  /* Preserve the saved section order while giving room choices more space. */
+  .fh-reviews-band .fh-reviews-intro{display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:12px}
+  .fh-reviews-intro h2{font-size:23px}
+  .fh-review-source-summary{width:auto;max-width:150px;font-size:11px;gap:3px}
+  .fh-review-source-summary strong{font-size:22px}
+  .fh-review-source-summary #fhAirbnbCount{margin-left:0;font-size:10px}
+  .fh-review-source-summary small{font-size:9px}
+  .fh-reviews-intro .fh-review-listing-link{grid-column:1/-1;width:auto;min-height:44px;padding:9px 13px}
+  .fh-reviews-band .fh-review-carousel{padding:16px;gap:8px}
+  .fh-reviews-band .fh-review-heading{font-size:14px!important;line-height:1.3!important;margin:0!important}
+  .fh-reviews-band .fh-review-quote{font-size:18px;line-height:1.45}
+  .fh-reviews-band .fh-review-footer{padding-top:8px;margin-top:0}
+  #bookingSection .selected-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #bookingSection .selected-summary>div:last-child{grid-column:1/-1}
+  #bookingSection .selected-summary>div{padding:11px}
 }

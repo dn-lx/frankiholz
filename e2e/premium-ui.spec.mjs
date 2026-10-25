@@ -27,6 +27,7 @@ test('premium homepage has clear hospitality navigation and working room call to
   await expect(page.locator('a[href="#facilities"]')).toHaveCount(2);
   await expect(page.locator('#heroRoomsBtn')).toBeVisible();
   await expect(page.locator('#fhMapTarget iframe')).toHaveCount(1);
+  await expect(page.locator('#fhLoadMap')).toHaveCount(0);
   const template = await page.locator('.fh-hero-grid').evaluate(element => getComputedStyle(element).gridTemplateColumns);
   expect(template.trim().split(/\s+/).length).toBe(2);
   await page.locator('.lang-btn[data-lang="de"]').click();
@@ -61,6 +62,7 @@ test('desktop hero places location badge and single room CTA on the right', asyn
   expect(Math.abs(badgeBox.x+badgeBox.width-(railBox.x+railBox.width))).toBeLessThanOrEqual(3);
   expect(Math.abs(buttonBox.x+buttonBox.width-(railBox.x+railBox.width))).toBeLessThanOrEqual(3);
   const navBox=await page.locator('.site-nav').boundingBox();
+  expect(badgeBox.y).toBeGreaterThanOrEqual(navBox.y+navBox.height+20);
   const wrapBox=await page.locator('.fh-hero-grid').boundingBox();
   expect(navBox.width).toBeGreaterThan(wrapBox.width);
   expect(navBox.x).toBeLessThan(wrapBox.x);

@@ -1,6 +1,6 @@
 # FrankiHolz Stripe payment model
 
-Last updated: 2026-10-11
+Last updated: 2026-10-18
 
 FrankiHolz uses a **saved-card / scheduled-charge** model for new bookings.
 
@@ -71,3 +71,20 @@ Older 48-hour manual-capture bookings can still be handled by server-side compat
 - Price and charge amount remain server-owned.
 - Host confirmation requires an authenticated FrankiHolz admin.
 - Guest cancellation requires the matching booking reference and guest email and is executed server-side.
+
+
+## Payment page and immediate transfers
+
+The guest form creates the pending request and navigates to /payment.html. The saved-method action opens Stripe’s hosted chooser; eligible cards, wallets and SEPA Direct Debit remain governed by Stripe. Card setup stores payment details and does not hold funds. New EUR/SEPA bank transfers are disabled in the UI and both setup endpoints. Existing bank-transfer records with a matching PaymentIntent can still retrieve their instructions, receive settlement webhooks, and follow refund/reconciliation paths. Only settled funds mark an existing transfer paid; host approval separately confirms the stay.
+
+Payment context uses the existing reference/email authorization through frankiholz_payment_details. The email stays in tab-scoped session storage with an explicit lookup fallback, never in the page URL. The server snapshots the new booking environment; existing initialized test bookings are never converted to live. New-booking mode remains controlled by the authenticated Admin setting. The page rechecks the environment and the server owns amounts, currency and financial state.
+
+## Guest discount codes and complimentary stays
+
+Available codes: FrankiHolzGuest15 (15%), FrankiHolzGuest25 (25%), FrankiHolzGuest35 (35%), FrankFlowGuest25 (25%), FrankFlowGuest50 (50%), FrankFlowGuest75 (75%) and FrankFlowGuest100 (100%). Matching ignores case and surrounding whitespace. One code per request; no stacking, expiry or usage limit configured. Existing FrankiHolzGuest50/75 remain compatible. Amounts and the promo snapshot are calculated server-side. Positive discounted totals must be at least EUR0.50; they are never rounded up to that minimum.
+
+A 100% discount creates a pending complimentary request with total0 and payment_status=not_required. It goes directly to booking status without Stripe or card setup. Host approval still checks/reserves available dates atomically. Rejection/cancellation preserves not_required; there are no charges, refunds or payment receipts. The scheduler excludes complimentary requests. Database constraints prohibit Stripe IDs, due dates and paid_at for these requests. Host and guest messages explicitly explain that no payment is required.
+
+## Hosted chooser entry — 2026-10-19
+
+At the owner’s explicit request, Link is disabled in the live Default payment-method configuration. This removes the returning-user Link authentication path; other enabled methods remain subject to Stripe’s setup-mode, country, currency and device eligibility. Existing card and wallet setups, host approval and charge scheduling are unchanged. Dashboard changes can take a few minutes to propagate. Old already-open sessions can need reopening; do not create duplicate booking requests to refresh them.

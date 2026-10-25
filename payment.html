@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer"><title>Payment · FrankiHolz</title><link rel="icon" href="/assets/frankiholz-favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/assets/styles.css?v=20261023-audit-fixes"><link rel="stylesheet" href="/assets/bilingual.css?v=20261023-reliability"><link rel="stylesheet" href="/assets/manual-bank-payment.css?v=20261025-payments-polish-1"><script src="/assets/vendor/supabase-js-2.118.0.js"></script><script src="/assets/config.js"></script></head>
+<body><main class="section"><div class="wrap"><section class="panel payment-panel">
+<div class="status-brand"><a class="guest-brand" href="/" aria-label="FrankiHolz home"><img src="/assets/frankiholz-logo-light-lockup.png" width="150" height="106" alt="FrankiHolz · Your stay in Frankfurt"></a><div class="lang-switch"><button type="button" class="lang-btn" data-lang="en">EN</button><button type="button" class="lang-btn" data-lang="de">DE</button></div></div>
+<span class="section-kicker" data-copy="step">Your booking request</span><h1 data-copy="title">Choose how to pay</h1><p class="lead" data-copy="lead">Choose direct bank transfer or Stripe. The host confirms your stay after the applicable payment conditions are met.</p>
+<details id="paymentLookupPanel" open><summary data-copy="lookupDetails">Booking details</summary><form id="paymentLookup"><div class="form-grid"><div><label for="reference" data-copy="reference">Booking reference</label><input id="reference" required autocomplete="off"></div><div><label for="email" data-copy="email">Booking email</label><input id="email" type="email" required autocomplete="email"></div></div><button class="btn secondary" id="lookupButton" data-copy="load" type="submit">Show payment options</button></form></details>
+<p id="paymentMessage" class="notice" role="status" aria-live="polite" hidden></p>
+<div id="paymentContent" hidden><section class="stay-summary" id="paymentSummary" aria-label="Booking summary"></section><p id="modeNotice" class="notice" hidden></p>
+
+<div id="paymentChoices" class="fh-payments">
+  <div class="fh-payments-heading" id="paymentMethodHeading">
+    <span class="fh-payments-eyebrow" data-copy="chooseEyebrow">PAYMENT OPTIONS</span>
+    <h2 data-copy="chooseTitle">Choose your payment method</h2>
+    <p data-copy="chooseLead">Save 3% with direct bank transfer, or continue to secure online payment.</p>
+  </div>
+  <div class="fh-payment-grid">
+    <article class="payment-option manual-bank-preferred fh-payment-card" id="manualBankChoice" hidden aria-labelledby="manualBankTitle">
+      <div class="fh-card-heading">
+        <span class="manual-bank-label" data-copy="manualPreferred">Preferred · Save 3%</span>
+        <span class="fh-card-icon" aria-hidden="true">↗</span>
+      </div>
+      <h3 id="manualBankTitle" data-copy="manualTitle">Direct bank transfer</h3>
+      <p class="fh-card-description" data-copy="manualDescription">Transfer to Inura's bank account, then email your payment receipt. We confirm after verifying the funds.</p>
+      <div class="fh-bank-price-wrap">
+        <span class="fh-price-caption" data-copy="manualYouPay">Your bank transfer price</span>
+        <strong class="manual-bank-price" id="manualBankPrice" aria-live="polite"></strong>
+        <div class="fh-price-saving" id="manualBankSaving"><span data-copy="manualRegular">Regular price</span> <s id="manualBankRegularPrice"></s></div>
+      </div>
+      <ul class="fh-payment-points">
+        <li id="manualDiscountBenefit" data-copy="manualBenefitDiscount">3% off your booking total</li>
+        <li data-copy="manualBenefitDirect">Transfer directly to Inura</li>
+        <li data-copy="manualBenefitVerify">Confirmation after the funds arrive</li>
+      </ul>
+      <button class="btn fh-payment-action" id="selectManualBank" type="button" data-copy="manualChoose">Choose direct bank transfer</button>
+      <p class="fh-card-fineprint" data-copy="manualFineprint">Email the receipt to Inura. The room is not confirmed until payment and availability are checked.</p>
+    </article>
+
+    <article class="payment-option fh-payment-card fh-online-card" id="stripeChoice" aria-labelledby="onlinePaymentTitle">
+      <div class="fh-card-heading"><span class="fh-neutral-label" data-copy="onlineBadge">SECURE ONLINE PAYMENT</span><span class="fh-online-icon" aria-hidden="true">◈</span></div>
+      <h3 id="onlinePaymentTitle" data-copy="savedTitle">Card & digital wallets</h3>
+      <p class="fh-card-description" data-copy="savedMethods">Continue to Stripe to choose a payment method available for your device and country.</p>
+      <div class="fh-online-summary">
+        <strong data-copy="onlineTimingTitle">No charge right now</strong>
+        <p data-copy="savedTiming">Save your details now. If the host approves, payment is initiated 14 days before arrival, or upon confirmation for nearer stays.</p>
+      </div>
+      <button class="btn secondary fh-payment-action" id="savedPayment" type="button" data-copy="savedAction">Continue to secure payment</button>
+      <p class="fh-card-fineprint" data-copy="eligibility">Payment methods depend on device and eligibility. Your host confirms the booking separately.</p>
+    </article>
+
+    <article class="payment-option fh-payment-card fh-details-card" id="manualBankInstructions" hidden aria-labelledby="bankInstructionsTitle">
+      <div class="fh-detail-top"><span class="fh-success-icon" aria-hidden="true">✓</span><span class="fh-neutral-label" data-copy="bankSelected">DIRECT BANK TRANSFER SELECTED</span></div>
+      <h3 id="bankInstructionsTitle" data-copy="manualInstructionsTitle" tabindex="-1">Your bank transfer details</h3>
+      <p class="fh-card-description" data-copy="manualInstructionsText">Transfer the exact amount with your booking reference, then send Inura the payment receipt by email.</p>
+      <dl id="manualBankFields" class="fh-bank-fields"></dl>
+      <p id="manualBankCopyFeedback" class="fh-bank-copy-feedback" role="status" aria-live="polite"></p>
+      <div class="fh-bank-next-step">
+        <div><strong data-copy="bankNextStepTitle">Next step: email your receipt</strong><p data-copy="manualPending">Inura will check the actual bank credit and room availability. Your booking remains pending until confirmed.</p></div>
+        <a class="btn fh-payment-action fh-send-proof" id="manualBankEmail" href="mailto:info@frankiflow.de" data-copy="manualSendProof">Email receipt to Inura</a>
+      </div>
+    </article>
+
+    <article class="payment-option fh-payment-card fh-existing-card" id="existingTransfer" hidden>
+      <span class="fh-neutral-label" data-copy="existingLabel">TRANSFER IN PROGRESS</span>
+      <h3 data-copy="existingTitle">Existing bank transfer</h3>
+      <p class="fh-card-description" data-copy="bankExisting">A bank transfer is already in progress. Do not send it again if you have already paid.</p>
+      <button class="btn secondary fh-payment-action" id="bankPayment" type="button" data-copy="bankAction">View existing transfer instructions</button>
+    </article>
+  </div>
+</div>
+<p id="paymentState"></p><aside class="guest-support"><h3 id="guestSupportTitle"></h3><p id="guestSupportText"></p><div class="guest-support-links"><a class="whatsapp-contact" id="guestWhatsapp" hidden target="_blank" rel="noopener noreferrer"><img src="/assets/whatsapp.svg" width="22" height="22" alt=""><span id="guestWhatsappText">Chat with your hosts</span></a><a id="guestRulesText" href="/assets/documents/frankiholz-house-guide.pdf" target="_blank" rel="noopener">Read our house guide (PDF · EN/DE)</a></div></aside></div><p class="guest-page-links"><a href="/booking-status.html" id="statusLink" data-copy="status">Booking & payment status</a><a href="/" id="backLink" data-copy="back">Back to FrankiHolz</a></p>
+</section></div></main><script src="/assets/guest-contact.js?v=20261023-audit-fixes"></script><script src="/assets/guest-session.js?v=20261023-reliability"></script><script src="/assets/payment.js?v=20261025-payments-polish-1"></script><nav class="legal-links" aria-label="Legal information"><a href="/imprint.html">Impressum / Legal notice</a><a href="/privacy.html">Datenschutz / Privacy</a></nav></body></html>
