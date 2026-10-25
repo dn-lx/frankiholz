@@ -45,7 +45,8 @@ RETURNS jsonb LANGUAGE sql STABLE SECURITY DEFINER
 SET search_path TO 'pg_catalog','public'
 AS $$
  SELECT jsonb_build_object(
-  'available',coalesce(s.enabled AND length(trim(s.account_holder))>1 AND
+  'available',coalesce(s.enabled AND public.frankiholz_get_payment_environment()='live'
+                      AND length(trim(s.account_holder))>1 AND
                       length(regexp_replace(s.iban,'[[:space:]]','','g'))>=15,false),
   'discount_percent', CASE WHEN s.legal_discount_approved THEN s.discount_percent ELSE 0 END)
  FROM public.frankiholz_manual_bank_settings s WHERE s.id=1;
@@ -76,7 +77,9 @@ BEGIN
     OR b.stripe_payment_method_id IS NOT NULL
  THEN RAISE EXCEPTION 'This booking cannot start a manual bank transfer'; END IF;
  SELECT * INTO s FROM public.frankiholz_manual_bank_settings WHERE id=1;
- IF NOT FOUND OR NOT s.enabled OR length(trim(s.account_holder))<2
+ IF NOT FOUND OR NOT s.enabled OR b.payment_mode<>'live'
+    OR public.frankiholz_get_payment_environment()<>'live'
+    OR length(trim(s.account_holder))<2
     OR length(regexp_replace(s.iban,'[[:space:]]','','g'))<15
  THEN RAISE EXCEPTION 'Direct bank transfer is not currently available'; END IF;
  IF b.payment_collection_mode='manual_bank' THEN
