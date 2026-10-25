@@ -27,6 +27,10 @@ CREATE POLICY frankiholz_manual_bank_admin ON public.frankiholz_manual_bank_sett
 
 ALTER TABLE public.frankiholz_bookings
  ADD COLUMN IF NOT EXISTS manual_bank_base_total numeric(10,2),
+ ADD COLUMN IF NOT EXISTS manual_bank_account_holder text,
+ ADD COLUMN IF NOT EXISTS manual_bank_bank_name text,
+ ADD COLUMN IF NOT EXISTS manual_bank_iban text,
+ ADD COLUMN IF NOT EXISTS manual_bank_bic text,
  ADD COLUMN IF NOT EXISTS manual_bank_discount_percent numeric(5,2),
  ADD COLUMN IF NOT EXISTS manual_bank_requested_at timestamptz,
  ADD COLUMN IF NOT EXISTS manual_bank_verified_at timestamptz,
@@ -64,6 +68,7 @@ AS $$
 DECLARE b public.frankiholz_bookings%rowtype;
  s public.frankiholz_manual_bank_settings%rowtype;
  total numeric(10,2);
+ room_open boolean;
 BEGIN
  SELECT * INTO b FROM public.frankiholz_bookings
  WHERE upper(reference)=upper(trim(p_reference))
@@ -87,18 +92,27 @@ BEGIN
      RAISE EXCEPTION 'Manual transfer already completed or closed'; END IF;
    total:=b.total_price;
  ELSIF b.payment_collection_mode='saved_method' AND b.payment_status='not_started' THEN
+   SELECT available INTO room_open FROM public.frankiholz_estimate_total(b.room_id,b.check_in,b.check_out);
+   IF room_open IS DISTINCT FROM true THEN
+      RAISE EXCEPTION 'Those stay dates are no longer available; please choose another booking';
+   END IF;
    total:=round(b.total_price*(100-(CASE WHEN s.legal_discount_approved THEN s.discount_percent ELSE 0 END))/100,2);
    IF total<0.50 THEN RAISE EXCEPTION 'Total after discount must be at least EUR 0.50'; END IF;
    UPDATE public.frankiholz_bookings SET
     total_price=total, payment_collection_mode='manual_bank',
     payment_status='awaiting_payment',manual_bank_base_total=b.total_price,
+    manual_bank_account_holder=s.account_holder,manual_bank_bank_name=s.bank_name,
+    manual_bank_iban=s.iban,manual_bank_bic=s.bic,
     manual_bank_discount_percent=(CASE WHEN s.legal_discount_approved THEN s.discount_percent ELSE 0 END),manual_bank_requested_at=now(),
     charge_due_at=NULL,payment_due_at=NULL,updated_at=now()
    WHERE id=b.id;
  ELSE RAISE EXCEPTION 'This booking already has another payment method'; END IF;
  RETURN jsonb_build_object('reference',b.reference,'amount',total,'currency','EUR',
-    'account_holder',s.account_holder,'bank_name',s.bank_name,'iban',s.iban,
-    'bic',s.bic,'payment_reference',b.reference,
+    'account_holder',coalesce(b.manual_bank_account_holder,s.account_holder),
+    'bank_name',coalesce(b.manual_bank_bank_name,s.bank_name),
+    'iban',coalesce(b.manual_bank_iban,s.iban),
+    'bic',coalesce(b.manual_bank_bic,s.bic),
+    'payment_reference',b.reference,
     'proof_email','info@frankiflow.de','discount_percent',
     coalesce(b.manual_bank_discount_percent,(CASE WHEN s.legal_discount_approved THEN s.discount_percent ELSE 0 END)));
 END $$;
@@ -121,8 +135,11 @@ BEGIN
  IF NOT FOUND THEN RAISE EXCEPTION 'No matching manual transfer'; END IF;
  SELECT * INTO s FROM public.frankiholz_manual_bank_settings WHERE id=1;
  RETURN jsonb_build_object('reference',b.reference,'amount',b.total_price,
-   'account_holder',s.account_holder,'bank_name',s.bank_name,'iban',s.iban,
-   'bic',s.bic,'payment_reference',b.reference,'proof_email','info@frankiflow.de',
+   'account_holder',coalesce(b.manual_bank_account_holder,s.account_holder),
+   'bank_name',coalesce(b.manual_bank_bank_name,s.bank_name),
+   'iban',coalesce(b.manual_bank_iban,s.iban),
+   'bic',coalesce(b.manual_bank_bic,s.bic),
+   'payment_reference',b.reference,'proof_email','info@frankiflow.de',
    'status',b.status,'payment_status',b.payment_status);
 END $$;
 REVOKE ALL ON FUNCTION public.frankiholz_get_manual_bank_instructions(text,text) FROM PUBLIC;
