@@ -15,7 +15,12 @@ export async function openBankTransfer(service: any, stripe: any, booking: any, 
   if(environmentError||environment!==mode)throw new Error('Payment environment changed; please contact FrankiHolz');
   const {data:estimate,error:estimateError}=await service.rpc('frankiholz_estimate_total',{p_room_id:booking.room_id,p_check_in:booking.check_in,p_check_out:booking.check_out});
   if(estimateError||!estimate?.[0]?.available)throw new Error('Those dates are no longer available');
-  const {booking: b, token} = await claimOperation(service, booking.id, 'setup');
+  const {booking: claimed, token} = await claimOperation(service, booking.id, 'setup');
+  const {data:pricedTotal,error:priceError}=await service.rpc('frankiholz_prepare_collection_total',{
+    p_booking_id:claimed.id,p_operation_token:token,p_collection_mode:'bank_transfer',
+  });
+  if(priceError||!Number.isFinite(Number(pricedTotal)))throw priceError||new Error('Payment amount unavailable');
+  const b={...claimed,total_price:Number(pricedTotal)};
   const amount = Math.round(Number(b.total_price) * 100);
   if (!Number.isSafeInteger(amount) || amount < 50) {
     await releaseOperation(service,b.id,token);
