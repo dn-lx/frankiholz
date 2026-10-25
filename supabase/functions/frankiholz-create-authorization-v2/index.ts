@@ -33,7 +33,7 @@ Deno.serve(async(req:Request)=>{
   const {data:estimate,error:estimateError}=await service.rpc("frankiholz_estimate_total",{p_room_id:booking.room_id,p_check_in:booking.check_in,p_check_out:booking.check_out});if(estimateError||!estimate?.[0]?.available)return new Response(JSON.stringify({error:"Those dates are no longer available"}),{status:409,headers});
   const {token}=await claimOperation(service,booking.id,"setup");
   const {data:pricedTotal,error:priceError}=await service.rpc("frankiholz_prepare_collection_total",{p_booking_id:booking.id,p_operation_token:token,p_collection_mode:"saved_method"});
-  if(priceError||!Number.isFinite(Number(pricedTotal)))throw priceError||new Error("Payment amount unavailable");
+  if(priceError||!Number.isFinite(Number(pricedTotal))){await releaseOperation(service,booking.id,token);throw priceError||new Error("Payment amount unavailable");}
   let customerId=booking.stripe_customer_id as string|null;if(!customerId){const customer=await createSetupResource(service,booking.id,token,()=>stripe.customers.create({email:booking.guest_email,name:booking.guest_name,phone:booking.guest_phone||undefined,metadata:{booking_id:booking.id,reference:booking.reference,frankiholz_mode:"live"}},{idempotencyKey:`fh-setup-customer-live-${booking.id}`}));customerId=customer.id;}
   if(typeof customerId!=="string"||!customerId.startsWith("cus_"))throw new Error("Payment customer needs reconciliation; please contact FrankiHolz");
   const checkoutCustomerId=customerId;
