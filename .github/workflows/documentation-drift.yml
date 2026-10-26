@@ -17,11 +17,11 @@ jobs:
   audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: develop
           fetch-depth: 0
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: "22"
       - name: Review last 24 hours
@@ -29,7 +29,7 @@ jobs:
           node scripts/documentation-drift.mjs
           cat documentation-drift-report.md >> "$GITHUB_STEP_SUMMARY"
       - name: Upload documentation drift report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: documentation-drift-${{ github.run_id }}
           path: documentation-drift-report.md
