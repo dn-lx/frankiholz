@@ -23,6 +23,6 @@
     "node": ">=22.19"
   },
   "dependencies": {
-    "@supabase/supabase-js": "2.118.0"
+    "@supabase/supabase-js": "2.119.0"
   }
 }
